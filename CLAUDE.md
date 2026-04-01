@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Averziano is a Phoenix 1.8 application (JSON API + LiveView) backed by PostgreSQL with Ecto. Uses Bandit as HTTP server, binary UUIDs as primary keys, and esbuild/Tailwind for asset bundling.
+Recco is a Phoenix 1.8 application (JSON API + LiveView) backed by PostgreSQL with Ecto. Uses Bandit as HTTP server, binary UUIDs as primary keys, and esbuild/Tailwind for asset bundling.
 
 ## Common Commands
 
@@ -27,23 +27,23 @@ Averziano is a Phoenix 1.8 application (JSON API + LiveView) backed by PostgreSQ
 
 ### Context Pattern
 
-Strict separation: `lib/averziano/` (business logic) vs `lib/averziano_web/` (web layer). Controllers never touch `Repo` directly — all DB access goes through context modules.
+Strict separation: `lib/recco/` (business logic) vs `lib/recco_web/` (web layer). Controllers never touch `Repo` directly — all DB access goes through context modules.
 
 ### Error Flow
 
-`Averziano.Errors` defines typed error tuples (`{:error, reason}` or `{:error, reason, details}`). All context functions return `{:ok, result} | Errors.t()`. The `FallbackController` maps error atoms to HTTP status codes — controllers use `action_fallback` and return error tuples directly.
+`Recco.Errors` defines typed error tuples (`{:error, reason}` or `{:error, reason, details}`). All context functions return `{:ok, result} | Errors.t()`. The `FallbackController` maps error atoms to HTTP status codes — controllers use `action_fallback` and return error tuples directly.
 
 ### Auth
 
-Swappable token verification via config: `config :averziano, token_verifier: Averziano.Auth.Token` (production) / `Averziano.Auth.TokenMock` (test). The `AverzianoWeb.Plugs.Auth` plug reads config at runtime. LiveView auth uses session-based `on_mount` hook (`AverzianoWeb.Live.AuthHook`).
+Swappable token verification via config: `config :recco, token_verifier: Recco.Auth.Token` (production) / `Recco.Auth.TokenMock` (test). The `ReccoWeb.Plugs.Auth` plug reads config at runtime. LiveView auth uses session-based `on_mount` hook (`ReccoWeb.Live.AuthHook`).
 
 ### Router Organization
 
-Pipelines: `:api`, `:browser`, `:authenticated`. Health check forwarded to `AverzianoWeb.Health.Router`. Scopes: public API, authenticated API, admin (browser + LiveView with auth hook).
+Pipelines: `:api`, `:browser`, `:authenticated`. Health check forwarded to `ReccoWeb.Health.Router`. Scopes: public API, authenticated API, admin (browser + LiveView with auth hook).
 
 ### Web Module Dispatch
 
-`AverzianoWeb` defines `:controller` (JSON-only) and `:html_controller` (HTML+JSON) quoted blocks, plus `:live_view`, `:live_component`, `:html`.
+`ReccoWeb` defines `:controller` (JSON-only) and `:html_controller` (HTML+JSON) quoted blocks, plus `:live_view`, `:live_component`, `:html`.
 
 ### OTP Supervision
 

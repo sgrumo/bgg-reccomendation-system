@@ -1,9 +1,9 @@
-defmodule Averziano.MixProject do
+defmodule Recco.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :averziano,
+      app: :recco,
       version: "0.1.0",
       elixir: "~> 1.19",
       elixirc_paths: elixirc_paths(Mix.env()),
@@ -26,7 +26,7 @@ defmodule Averziano.MixProject do
 
   def application do
     [
-      mod: {Averziano.Application, []},
+      mod: {Recco.Application, []},
       extra_applications: [:logger, :runtime_tools]
     ]
   end
@@ -77,6 +77,7 @@ defmodule Averziano.MixProject do
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.2.0"},
       {:req, "~> 0.5"},
+      {:sweet_xml, "~> 0.7"},
 
       # Static analysis
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
@@ -96,10 +97,10 @@ defmodule Averziano.MixProject do
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
       precommit: ["compile --warnings-as-errors", "deps.unlock --unused", "format", "test"],
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
-      "assets.build": ["tailwind averziano", "esbuild averziano"],
+      "assets.build": ["tailwind recco", "esbuild recco"],
       "assets.deploy": [
-        "tailwind averziano --minify",
-        "esbuild averziano --minify",
+        "tailwind recco --minify",
+        "esbuild recco --minify",
         "phx.digest"
       ]
     ]

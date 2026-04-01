@@ -1,4 +1,4 @@
-# Averziano
+# Recco
 
 Phoenix 1.8 template repository with JSON API + LiveView, PostgreSQL, and production-ready patterns.
 
@@ -45,14 +45,14 @@ Visit [`localhost:4000`](http://localhost:4000).
 
 ```
 lib/
-  averziano/                 # Core business logic (contexts, schemas)
+  recco/                 # Core business logic (contexts, schemas)
     application.ex           # OTP supervision tree
     repo.ex                  # Ecto Repo
     errors.ex                # Shared typed error tuples
     auth/
       token.ex               # JWT verification (Joken)
       token_mock.ex          # Test mock (swapped via config)
-  averziano_web/             # Web layer
+  recco_web/             # Web layer
     endpoint.ex              # HTTP endpoint (CORS, sessions, LiveView socket)
     router.ex                # Route definitions (API, browser, admin)
     controllers/
@@ -83,18 +83,18 @@ test/
 
 ### Context Pattern
 
-Strict separation between core (`lib/averziano/`) and web (`lib/averziano_web/`). Controllers never touch `Repo` directly — all database access goes through context modules.
+Strict separation between core (`lib/recco/`) and web (`lib/recco_web/`). Controllers never touch `Repo` directly — all database access goes through context modules.
 
 ### Error Flow
 
-`Averziano.Errors` defines typed error tuples:
+`Recco.Errors` defines typed error tuples:
 
 ```elixir
 {:error, :not_found}                    # Simple error
 {:error, :unprocessable_entity, errors} # Error with details
 ```
 
-All context functions return `{:ok, result} | Averziano.Errors.t()`. The `FallbackController` maps error atoms to HTTP status codes, so controllers use `action_fallback AverzianoWeb.FallbackController` and return error tuples directly.
+All context functions return `{:ok, result} | Recco.Errors.t()`. The `FallbackController` maps error atoms to HTTP status codes, so controllers use `action_fallback ReccoWeb.FallbackController` and return error tuples directly.
 
 ### Authentication
 
@@ -102,15 +102,15 @@ Token verification is swappable via config:
 
 ```elixir
 # config/config.exs (production)
-config :averziano, token_verifier: Averziano.Auth.Token
+config :recco, token_verifier: Recco.Auth.Token
 
 # config/test.exs
-config :averziano, token_verifier: Averziano.Auth.TokenMock
+config :recco, token_verifier: Recco.Auth.TokenMock
 ```
 
-The `AverzianoWeb.Plugs.Auth` plug reads the verifier from config at runtime, enabling mock injection in tests without Mox.
+The `ReccoWeb.Plugs.Auth` plug reads the verifier from config at runtime, enabling mock injection in tests without Mox.
 
-LiveView uses session-based auth via the `AverzianoWeb.Live.AuthHook` `on_mount` callback.
+LiveView uses session-based auth via the `ReccoWeb.Live.AuthHook` `on_mount` callback.
 
 ### Router Organization
 
@@ -123,7 +123,7 @@ LiveView uses session-based auth via the `AverzianoWeb.Live.AuthHook` `on_mount`
 
 ### Web Module Dispatch
 
-`AverzianoWeb` provides quoted blocks via `use AverzianoWeb, :type`:
+`ReccoWeb` provides quoted blocks via `use ReccoWeb, :type`:
 
 - `:controller` — JSON-only API controllers
 - `:html_controller` — HTML + JSON controllers (admin, sessions)
@@ -209,7 +209,7 @@ Flags: `error_handling`, `unknown`, `unmatched_returns`, `underspecs`. PLT files
 
 - **Health check:** `GET /health` via `plug_checkup` (checks database connectivity)
 - **Metrics:** `telemetry_ui` for request counts/durations, DB query times, VM memory
-- **Telemetry events:** Standard Phoenix + Ecto telemetry configured in `AverzianoWeb.Telemetry`
+- **Telemetry events:** Standard Phoenix + Ecto telemetry configured in `ReccoWeb.Telemetry`
 
 ## Key Dependencies
 

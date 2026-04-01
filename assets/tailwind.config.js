@@ -5,8 +5,8 @@ const path = require("path")
 module.exports = {
   content: [
     "./js/**/*.js",
-    "../lib/averziano_web.ex",
-    "../lib/averziano_web/**/*.*ex"
+    "../lib/recco_web.ex",
+    "../lib/recco_web/**/*.*ex"
   ],
   theme: {
     extend: {},
