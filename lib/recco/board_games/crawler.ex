@@ -1,5 +1,5 @@
 defmodule Recco.BoardGames.Crawler do
-  use GenServer
+  use GenServer, restart: :temporary
 
   require Logger
 
@@ -61,7 +61,6 @@ defmodule Recco.BoardGames.Crawler do
 
   @impl true
   def init(opts) do
-    max_id = Keyword.get(opts, :max_id, 400_000)
     delay_ms = Keyword.get(opts, :delay_ms, @default_delay_ms)
 
     current_id =
@@ -70,7 +69,14 @@ defmodule Recco.BoardGames.Crawler do
         {:error, :not_found} -> 1
       end
 
+    max_id =
+      case Keyword.fetch(opts, :count) do
+        {:ok, count} -> current_id + count - 1
+        :error -> Keyword.get(opts, :max_id, current_id + 400_000 - 1)
+      end
+
     state = %{
+      start_id: current_id,
       current_id: current_id,
       max_id: max_id,
       delay_ms: delay_ms,
@@ -87,6 +93,7 @@ defmodule Recco.BoardGames.Crawler do
   def handle_call(:status, _from, state) do
     reply = %{
       running: true,
+      start_id: state.start_id,
       current_id: state.current_id,
       max_id: state.max_id,
       status: state.status
@@ -97,6 +104,12 @@ defmodule Recco.BoardGames.Crawler do
 
   def handle_call(:stop, _from, state) do
     Logger.info("Crawler stopping at ID #{state.current_id}")
+
+    BoardGames.upsert_crawl_state(@crawl_key, %{
+      last_fetched_id: state.current_id - 1,
+      status: "stopped"
+    })
+
     {:stop, :normal, :ok, %{state | status: "stopped"}}
   end
 

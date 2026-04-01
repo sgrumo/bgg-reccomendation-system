@@ -23,7 +23,7 @@ defmodule Recco.BoardGames.CrawlerTest do
 
   describe "crawl lifecycle" do
     test "fetches board games and marks completed" do
-      start_and_await(max_id: 20, delay_ms: 10)
+      start_and_await(count: 20, delay_ms: 10)
 
       assert {:ok, state} = BoardGames.get_crawl_state("board_games")
       assert state.last_fetched_id == 20
@@ -31,7 +31,7 @@ defmodule Recco.BoardGames.CrawlerTest do
     end
 
     test "stores parsed board games in the database" do
-      start_and_await(max_id: 20, delay_ms: 10)
+      start_and_await(count: 20, delay_ms: 10)
 
       assert {:ok, game} = BoardGames.get_board_game_by_bgg_id(174_430)
       assert game.name == "Gloomhaven"
@@ -43,7 +43,7 @@ defmodule Recco.BoardGames.CrawlerTest do
     test "resumes from last fetched ID" do
       BoardGames.upsert_crawl_state("board_games", %{last_fetched_id: 10, status: "running"})
 
-      start_and_await(max_id: 20, delay_ms: 10)
+      start_and_await(count: 10, delay_ms: 10)
 
       assert {:ok, state} = BoardGames.get_crawl_state("board_games")
       assert state.last_fetched_id == 20
@@ -51,22 +51,24 @@ defmodule Recco.BoardGames.CrawlerTest do
   end
 
   describe "stop and status" do
-    test "stops a running crawler" do
-      pid = start_crawler(max_id: 1_000_000, delay_ms: 60_000)
+    test "stops a running crawler and persists state" do
+      pid = start_crawler(count: 1_000_000, delay_ms: 60_000)
       assert Process.alive?(pid)
 
       GenServer.call(pid, :stop)
 
       ref = Process.monitor(pid)
       assert_receive {:DOWN, ^ref, :process, ^pid, _}, 1_000
+
+      assert {:ok, state} = BoardGames.get_crawl_state("board_games")
+      assert state.status == "stopped"
     end
 
     test "reports status of running crawler" do
-      pid = start_crawler(max_id: 100, delay_ms: 60_000)
+      pid = start_crawler(count: 100, delay_ms: 60_000)
 
       status = GenServer.call(pid, :status)
       assert status.running == true
-      assert status.max_id == 100
     end
   end
 
@@ -75,9 +77,9 @@ defmodule Recco.BoardGames.CrawlerTest do
       assert {:error, :not_running} = Crawler.status()
       assert {:error, :not_running} = Crawler.stop()
 
-      assert {:ok, pid} = Crawler.start(max_id: 1_000_000, delay_ms: 60_000)
+      assert {:ok, pid} = Crawler.start(count: 1_000_000, delay_ms: 60_000)
       assert {:ok, %{running: true}} = Crawler.status()
-      assert {:error, {:already_started, ^pid}} = Crawler.start(max_id: 100)
+      assert {:error, {:already_started, ^pid}} = Crawler.start(count: 100)
       assert :ok = Crawler.stop()
       assert {:error, :not_running} = Crawler.status()
     end

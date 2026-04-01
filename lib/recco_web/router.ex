@@ -44,6 +44,8 @@ defmodule ReccoWeb.Router do
   if Application.compile_env(:recco, :dev_routes) do
     scope "/dev" do
       pipe_through :browser
+
+      live "/crawler", ReccoWeb.CrawlerLive
     end
   end
 end

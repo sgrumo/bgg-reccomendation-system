@@ -34,6 +34,11 @@ defmodule Recco.BoardGames do
     end
   end
 
+  @spec board_game_count() :: non_neg_integer()
+  def board_game_count do
+    Repo.aggregate(BoardGame, :count)
+  end
+
   @spec upsert_crawl_state(String.t(), map()) :: {:ok, CrawlState.t()} | Errors.t(map())
   def upsert_crawl_state(key, attrs) do
     %CrawlState{}
