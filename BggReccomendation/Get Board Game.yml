@@ -1,0 +1,27 @@
+info:
+  name: Get Board Game
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: https://boardgamegeek.com/xmlapi2/thing?id=1&type=boardgame&stats=1
+  params:
+    - name: id
+      value: "1"
+      type: query
+    - name: type
+      value: boardgame
+      type: query
+    - name: stats
+      value: "1"
+      type: query
+  auth:
+    type: bearer
+    token: "{{BGG_BEARER_TOKEN}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
