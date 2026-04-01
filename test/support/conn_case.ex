@@ -1,21 +1,21 @@
-defmodule AverzianoWeb.ConnCase do
+defmodule ReccoWeb.ConnCase do
   use ExUnit.CaseTemplate
 
   using do
     quote do
-      @endpoint AverzianoWeb.Endpoint
+      @endpoint ReccoWeb.Endpoint
 
-      use AverzianoWeb, :verified_routes
+      use ReccoWeb, :verified_routes
 
       import Plug.Conn
       import Phoenix.ConnTest
-      import AverzianoWeb.ConnCase
-      import Averziano.Factory
+      import ReccoWeb.ConnCase
+      import Recco.Factory
     end
   end
 
   setup tags do
-    Averziano.DataCase.setup_sandbox(tags)
+    Recco.DataCase.setup_sandbox(tags)
     {:ok, conn: Phoenix.ConnTest.build_conn()}
   end
 

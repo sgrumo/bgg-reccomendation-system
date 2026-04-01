@@ -1,2 +1,2 @@
 ExUnit.start()
-Ecto.Adapters.SQL.Sandbox.mode(Averziano.Repo, :manual)
+Ecto.Adapters.SQL.Sandbox.mode(Recco.Repo, :manual)
