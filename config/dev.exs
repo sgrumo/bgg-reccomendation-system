@@ -1,26 +1,26 @@
 import Config
 
-config :averziano, Averziano.Repo,
+config :recco, Recco.Repo,
   username: "postgres",
   password: "postgres",
   hostname: "localhost",
-  database: "averziano_dev",
+  database: "recco_dev",
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
 
-config :averziano, AverzianoWeb.Endpoint,
+config :recco, ReccoWeb.Endpoint,
   http: [ip: {127, 0, 0, 1}],
   check_origin: false,
   code_reloader: true,
   debug_errors: true,
   secret_key_base: "kkSsaLR2kZRrxV2xp0d7HHWxF/3Zk+ex0LtCGCSGu1LG8JWf+9rdajnx3Xm/kLZP",
   watchers: [
-    esbuild: {Esbuild, :install_and_run, [:averziano, ~w(--sourcemap=inline --watch)]},
-    tailwind: {Tailwind, :install_and_run, [:averziano, ~w(--watch)]}
+    esbuild: {Esbuild, :install_and_run, [:recco, ~w(--sourcemap=inline --watch)]},
+    tailwind: {Tailwind, :install_and_run, [:recco, ~w(--watch)]}
   ]
 
-config :averziano, dev_routes: true
+config :recco, dev_routes: true
 
 config :logger, :default_formatter, format: "[$level] $message\n"
 

@@ -7,8 +7,7 @@ down:
 	docker compose down
 
 dev-api: up
-	mix setup
-	mix phx.server
+	export $$(grep -v '^#' .env | xargs) && mix setup && mix phx.server
 
 test: up
 	mix test

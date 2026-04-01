@@ -1,20 +1,20 @@
 import Config
 
-config :averziano,
-  ecto_repos: [Averziano.Repo],
+config :recco,
+  ecto_repos: [Recco.Repo],
   generators: [timestamp_type: :utc_datetime, binary_id: true]
 
-config :averziano, AverzianoWeb.Endpoint,
+config :recco, ReccoWeb.Endpoint,
   url: [host: "localhost"],
   adapter: Bandit.PhoenixAdapter,
   render_errors: [
-    formats: [json: AverzianoWeb.ErrorJSON],
+    formats: [json: ReccoWeb.ErrorJSON],
     layout: false
   ],
-  pubsub_server: Averziano.PubSub,
+  pubsub_server: Recco.PubSub,
   live_view: [signing_salt: "8hHPku3H"]
 
-config :averziano, token_verifier: Averziano.Auth.Token
+config :recco, token_verifier: Recco.Auth.Token
 
 config :logger, :default_formatter,
   format: "$time $metadata[$level] $message\n",
@@ -25,7 +25,7 @@ config :phoenix, :json_library, Jason
 # esbuild
 config :esbuild,
   version: "0.21.5",
-  averziano: [
+  recco: [
     args:
       ~w(js/app.js --bundle --target=es2017 --outdir=../priv/static/assets --external:/fonts/* --external:/images/*),
     cd: Path.expand("../assets", __DIR__),
@@ -35,7 +35,7 @@ config :esbuild,
 # tailwind
 config :tailwind,
   version: "3.4.13",
-  averziano: [
+  recco: [
     args: ~w(
       --config=tailwind.config.js
       --input=css/app.css
