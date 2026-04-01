@@ -162,9 +162,7 @@ defmodule Recco.BoardGames.Crawler do
   defp safe_call(pid, message, default) do
     GenServer.call(pid, message)
   catch
-    :exit, {:noproc, _} -> default
-    :exit, {:normal, _} -> default
-    :exit, {:shutdown, _} -> default
+    :exit, _ -> default
   end
 
   defp via_registry do
