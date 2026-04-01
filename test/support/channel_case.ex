@@ -1,17 +1,17 @@
-defmodule AverzianoWeb.ChannelCase do
+defmodule ReccoWeb.ChannelCase do
   use ExUnit.CaseTemplate
 
   using do
     quote do
       import Phoenix.ChannelTest
-      import AverzianoWeb.ChannelCase
+      import ReccoWeb.ChannelCase
 
-      @endpoint AverzianoWeb.Endpoint
+      @endpoint ReccoWeb.Endpoint
     end
   end
 
   setup tags do
-    Averziano.DataCase.setup_sandbox(tags)
+    Recco.DataCase.setup_sandbox(tags)
     :ok
   end
 end
