@@ -122,7 +122,11 @@ defmodule Recco.BoardGames.BggApi do
 
   defp http_get(url) do
     headers = bearer_token_headers()
-    Application.get_env(:recco, :bgg_http_client, Req).get(url, headers: headers, decode_body: false)
+
+    Application.get_env(:recco, :bgg_http_client, Req).get(url,
+      headers: headers,
+      decode_body: false
+    )
   end
 
   defp bearer_token_headers do

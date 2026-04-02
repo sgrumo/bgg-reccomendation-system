@@ -36,7 +36,7 @@ defmodule Recco.Application do
 
   defp telemetry_ui_config do
     [
-      metrics: ReccoWeb.Telemetry.metrics(),
+      metrics: ReccoWeb.Telemetry.ui_metrics(),
       theme: %{title: "Recco Metrics"},
       backend: %TelemetryUI.Backend.EctoPostgres{repo: Recco.Repo}
     ]

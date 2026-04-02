@@ -40,11 +40,12 @@ defmodule ReccoWeb.Router do
     end
   end
 
-  # Metrics dashboard (telemetry_ui)
+  # Dev routes (metrics dashboard, crawler)
   if Application.compile_env(:recco, :dev_routes) do
     scope "/dev" do
       pipe_through :browser
 
+      get "/metrics", TelemetryUI.Web, [], assigns: %{telemetry_ui_allowed: true}
       live "/crawler", ReccoWeb.CrawlerLive
     end
   end
