@@ -20,8 +20,7 @@ if System.get_env("PHX_SERVER") do
   config :recco, ReccoWeb.Endpoint, server: true
 end
 
-config :recco, ReccoWeb.Endpoint,
-  http: [port: String.to_integer(System.get_env("PORT", "4000"))]
+config :recco, ReccoWeb.Endpoint, http: [port: String.to_integer(System.get_env("PORT", "4000"))]
 
 config :recco, bgg_bearer_token: System.get_env("BGG_BEARER_TOKEN")
 
