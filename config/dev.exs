@@ -22,6 +22,7 @@ config :recco, ReccoWeb.Endpoint,
   ]
 
 config :recco, dev_routes: true
+config :recco, telemetry_ui_enabled: true
 
 config :logger, :default_formatter, format: "[$level] $message\n"
 
