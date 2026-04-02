@@ -2,6 +2,8 @@ defmodule ReccoWeb.Telemetry do
   use Supervisor
   import Telemetry.Metrics
 
+  alias TelemetryUI.Metrics, as: UI
+
   @spec start_link(term()) :: Supervisor.on_start()
   def start_link(arg) do
     Supervisor.start_link(__MODULE__, arg, name: __MODULE__)
@@ -82,6 +84,50 @@ defmodule ReccoWeb.Telemetry do
       summary("vm.total_run_queue_lengths.total"),
       summary("vm.total_run_queue_lengths.cpu"),
       summary("vm.total_run_queue_lengths.io")
+    ]
+  end
+
+  @spec ui_metrics() :: [struct()]
+  def ui_metrics do
+    [
+      UI.title("Phoenix"),
+      UI.average_over_time("phoenix.endpoint.stop.duration",
+        unit: {:native, :millisecond},
+        description: "Endpoint response time"
+      ),
+      UI.average_over_time("phoenix.router_dispatch.stop.duration",
+        tags: [:route],
+        unit: {:native, :millisecond},
+        description: "Router dispatch time"
+      ),
+      UI.count_over_time("phoenix.router_dispatch.stop.duration",
+        tags: [:route],
+        unit: {:native, :millisecond},
+        description: "Request count"
+      ),
+
+      UI.title("Database"),
+      UI.average_over_time("recco.repo.query.total_time",
+        unit: {:native, :millisecond},
+        description: "Query total time"
+      ),
+      UI.average_over_time("recco.repo.query.query_time",
+        unit: {:native, :millisecond},
+        description: "Query execution time"
+      ),
+      UI.average_over_time("recco.repo.query.queue_time",
+        unit: {:native, :millisecond},
+        description: "Connection queue time"
+      ),
+
+      UI.title("VM"),
+      UI.last_value("vm.memory.total",
+        unit: {:byte, :kilobyte},
+        description: "Total memory"
+      ),
+      UI.last_value("vm.total_run_queue_lengths.total",
+        description: "Run queue length"
+      )
     ]
   end
 
