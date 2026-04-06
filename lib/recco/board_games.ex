@@ -39,6 +39,11 @@ defmodule Recco.BoardGames do
     Repo.aggregate(BoardGame, :count)
   end
 
+  @spec max_bgg_id() :: non_neg_integer()
+  def max_bgg_id do
+    Repo.aggregate(BoardGame, :max, :bgg_id) || 0
+  end
+
   @spec upsert_crawl_state(String.t(), map()) :: {:ok, CrawlState.t()} | Errors.t(map())
   def upsert_crawl_state(key, attrs) do
     %CrawlState{}

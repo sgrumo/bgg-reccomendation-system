@@ -6,6 +6,9 @@ up:
 down:
 	docker compose down
 
+env-import:
+	export $$(grep -v '^#' .env | xargs) 
+
 dev-api: up
 	export $$(grep -v '^#' .env | xargs) && mix setup && mix phx.server
 

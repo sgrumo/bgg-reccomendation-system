@@ -10,6 +10,7 @@ defmodule Recco.Application do
         ReccoWeb.Telemetry,
         Recco.Repo,
         telemetry_ui_child(),
+        {Oban, Application.fetch_env!(:recco, Oban)},
         {DNSCluster, query: Application.get_env(:recco, :dns_cluster_query) || :ignore},
         {Phoenix.PubSub, name: Recco.PubSub},
         {Registry, keys: :unique, name: Recco.Registry},
