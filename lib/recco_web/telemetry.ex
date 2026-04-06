@@ -96,7 +96,6 @@ defmodule ReccoWeb.Telemetry do
         unit: {:native, :millisecond},
         description: "Request count"
       ),
-
       UI.title("Database"),
       UI.average_over_time("recco.repo.query.total_time",
         unit: {:native, :millisecond},
@@ -106,7 +105,6 @@ defmodule ReccoWeb.Telemetry do
         unit: {:native, :millisecond},
         description: "Query execution time"
       ),
-
       UI.title("VM"),
       UI.last_value("vm.memory.total",
         unit: {:byte, :kilobyte},
