@@ -42,7 +42,11 @@ defmodule Recco.Workers.NewGameScanner do
 
       {:ok, games} ->
         Enum.each(games, &BoardGames.upsert_board_game/1)
-        Logger.info("NewGameScanner found #{length(games)} games in IDs #{current_id}..#{batch_end}")
+
+        Logger.info(
+          "NewGameScanner found #{length(games)} games in IDs #{current_id}..#{batch_end}"
+        )
+
         Process.sleep(@delay_ms)
         scan(batch_end + 1, 0, found + length(games))
 
