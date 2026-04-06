@@ -69,15 +69,6 @@ defmodule ReccoWeb.Telemetry do
         unit: {:native, :millisecond},
         description: "The time spent executing the query"
       ),
-      summary("recco.repo.query.queue_time",
-        unit: {:native, :millisecond},
-        description: "The time spent waiting for a database connection"
-      ),
-      summary("recco.repo.query.idle_time",
-        unit: {:native, :millisecond},
-        description:
-          "The time the connection spent waiting before being checked out for the query"
-      ),
 
       # VM Metrics
       summary("vm.memory.total", unit: {:byte, :kilobyte}),
@@ -114,10 +105,6 @@ defmodule ReccoWeb.Telemetry do
       UI.average_over_time("recco.repo.query.query_time",
         unit: {:native, :millisecond},
         description: "Query execution time"
-      ),
-      UI.average_over_time("recco.repo.query.queue_time",
-        unit: {:native, :millisecond},
-        description: "Connection queue time"
       ),
 
       UI.title("VM"),

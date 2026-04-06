@@ -72,6 +72,9 @@ defmodule Recco.MixProject do
       {:esbuild, "~> 0.8", runtime: Mix.env() == :dev},
       {:tailwind, "~> 0.2", runtime: Mix.env() == :dev},
 
+      # Jobs
+      {:oban, "~> 2.19"},
+
       # Utilities
       {:gettext, "~> 1.0"},
       {:jason, "~> 1.2"},

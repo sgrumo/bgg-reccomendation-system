@@ -8,7 +8,9 @@
       "Bash(curl -s \"https://boardgamegeek.com/xmlapi2/thing?id=174430,13&type=boardgame&stats=1\")",
       "Bash(curl -s -v \"https://boardgamegeek.com/xmlapi2/thing?id=174430&type=boardgame&stats=1\")",
       "Bash(ls:*)",
-      "Bash(find lib:*)"
+      "Bash(find lib:*)",
+      "WebSearch",
+      "WebFetch(domain:en.wikipedia.org)"
     ]
   }
 }

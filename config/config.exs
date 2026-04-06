@@ -16,6 +16,16 @@ config :recco, ReccoWeb.Endpoint,
 
 config :recco, token_verifier: Recco.Auth.Token
 
+config :recco, Oban,
+  repo: Recco.Repo,
+  queues: [default: 1],
+  plugins: [
+    {Oban.Plugins.Cron,
+     crontab: [
+       {"0 3 * * 1", Recco.Workers.NewGameScanner}
+     ]}
+  ]
+
 config :logger, :default_formatter,
   format: "$time $metadata[$level] $message\n",
   metadata: [:request_id]
