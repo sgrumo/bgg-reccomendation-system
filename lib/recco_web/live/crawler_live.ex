@@ -45,51 +45,55 @@ defmodule ReccoWeb.CrawlerLive do
   end
 
   defp assign_crawler_state(socket) do
-    crawler_status = Crawler.status()
-    game_count = BoardGames.board_game_count()
     crawl_state = BoardGames.get_crawl_state("board_games")
 
-    last_fetched_id =
-      case crawl_state do
-        {:ok, cs} -> cs.last_fetched_id
-        _ -> 0
-      end
+    assigns =
+      Crawler.status()
+      |> build_crawler_assigns(crawl_state)
+      |> Map.put(:game_count, BoardGames.board_game_count())
 
-    {running?, current_id, start_id, max_id, status_text} =
-      case crawler_status do
-        {:ok, status} ->
-          {true, status.current_id, status.start_id, status.max_id, status.status}
+    assign(socket, assigns)
+  end
 
-        {:error, :not_running} ->
-          db_status =
-            case crawl_state do
-              {:ok, %{status: s}} when s in ["completed", "stopped"] -> s
-              _ -> "idle"
-            end
+  defp build_crawler_assigns({:ok, status}, crawl_state) do
+    total = status.max_id - status.start_id + 1
+    done = status.current_id - status.start_id
 
-          {false, last_fetched_id, 0, 0, db_status}
-      end
-
-    total = max_id - start_id + 1
-    done = current_id - start_id
-
-    progress =
-      if running? and total > 0,
-        do: Float.round(done / total * 100, 1),
-        else: 0.0
-
-    assign(socket,
-      running: running?,
-      current_id: current_id,
-      max_id: max_id,
+    %{
+      running: true,
+      current_id: status.current_id,
+      max_id: status.max_id,
       total: total,
       done: done,
-      status: status_text,
-      progress: progress,
-      game_count: game_count,
-      last_fetched_id: last_fetched_id
-    )
+      status: status.status,
+      progress: Float.round(done / total * 100, 1),
+      last_fetched_id: last_fetched_id(crawl_state)
+    }
   end
+
+  defp build_crawler_assigns({:error, :not_running}, crawl_state) do
+    last_id = last_fetched_id(crawl_state)
+
+    db_status =
+      case crawl_state do
+        {:ok, %{status: s}} when s in ["completed", "stopped"] -> s
+        _ -> "idle"
+      end
+
+    %{
+      running: false,
+      current_id: last_id,
+      max_id: 0,
+      total: 0,
+      done: 0,
+      status: db_status,
+      progress: 0.0,
+      last_fetched_id: last_id
+    }
+  end
+
+  defp last_fetched_id({:ok, cs}), do: cs.last_fetched_id
+  defp last_fetched_id(_), do: 0
 
   @impl true
   def render(assigns) do
