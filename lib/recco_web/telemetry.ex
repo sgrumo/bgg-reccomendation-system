@@ -2,7 +2,6 @@ defmodule ReccoWeb.Telemetry do
   use Supervisor
   import Telemetry.Metrics
 
-  alias TelemetryMetrics.Metrics
 
   @spec start_link(term()) :: Supervisor.on_start()
   def start_link(arg) do
@@ -16,13 +15,13 @@ defmodule ReccoWeb.Telemetry do
       # every 10_000ms. Learn more here: https://hexdocs.pm/telemetry_metrics
       {:telemetry_poller, measurements: periodic_measurements(), period: 10_000}
       # Add reporters as children of your supervision tree.
-      # {Telemetry.Metrics.ConsoleReporter, metrics: metrics()}
+      # {Telemetry.TelemetryUI.Metrics.ConsoleReporter, metrics: metrics()}
     ]
 
     Supervisor.init(children, strategy: :one_for_one)
   end
 
-  @spec metrics() :: [Telemetry.Metrics.t()]
+  @spec metrics() :: [Telemetry.TelemetryUI.Metrics.t()]
   def metrics do
     [
       # Phoenix Metrics
@@ -81,36 +80,36 @@ defmodule ReccoWeb.Telemetry do
   @spec ui_metrics() :: [struct()]
   def ui_metrics do
     [
-      Metrics.title("Phoenix"),
-      Metrics.average_over_time("phoenix.endpoint.stop.duration",
+      TelemetryUI.Metrics.title("Phoenix"),
+      TelemetryUI.Metrics.average_over_time("phoenix.endpoint.stop.duration",
         unit: {:native, :millisecond},
         description: "Endpoint response time"
       ),
-      Metrics.average_over_time("phoenix.router_dispatch.stop.duration",
+      TelemetryUI.Metrics.average_over_time("phoenix.router_dispatch.stop.duration",
         tags: [:route],
         unit: {:native, :millisecond},
         description: "Router dispatch time"
       ),
-      Metrics.count_over_time("phoenix.router_dispatch.stop.duration",
+      TelemetryUI.Metrics.count_over_time("phoenix.router_dispatch.stop.duration",
         tags: [:route],
         unit: {:native, :millisecond},
         description: "Request count"
       ),
-      Metrics.title("Database"),
-      Metrics.average_over_time("recco.repo.query.total_time",
+      TelemetryUI.Metrics.title("Database"),
+      TelemetryUI.Metrics.average_over_time("recco.repo.query.total_time",
         unit: {:native, :millisecond},
         description: "Query total time"
       ),
-      Metrics.average_over_time("recco.repo.query.query_time",
+      TelemetryUI.Metrics.average_over_time("recco.repo.query.query_time",
         unit: {:native, :millisecond},
         description: "Query execution time"
       ),
-      Metrics.title("VM"),
-      Metrics.last_value("vm.memory.total",
+      TelemetryUI.Metrics.title("VM"),
+      TelemetryUI.Metrics.last_value("vm.memory.total",
         unit: {:byte, :kilobyte},
         description: "Total memory"
       ),
-      Metrics.last_value("vm.total_run_queue_lengths.total",
+      TelemetryUI.Metrics.last_value("vm.total_run_queue_lengths.total",
         description: "Run queue length"
       )
     ]
