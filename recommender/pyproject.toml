@@ -1,0 +1,19 @@
+[project]
+name = "recco-recommender"
+version = "0.1.0"
+description = "Board game recommendation system"
+requires-python = ">=3.12"
+dependencies = [
+    "pandas>=2.2",
+    "scikit-learn>=1.5",
+    "psycopg2-binary>=2.9",
+    "sqlalchemy>=2.0",
+    "matplotlib>=3.9",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.8",
+    "mypy>=1.13",
+]

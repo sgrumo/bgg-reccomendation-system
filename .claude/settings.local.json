@@ -10,7 +10,10 @@
       "Bash(ls:*)",
       "Bash(find lib:*)",
       "WebSearch",
-      "WebFetch(domain:en.wikipedia.org)"
+      "WebFetch(domain:en.wikipedia.org)",
+      "Bash(docker volume ls:*)",
+      "Bash(docker exec bgg-reccomendation-system-db-1:*)",
+      "Bash(docker volume inspect:*)"
     ]
   }
 }
