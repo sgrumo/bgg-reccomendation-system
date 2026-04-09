@@ -36,3 +36,13 @@ averziano-*.tar
 
 # Static assets built from source
 /priv/static/assets/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+dist/
+build/
+.venv/
+.ipynb_checkpoints/

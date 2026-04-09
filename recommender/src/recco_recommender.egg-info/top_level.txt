@@ -3,3 +3,4 @@ db
 engine
 features
 similarity
+visualize

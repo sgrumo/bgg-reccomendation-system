@@ -53,7 +53,7 @@ def plot_top_categories_and_mechanics(df: pd.DataFrame, top_n: int = 25) -> None
         for raw in df[col]:
             items = raw if isinstance(raw, list) else json.loads(raw or "[]")
             for item in items:
-                name = item.get("name", "")
+                name = item.get("value") or item.get("name", "")
                 if name:
                     counts[name] = counts.get(name, 0) + 1
 

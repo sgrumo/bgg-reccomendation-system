@@ -12,7 +12,7 @@ def extract_names_from_json(raw: list[dict] | str | None) -> list[str]:
         return []
     if isinstance(raw, str):
         raw = json.loads(raw)
-    return [item["name"] for item in raw if "name" in item]
+    return [item.get("value") or item.get("name") for item in raw if item.get("value") or item.get("name")]
 
 
 def encode_multi_label(
