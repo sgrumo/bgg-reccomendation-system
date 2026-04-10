@@ -2,3 +2,5 @@ name: Local
 variables:
   - secret: true
     name: BGG_BEARER_TOKEN
+  - name: RECOMMENDER_URL
+    value: http://localhost:8000

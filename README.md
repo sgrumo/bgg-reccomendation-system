@@ -1,27 +1,33 @@
 # Recco
 
-Phoenix 1.8 template repository with JSON API + LiveView, PostgreSQL, and production-ready patterns.
+Board game recommendation system powered by data crawled from [BoardGameGeek](https://boardgamegeek.com/). Phoenix 1.8 backend with a Python-based content-based recommendation engine.
 
 ## Stack
 
+### Backend (Elixir/Phoenix)
 - **Elixir** ~> 1.19, **Phoenix** ~> 1.8
 - **Ecto** with PostgreSQL (binary UUIDs, UTC datetime timestamps)
 - **Bandit** as HTTP server
+- **Oban** for background job scheduling
 - **esbuild** + **Tailwind CSS** for asset bundling (no Node.js)
-- **Jason** for JSON encoding
-- **Joken** for JWT verification
-- **Corsica** for CORS
+- **Joken** for JWT verification, **Corsica** for CORS
+
+### Recommendation Engine (Python)
+- **pandas** + **scikit-learn** for feature engineering and similarity
+- **SQLAlchemy** + **psycopg2** for database access
+- **matplotlib** for visualization
 
 ## Getting Started
 
 ### Prerequisites
 
 - Elixir ~> 1.19
+- Python >= 3.12
 - PostgreSQL (or Docker)
 
 ### Setup
 
-Start the database:
+Start the database (port 5460):
 
 ```bash
 make up
@@ -41,105 +47,130 @@ mix phx.server
 
 Visit [`localhost:4000`](http://localhost:4000).
 
+### Recommendation Engine
+
+```bash
+cd recommender
+python -m venv .venv
+source .venv/bin/activate
+pip install -e .
+jupyter notebook explore.ipynb
+```
+
 ## Project Structure
 
 ```
 lib/
-  recco/                 # Core business logic (contexts, schemas)
-    application.ex           # OTP supervision tree
-    repo.ex                  # Ecto Repo
-    errors.ex                # Shared typed error tuples
+  recco/                     # Core business logic
+    application.ex               # OTP supervision tree
+    repo.ex                      # Ecto Repo
+    errors.ex                    # Shared typed error tuples
     auth/
-      token.ex               # JWT verification (Joken)
-      token_mock.ex          # Test mock (swapped via config)
-  recco_web/             # Web layer
-    endpoint.ex              # HTTP endpoint (CORS, sessions, LiveView socket)
-    router.ex                # Route definitions (API, browser, admin)
+      token.ex                   # JWT verification (Joken)
+      token_mock.ex              # Test mock (swapped via config)
+    board_games/
+      board_game.ex              # BoardGame schema (BGG data)
+      bgg_api.ex                 # BGG XML API client
+      crawler.ex                 # GenServer-based BGG crawler
+      crawl_state.ex             # Crawler progress tracking
+    workers/
+      new_game_scanner.ex        # Oban worker: weekly scan for new BGG entries
+  recco_web/                 # Web layer
+    endpoint.ex                  # HTTP endpoint
+    router.ex                    # Routes (API, browser, admin, dev)
+    telemetry.ex                 # Telemetry metrics (standard + TelemetryUI)
     controllers/
-      fallback_controller.ex # Maps error tuples to HTTP responses
-      error_json.ex          # Default JSON error rendering
     plugs/
-      auth.ex                # Bearer token auth plug
     live/
-      auth_hook.ex           # LiveView on_mount session auth
+      auth_hook.ex               # LiveView session auth
+      crawler_live.ex            # Crawler dashboard (dev only)
     health/
-      router.ex              # GET /health via plug_checkup
-      checks.ex              # Health check implementations
-    components/
-      core_components.ex     # Shared UI components (icon, input, flash)
-      layouts.ex             # Layout module
-      layouts/
-        root.html.heex       # Root HTML layout
-        app.html.heex        # App layout with flash
+      router.ex                  # GET /health
+      checks.ex                  # Health check implementations
+recommender/                 # Python recommendation engine
+  pyproject.toml                 # Python dependencies
+  main.py                        # CLI test script
+  explore.ipynb                  # Jupyter notebook for exploration
+  src/
+    db.py                        # Database connection and queries
+    preprocess.py                # Data cleaning, outlier capping, feature derivation
+    features.py                  # Feature extraction and encoding
+    similarity.py                # Cosine similarity with edition filtering
+    engine.py                    # RecommendationEngine orchestrator
+    visualize.py                 # Matplotlib visualizations
 test/
   support/
-    conn_case.ex             # HTTP test case with auth helpers
-    data_case.ex             # DB test case (Ecto sandbox)
-    channel_case.ex          # Channel test case
-    factory.ex               # ExMachina factory definitions
+    conn_case.ex                 # HTTP test case with auth helpers
+    data_case.ex                 # DB test case (Ecto sandbox)
+    factory.ex                   # ExMachina factory definitions
 ```
+
+## BGG Crawler
+
+Crawls board game data from the BGG XML API2 in batches of 20, storing game metadata (ratings, categories, mechanics, designers, families, etc.).
+
+### Manual Crawl
+
+Via the LiveView dashboard at [`localhost:4000/dev/crawler`](http://localhost:4000/dev/crawler) (dev only), or in iex:
+
+```elixir
+Recco.BoardGames.Crawler.start(max_id: 468_353)
+```
+
+### Weekly Scanner
+
+An Oban cron job (`Recco.Workers.NewGameScanner`) runs every Monday at 3 AM to scan for newly added BGG entries. It starts from the highest `bgg_id` in the database and stops after 5 consecutive empty batches.
+
+## Recommendation Engine
+
+Content-based recommendation using cosine similarity on game feature vectors.
+
+### Features Used
+- **Numeric** (MinMax scaled): player count, playtime, min age, complexity weight
+- **Categorical** (one-hot encoded): categories, mechanics, families
+
+### Preprocessing Pipeline
+- Outlier capping (playtime <= 1440 min, players <= 100, etc.)
+- Drops pre-1900 entries
+- Filters games with < 30 ratings
+- Adds derived features: decade, rating tier, popularity tier, playtime/player range
+
+### Edition Filtering
+Recommendations exclude other editions/versions of the same game using BGG's `"Game: X"` family tag.
+
+### User Profile Recommendations
+Accepts a dict of `{bgg_id: rating}` pairs, builds a weighted average feature vector (the user's "ideal game"), and ranks all games by cosine similarity to that profile.
 
 ## Architecture
 
 ### Context Pattern
 
-Strict separation between core (`lib/recco/`) and web (`lib/recco_web/`). Controllers never touch `Repo` directly — all database access goes through context modules.
+Strict separation between core (`lib/recco/`) and web (`lib/recco_web/`). Controllers never touch `Repo` directly.
 
 ### Error Flow
 
-`Recco.Errors` defines typed error tuples:
-
-```elixir
-{:error, :not_found}                    # Simple error
-{:error, :unprocessable_entity, errors} # Error with details
-```
-
-All context functions return `{:ok, result} | Recco.Errors.t()`. The `FallbackController` maps error atoms to HTTP status codes, so controllers use `action_fallback ReccoWeb.FallbackController` and return error tuples directly.
+`Recco.Errors` defines typed error tuples. All context functions return `{:ok, result} | Recco.Errors.t()`. The `FallbackController` maps error atoms to HTTP status codes.
 
 ### Authentication
 
-Token verification is swappable via config:
+Token verification swappable via config (`Recco.Auth.Token` / `Recco.Auth.TokenMock`). LiveView uses session-based auth via `ReccoWeb.Live.AuthHook`.
 
-```elixir
-# config/config.exs (production)
-config :recco, token_verifier: Recco.Auth.Token
-
-# config/test.exs
-config :recco, token_verifier: Recco.Auth.TokenMock
-```
-
-The `ReccoWeb.Plugs.Auth` plug reads the verifier from config at runtime, enabling mock injection in tests without Mox.
-
-LiveView uses session-based auth via the `ReccoWeb.Live.AuthHook` `on_mount` callback.
-
-### Router Organization
+### Router
 
 | Layer | Pipeline | Description |
 |---|---|---|
 | `/health` | — | Health check (forwarded to `Health.Router`) |
 | `/api` | `:api` | Public JSON endpoints |
 | `/api` | `:api`, `:authenticated` | Protected JSON endpoints |
-| `/admin` | `:browser` | Admin LiveViews (`live_session` with auth hook) |
-
-### Web Module Dispatch
-
-`ReccoWeb` provides quoted blocks via `use ReccoWeb, :type`:
-
-- `:controller` — JSON-only API controllers
-- `:html_controller` — HTML + JSON controllers (admin, sessions)
-- `:live_view` — LiveView modules
-- `:live_component` — LiveView components
-- `:html` — Phoenix HTML helpers
+| `/admin` | `:browser` | Admin LiveViews (auth hook) |
+| `/dev/crawler` | `:browser` | Crawler dashboard (dev only) |
+| `/dev/metrics` | `:browser` | TelemetryUI metrics (dev only) |
 
 ### OTP Supervision Tree
 
-Flat `one_for_one` strategy:
-
 ```
-Telemetry → Repo → [TelemetryUI] → DNSCluster → PubSub → Registry → DynamicSupervisor → Endpoint
+Telemetry → Repo → [TelemetryUI] → Oban → DNSCluster → PubSub → Registry → DynamicSupervisor → Endpoint
 ```
-
-`Registry` + `DynamicSupervisor` are included for per-session GenServer processes (real-time features).
 
 ## Development
 
@@ -150,66 +181,27 @@ mix setup                    # Full project setup
 mix phx.server               # Start dev server
 iex -S mix phx.server        # Start with interactive shell
 mix test                     # Run all tests
-mix test path/to/test.exs    # Run a single test file
-mix test path/to/test.exs:42 # Run test at specific line
-mix test --failed            # Re-run failed tests
 mix precommit                # Compile (warnings-as-errors) + format + test
 mix credo --strict           # Static analysis
-mix dialyzer                 # Type checking (first run builds PLT)
+mix dialyzer                 # Type checking
 mix ecto.gen.migration name  # Generate a migration
 mix ecto.migrate             # Run pending migrations
-mix ecto.reset               # Drop + recreate + seed
 ```
 
 ### Makefile
 
 ```bash
-make up       # Start Docker Postgres
+make up       # Start Docker Postgres (port 5460)
 make down     # Stop Docker Postgres
 make dev-api  # Start infra + setup + dev server
 make test     # Start infra + run tests
 ```
 
-### Precommit
-
-Always run before committing:
-
-```bash
-mix precommit
-```
-
-This runs compilation with `--warnings-as-errors`, unlocks unused deps, formats code, and runs the full test suite.
-
-## Static Analysis
-
-### Credo (strict mode)
-
-Configured in `.credo.exs` with notable rules:
-
-- `Readability.Specs` — every public function must have `@spec`
-- `Refactor.ABCSize` max 40 — keeps functions small
-- `MaxLineLength` 200
-- `ModuleDoc` disabled
-- `AliasUsage` — require aliases when nested > 1 and called > 2 times
-
-### Dialyzer
-
-Flags: `error_handling`, `unknown`, `unmatched_returns`, `underspecs`. PLT files cached in `priv/plts/` (gitignored).
-
-## Testing
-
-- **ExUnit** with **ExCoveralls** for coverage
-- **ExMachina** for factories (`test/support/factory.ex`)
-- Factory auto-imported in both `DataCase` and `ConnCase`
-- Auth helpers in `ConnCase`: `authenticate(conn)`, `authenticate_superadmin(conn)`
-- Test cases: `DataCase` (DB), `ConnCase` (HTTP), `ChannelCase` (WebSocket)
-- Tests mirror source directory structure
-
 ## Observability
 
-- **Health check:** `GET /health` via `plug_checkup` (checks database connectivity)
-- **Metrics:** `telemetry_ui` for request counts/durations, DB query times, VM memory
-- **Telemetry events:** Standard Phoenix + Ecto telemetry configured in `ReccoWeb.Telemetry`
+- **Health check:** `GET /health` via `plug_checkup`
+- **Metrics dashboard:** `/dev/metrics` via `telemetry_ui` (dev only)
+- **Telemetry events:** Phoenix + Ecto telemetry in `ReccoWeb.Telemetry`
 
 ## Key Dependencies
 
@@ -218,17 +210,13 @@ Flags: `error_handling`, `unknown`, `unmatched_returns`, `underspecs`. PLT files
 | `phoenix` ~> 1.8 | Web framework |
 | `phoenix_live_view` ~> 1.0 | Real-time UI |
 | `ecto_sql` + `postgrex` | Database |
+| `oban` ~> 2.19 | Background jobs |
 | `bandit` | HTTP server |
-| `jason` | JSON |
+| `req` | HTTP client |
+| `sweet_xml` | XML parsing (BGG API) |
+| `telemetry_ui` | Metrics dashboard |
 | `joken` | JWT verification |
 | `corsica` | CORS |
-| `req` | HTTP client |
-| `plug_checkup` | Health checks |
-| `telemetry_ui` | Metrics dashboard |
-| `esbuild` | JS bundling |
-| `tailwind` | CSS |
-| `gettext` | i18n |
-| `dns_cluster` | Clustering |
 | `credo` | Static analysis |
 | `dialyxir` | Type checking |
 | `excoveralls` | Test coverage |

@@ -1,0 +1,30 @@
+info:
+  name: User Recommendations
+  type: http
+  seq: 4
+
+http:
+  method: POST
+  url: "{{RECOMMENDER_URL}}/users/recommendations"
+  params:
+    - name: top_n
+      value: "20"
+      type: query
+  body:
+    type: json
+    content: |
+      {
+        "ratings": {
+          "13": 9.0,
+          "68448": 8.5,
+          "167791": 7.0
+        }
+      }
+  auth:
+    type: none
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

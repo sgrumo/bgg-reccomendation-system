@@ -9,6 +9,8 @@ dependencies = [
     "psycopg2-binary>=2.9",
     "sqlalchemy>=2.0",
     "matplotlib>=3.9",
+    "fastapi>=0.115",
+    "uvicorn>=0.34",
 ]
 
 [project.optional-dependencies]

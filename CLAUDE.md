@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Recco is a Phoenix 1.8 application (JSON API + LiveView) backed by PostgreSQL with Ecto. Uses Bandit as HTTP server, binary UUIDs as primary keys, and esbuild/Tailwind for asset bundling.
+Recco is a board game recommendation system. The backend is a Phoenix 1.8 application (JSON API + LiveView) backed by PostgreSQL with Ecto. It crawls board game data from BoardGameGeek's XML API. The recommendation engine is a separate Python project under `recommender/` using scikit-learn for content-based similarity.
 
 ## Common Commands
 
@@ -20,7 +20,7 @@ Recco is a Phoenix 1.8 application (JSON API + LiveView) backed by PostgreSQL wi
 - `mix ecto.migrate` / `mix ecto.reset` — run migrations / drop + recreate
 - `mix credo --strict` — static analysis
 - `mix dialyzer` — type checking (first run builds PLT, takes a while)
-- `make up` / `make down` — start/stop Docker Postgres
+- `make up` / `make down` — start/stop Docker Postgres (port 5460)
 - `make dev-api` — start infra + setup + dev server
 
 ## Architecture
@@ -39,7 +39,7 @@ Swappable token verification via config: `config :recco, token_verifier: Recco.A
 
 ### Router Organization
 
-Pipelines: `:api`, `:browser`, `:authenticated`. Health check forwarded to `ReccoWeb.Health.Router`. Scopes: public API, authenticated API, admin (browser + LiveView with auth hook).
+Pipelines: `:api`, `:browser`, `:authenticated`. Health check forwarded to `ReccoWeb.Health.Router`. Scopes: public API, authenticated API, admin (browser + LiveView with auth hook). Dev routes (behind `dev_routes` config flag): `/dev/crawler` (crawler LiveView dashboard), `/dev/metrics` (TelemetryUI dashboard).
 
 ### Web Module Dispatch
 
@@ -47,7 +47,41 @@ Pipelines: `:api`, `:browser`, `:authenticated`. Health check forwarded to `Recc
 
 ### OTP Supervision
 
-Flat `one_for_one`: Telemetry -> Repo -> [TelemetryUI] -> DNSCluster -> PubSub -> Registry -> DynamicSupervisor -> Endpoint. Registry + DynamicSupervisor for per-session GenServer processes.
+Flat `one_for_one`: Telemetry -> Repo -> [TelemetryUI] -> Oban -> DNSCluster -> PubSub -> Registry -> DynamicSupervisor -> Endpoint. Registry + DynamicSupervisor for per-session GenServer processes.
+
+### BGG Crawler
+
+`Recco.BoardGames.Crawler` is a GenServer that crawls BGG XML API2 in batches of 20. Managed via `DynamicSupervisor`, controllable from the `/dev/crawler` LiveView. Tracks progress in `crawl_state` table. Current BGG ID ceiling is ~468,680.
+
+### Background Jobs (Oban)
+
+`Recco.Workers.NewGameScanner` — weekly cron job (Monday 3 AM) that scans for new BGG entries beyond the current max `bgg_id`. Stops after 5 consecutive empty batches.
+
+### Telemetry
+
+`ReccoWeb.Telemetry` defines two metric sets: `metrics/0` (standard `Telemetry.Metrics` for reporters) and `ui_metrics/0` (`TelemetryUI.Metrics` for the dashboard). TelemetryUI uses its own metric types — do not pass `Telemetry.Metrics` structs to it. Avoid `queue_time` and `idle_time` DB metrics as they can be nil.
+
+## Recommendation Engine (Python)
+
+Located in `recommender/`. Uses scikit-learn for content-based recommendation via cosine similarity.
+
+### Structure
+
+- `src/db.py` — SQLAlchemy connection to Postgres (port 5460), loads board games
+- `src/preprocess.py` — cleaning pipeline: outlier capping, fill missing, min rating filter, derived features
+- `src/features.py` — builds feature matrix: MinMax scaled numerics + one-hot encoded categories/mechanics/families
+- `src/similarity.py` — cosine similarity with edition filtering via BGG "Game: X" family tags
+- `src/engine.py` — `RecommendationEngine` class: loads data, builds features, serves recommendations per-game and per-user-profile
+- `src/visualize.py` — matplotlib plots for data exploration
+- `explore.ipynb` — Jupyter notebook for interactive exploration
+- `main.py` — CLI test script
+
+### Key Details
+
+- BGG JSON fields use `"value"` key (not `"name"`) for labels in categories/mechanics/families
+- Edition filtering: games sharing a `"Game: X"` family tag are considered the same game
+- User profile recommendations: weighted average of feature vectors using user ratings as weights, then cosine similarity against all games
+- Preprocessing filters to games with >= 30 ratings
 
 ## Key Conventions
 
@@ -66,6 +100,7 @@ Flat `one_for_one`: Telemetry -> Repo -> [TelemetryUI] -> DNSCluster -> PubSub -
 - JSON API responses wrapped: `%{data: ...}`
 - Test factories via ExMachina (`test/support/factory.ex`), auto-imported in ConnCase/DataCase
 - `authenticate(conn)` helper available in ConnCase for authenticated API tests
+- Python code must use type hints on all functions
 
 ## Testing Principles
 
@@ -73,3 +108,9 @@ Flat `one_for_one`: Telemetry -> Repo -> [TelemetryUI] -> DNSCluster -> PubSub -
 - Avoid overlapping tests and subtle duplication
 - Ensure every test actually runs (no dead conditional paths)
 - Keep tests simple and fast
+
+## Infrastructure
+
+- Docker Postgres on port **5460** (not default 5432, to avoid conflicts)
+- Named volume `pgdata` for data persistence
+- `mix ecto.reset` will destroy all crawled data — avoid unless intentional
