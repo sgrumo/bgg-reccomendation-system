@@ -7,8 +7,8 @@ from sqlalchemy.engine import Engine
 
 from src.db import load_board_games
 from src.features import build_feature_matrix
-from src.preprocess import preprocess, extract_label_list
-from src.similarity import compute_similarity_matrix, find_similar
+from src.preprocess import preprocess
+from src.similarity import compute_similarity_matrix, find_similar, _base_name, _game_families
 
 
 class RecommendationEngine:
@@ -95,11 +95,12 @@ class RecommendationEngine:
         # Compute similarity between user profile and all games
         scores = cosine_sim(user_profile, self._features.values).flatten()
 
-        # Collect "Game: X" families from all rated games to exclude editions
-        rated_families: set[str] = set()
+        # Collect families and base names from rated games to exclude editions
+        seen_families: set[str] = set()
+        seen_base_names: set[str] = set()
         for i in rated_indices:
-            families = extract_label_list(self._df.iloc[i]["families"])
-            rated_families.update(f for f in families if f.startswith("Game: "))
+            seen_families.update(_game_families(self._df.iloc[i]["families"]))
+            seen_base_names.add(_base_name(str(self._df.iloc[i]["name"])))
 
         # Rank and filter
         ranked_indices = np.argsort(scores)[::-1]
@@ -112,20 +113,25 @@ class RecommendationEngine:
             if candidate_bgg_id in rated_bgg_ids:
                 continue
 
-            # Skip editions/versions of rated games
-            if rated_families:
-                candidate_families = extract_label_list(self._df.iloc[i]["families"])
-                candidate_game_families = {
-                    f for f in candidate_families if f.startswith("Game: ")
-                }
-                if rated_families & candidate_game_families:
-                    continue
+            candidate_families = _game_families(self._df.iloc[i]["families"])
+            candidate_name = str(self._df.iloc[i]["name"])
+            candidate_base = _base_name(candidate_name)
+
+            # Skip if shares a "Game: X" family with rated or already-included game
+            if candidate_families and seen_families & candidate_families:
+                continue
+
+            # Skip if base name matches rated or already-included game
+            if candidate_base in seen_base_names:
+                continue
 
             results.append({
                 "bgg_id": candidate_bgg_id,
-                "name": str(self._df.iloc[i]["name"]),
+                "name": candidate_name,
                 "score": float(scores[i]),
             })
+            seen_families.update(candidate_families)
+            seen_base_names.add(candidate_base)
 
             if len(results) >= top_n:
                 break

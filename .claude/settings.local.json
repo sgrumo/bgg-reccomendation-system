@@ -13,7 +13,9 @@
       "WebFetch(domain:en.wikipedia.org)",
       "Bash(docker volume ls:*)",
       "Bash(docker exec bgg-reccomendation-system-db-1:*)",
-      "Bash(docker volume inspect:*)"
+      "Bash(docker volume inspect:*)",
+      "Bash(psql:*)",
+      "Bash(PGPASSWORD=postgres psql:*)"
     ]
   }
 }
