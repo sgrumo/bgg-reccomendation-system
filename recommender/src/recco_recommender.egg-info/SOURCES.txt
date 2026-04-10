@@ -3,6 +3,7 @@ src/__init__.py
 src/db.py
 src/engine.py
 src/features.py
+src/preprocess.py
 src/similarity.py
 src/visualize.py
 src/recco_recommender.egg-info/PKG-INFO

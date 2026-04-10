@@ -12,16 +12,16 @@ http:
       type: query
   body:
     type: json
-    content: |
-      {
-        "ratings": {
-          "13": 9.0,
-          "68448": 8.5,
-          "167791": 7.0
+    data: |2-
+        {
+          "ratings": {
+            "13": 9.0,
+            "68448": 8.5,
+            "167791": 7.0,
+            "174430": 8.0,
+            "12333": 6.5
+          }
         }
-      }
-  auth:
-    type: none
 
 settings:
   encodeUrl: true
