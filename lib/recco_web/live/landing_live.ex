@@ -24,7 +24,7 @@ defmodule ReccoWeb.LandingLive do
       <div class="flex flex-col sm:flex-row gap-3">
         <%= if @current_user do %>
           <a
-            href={~p"/"}
+            href={~p"/games"}
             class="rounded-lg bg-brand-600 px-6 py-3 text-sm font-semibold text-white hover:bg-brand-500"
           >
             Browse games

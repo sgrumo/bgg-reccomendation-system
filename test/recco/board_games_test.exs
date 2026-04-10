@@ -50,6 +50,97 @@ defmodule Recco.BoardGamesTest do
     end
   end
 
+  describe "list_board_games/1" do
+    test "returns paginated games sorted by bayes rating by default" do
+      insert(:board_game, name: "Low", bayes_average_rating: 5.0)
+      insert(:board_game, name: "High", bayes_average_rating: 9.0)
+
+      %{games: games, total: total} = BoardGames.list_board_games()
+
+      assert total == 2
+      assert hd(games).name == "High"
+    end
+
+    test "filters by search term" do
+      insert(:board_game, name: "Catan")
+      insert(:board_game, name: "Pandemic")
+
+      %{games: games} = BoardGames.list_board_games(%{search: "catan"})
+
+      assert length(games) == 1
+      assert hd(games).name == "Catan"
+    end
+
+    test "filters by category" do
+      insert(:board_game, name: "Strategic", categories: [%{"id" => 1, "value" => "Strategy"}])
+
+      insert(:board_game,
+        name: "Party",
+        categories: [%{"id" => 2, "value" => "Party Game"}]
+      )
+
+      %{games: games} = BoardGames.list_board_games(%{category: "Strategy"})
+
+      assert length(games) == 1
+      assert hd(games).name == "Strategic"
+    end
+
+    test "filters by mechanic" do
+      insert(:board_game, name: "Dicer", mechanics: [%{"id" => 1, "value" => "Dice Rolling"}])
+
+      insert(:board_game,
+        name: "Worker",
+        mechanics: [%{"id" => 2, "value" => "Worker Placement"}]
+      )
+
+      %{games: games} = BoardGames.list_board_games(%{mechanic: "Dice Rolling"})
+
+      assert length(games) == 1
+      assert hd(games).name == "Dicer"
+    end
+
+    test "sorts by name" do
+      insert(:board_game, name: "Zendo")
+      insert(:board_game, name: "Azul")
+
+      %{games: games} = BoardGames.list_board_games(%{sort: "name"})
+
+      assert Enum.map(games, & &1.name) == ["Azul", "Zendo"]
+    end
+
+    test "paginates results" do
+      for i <- 1..5, do: insert(:board_game, name: "Game #{i}")
+
+      %{games: games, total: total} = BoardGames.list_board_games(%{per_page: 2, page: 1})
+
+      assert total == 5
+      assert length(games) == 2
+    end
+
+    test "excludes games without names" do
+      insert(:board_game, name: nil)
+      insert(:board_game, name: "")
+      insert(:board_game, name: "Valid")
+
+      %{games: games, total: total} = BoardGames.list_board_games()
+
+      assert total == 1
+      assert hd(games).name == "Valid"
+    end
+  end
+
+  describe "get_board_game/1" do
+    test "returns game by id" do
+      game = insert(:board_game)
+      assert {:ok, found} = BoardGames.get_board_game(game.id)
+      assert found.id == game.id
+    end
+
+    test "returns not_found for unknown id" do
+      assert {:error, :not_found} = BoardGames.get_board_game(Ecto.UUID.generate())
+    end
+  end
+
   describe "crawl_state" do
     test "upsert_crawl_state/2 creates new state" do
       assert {:ok, state} =

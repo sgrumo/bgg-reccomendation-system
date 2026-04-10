@@ -51,6 +51,8 @@ defmodule ReccoWeb.Router do
       on_mount: [{ReccoWeb.Live.UserAuth, :mount_current_user}],
       layout: {ReccoWeb.Layouts, :app} do
       live "/", LandingLive
+      live "/games", GameLive.Index
+      live "/games/:id", GameLive.Show
     end
   end
 

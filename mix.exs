@@ -89,7 +89,8 @@ defmodule Recco.MixProject do
 
       # Test
       {:excoveralls, "~> 0.18", only: :test},
-      {:ex_machina, "~> 2.8", only: :test}
+      {:ex_machina, "~> 2.8", only: :test},
+      {:lazy_html, ">= 0.1.0", only: :test}
     ]
   end
 

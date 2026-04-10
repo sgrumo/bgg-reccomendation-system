@@ -44,6 +44,90 @@ defmodule Recco.BoardGames do
     Repo.aggregate(BoardGame, :max, :bgg_id) || 0
   end
 
+  @type list_opts :: %{
+          optional(:search) => String.t(),
+          optional(:category) => String.t(),
+          optional(:mechanic) => String.t(),
+          optional(:min_players) => pos_integer(),
+          optional(:max_players) => pos_integer(),
+          optional(:page) => pos_integer(),
+          optional(:per_page) => pos_integer(),
+          optional(:sort) => String.t()
+        }
+
+  @spec list_board_games(list_opts()) :: %{games: [BoardGame.t()], total: non_neg_integer()}
+  def list_board_games(opts \\ %{}) do
+    page = Map.get(opts, :page, 1)
+    per_page = Map.get(opts, :per_page, 24)
+
+    base = from(bg in BoardGame, where: not is_nil(bg.name) and bg.name != "")
+
+    query =
+      base
+      |> apply_search(opts)
+      |> apply_category(opts)
+      |> apply_mechanic(opts)
+      |> apply_player_count(opts)
+      |> apply_sort(opts)
+
+    total = Repo.aggregate(query, :count)
+
+    games =
+      query
+      |> limit(^per_page)
+      |> offset(^((page - 1) * per_page))
+      |> Repo.all()
+
+    %{games: games, total: total}
+  end
+
+  @spec get_board_game(String.t()) :: {:ok, BoardGame.t()} | Errors.t()
+  def get_board_game(id) do
+    case Repo.get(BoardGame, id) do
+      nil -> {:error, :not_found}
+      game -> {:ok, game}
+    end
+  end
+
+  defp apply_search(query, %{search: search}) when is_binary(search) and search != "" do
+    term = "%#{search}%"
+    from bg in query, where: ilike(bg.name, ^term)
+  end
+
+  defp apply_search(query, _opts), do: query
+
+  defp apply_category(query, %{category: category}) when is_binary(category) and category != "" do
+    from bg in query,
+      where: fragment("? @> ?", bg.categories, ^[%{"value" => category}])
+  end
+
+  defp apply_category(query, _opts), do: query
+
+  defp apply_mechanic(query, %{mechanic: mechanic}) when is_binary(mechanic) and mechanic != "" do
+    from bg in query,
+      where: fragment("? @> ?", bg.mechanics, ^[%{"value" => mechanic}])
+  end
+
+  defp apply_mechanic(query, _opts), do: query
+
+  defp apply_player_count(query, %{min_players: n}) when is_integer(n) and n > 0 do
+    from bg in query, where: bg.max_players >= ^n
+  end
+
+  defp apply_player_count(query, _opts), do: query
+
+  defp apply_sort(query, %{sort: "name"}), do: from(bg in query, order_by: [asc: bg.name])
+
+  defp apply_sort(query, %{sort: "year"}),
+    do: from(bg in query, order_by: [desc: bg.year_published])
+
+  defp apply_sort(query, %{sort: "weight"}),
+    do: from(bg in query, order_by: [desc: bg.average_weight])
+
+  defp apply_sort(query, _opts) do
+    from bg in query, order_by: [desc: bg.bayes_average_rating]
+  end
+
   @spec upsert_crawl_state(String.t(), map()) :: {:ok, CrawlState.t()} | Errors.t(map())
   def upsert_crawl_state(key, attrs) do
     %CrawlState{}

@@ -16,7 +16,7 @@ defmodule ReccoWeb.Navigation do
           <div class="flex items-center gap-8">
             <a href={~p"/"} class="text-xl font-bold text-brand-600">Recco</a>
             <div class="hidden md:flex items-center gap-6">
-              <.nav_link href={~p"/"} label="Browse" />
+              <.nav_link href={~p"/games"} label="Browse" />
             </div>
           </div>
 
@@ -72,7 +72,7 @@ defmodule ReccoWeb.Navigation do
 
         <nav class="space-y-2" aria-label="Mobile navigation">
           <a
-            href={~p"/"}
+            href={~p"/games"}
             class="block rounded-lg px-3 py-2 text-base font-medium text-zinc-900 hover:bg-zinc-50"
           >
             Browse
