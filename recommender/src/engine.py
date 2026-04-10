@@ -6,6 +6,7 @@ from sqlalchemy.engine import Engine
 
 from src.db import load_board_games
 from src.features import build_feature_matrix
+from src.preprocess import preprocess
 from src.similarity import compute_similarity_matrix, find_similar
 
 
@@ -17,9 +18,10 @@ class RecommendationEngine:
         self._df: pd.DataFrame | None = None
         self._similarity_matrix: np.ndarray | None = None
 
-    def load(self) -> None:
-        """Load data from the database and precompute the similarity matrix."""
-        self._df = load_board_games(self._db_engine)
+    def load(self, min_ratings: int = 30) -> None:
+        """Load data from the database, preprocess, and build similarity matrix."""
+        raw = load_board_games(self._db_engine)
+        self._df = preprocess(raw, min_ratings=min_ratings)
         features = build_feature_matrix(self._df)
         self._similarity_matrix = compute_similarity_matrix(features)
 
@@ -32,6 +34,12 @@ class RecommendationEngine:
         if self._df is None:
             return 0
         return len(self._df)
+
+    @property
+    def df(self) -> pd.DataFrame:
+        if self._df is None:
+            raise RuntimeError("Engine not loaded. Call load() first.")
+        return self._df
 
     def recommend(
         self, bgg_id: int, top_n: int = 10
