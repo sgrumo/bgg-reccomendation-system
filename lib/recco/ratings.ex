@@ -61,4 +61,33 @@ defmodule Recco.Ratings do
     |> Repo.all()
     |> Map.new()
   end
+
+  @spec count_user_ratings(String.t()) :: non_neg_integer()
+  def count_user_ratings(user_id) do
+    from(r in UserRating, where: r.user_id == ^user_id)
+    |> Repo.aggregate(:count)
+  end
+
+  @spec average_user_score(String.t()) :: float() | nil
+  def average_user_score(user_id) do
+    from(r in UserRating, where: r.user_id == ^user_id)
+    |> Repo.aggregate(:avg, :score)
+  end
+
+  @spec total_ratings_count() :: non_neg_integer()
+  def total_ratings_count do
+    Repo.aggregate(UserRating, :count)
+  end
+
+  @spec user_stats(String.t()) :: map()
+  def user_stats(user_id) do
+    query = from(r in UserRating, where: r.user_id == ^user_id)
+
+    %{
+      rating_count: Repo.aggregate(query, :count),
+      average_score: Repo.aggregate(query, :avg, :score),
+      highest_score: Repo.aggregate(query, :max, :score),
+      lowest_score: Repo.aggregate(query, :min, :score)
+    }
+  end
 end

@@ -141,7 +141,13 @@ defmodule ReccoWeb.Navigation do
           </span>
         </div>
         <nav class="flex-1 px-3 space-y-1" aria-label="Admin navigation">
-          <.sidebar_link href={~p"/"} icon="hero-home" label="Back to site" />
+          <.sidebar_link href={~p"/admin"} icon="hero-chart-bar" label="Dashboard" />
+          <.sidebar_link href={~p"/admin/users"} icon="hero-users" label="Users" />
+          <.sidebar_link href={~p"/admin/jobs"} icon="hero-queue-list" label="Jobs" />
+          <.sidebar_link href={~p"/admin/crawler"} icon="hero-arrow-path" label="Crawler" />
+          <.sidebar_link href={~p"/admin/metrics"} icon="hero-signal" label="Metrics" />
+          <div class="border-t border-zinc-200 my-3"></div>
+          <.sidebar_link href={~p"/"} icon="hero-arrow-left" label="Back to site" />
         </nav>
         <div class="flex-shrink-0 border-t border-zinc-200 p-4">
           <p class="text-sm font-medium text-zinc-700">{@current_user.username}</p>

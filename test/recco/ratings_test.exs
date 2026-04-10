@@ -76,4 +76,29 @@ defmodule Recco.RatingsTest do
       assert result == %{42 => 8.5}
     end
   end
+
+  describe "user_stats/1" do
+    test "returns stats for a user with ratings" do
+      user = insert(:user)
+      game1 = insert(:board_game)
+      game2 = insert(:board_game)
+      insert(:user_rating, user: user, board_game: game1, score: 6.0)
+      insert(:user_rating, user: user, board_game: game2, score: 10.0)
+
+      stats = Ratings.user_stats(user.id)
+
+      assert stats.rating_count == 2
+      assert_in_delta stats.average_score, 8.0, 0.01
+      assert stats.highest_score == 10.0
+      assert stats.lowest_score == 6.0
+    end
+
+    test "returns zeroed stats for user with no ratings" do
+      user = insert(:user)
+      stats = Ratings.user_stats(user.id)
+
+      assert stats.rating_count == 0
+      assert is_nil(stats.average_score)
+    end
+  end
 end

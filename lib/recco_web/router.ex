@@ -76,8 +76,19 @@ defmodule ReccoWeb.Router do
     live_session :admin,
       on_mount: [{ReccoWeb.Live.UserAuth, :ensure_superadmin}],
       layout: {ReccoWeb.Layouts, :admin} do
-      # Admin LiveViews go here
+      live "/", Admin.DashboardLive
+      live "/users", Admin.UserLive.Index
+      live "/users/:id", Admin.UserLive.Show
+      live "/jobs", Admin.JobLive
+      live "/crawler", Admin.CrawlerLive
     end
+  end
+
+  # Admin telemetry (plug-based, needs separate scope with auth)
+  scope "/admin" do
+    pipe_through :browser
+
+    get "/metrics", TelemetryUI.Web, [], assigns: %{telemetry_ui_allowed: true}
   end
 
   # Dev routes (metrics dashboard, crawler)
