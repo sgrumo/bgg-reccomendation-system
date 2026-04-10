@@ -5,10 +5,10 @@ info:
 
 http:
   method: GET
-  url: https://boardgamegeek.com/xmlapi2/thing?id=1&type=boardgame&stats=1
+  url: https://boardgamegeek.com/xmlapi2/thing?id=450014&type=boardgame&stats=1
   params:
     - name: id
-      value: "1"
+      value: "450014"
       type: query
     - name: type
       value: boardgame
