@@ -56,7 +56,7 @@ defmodule ReccoWeb.CoreComponents do
   attr :type, :string, default: "text"
   attr :field, Phoenix.HTML.FormField
   attr :errors, :list, default: []
-  attr :rest, :global, include: ~w(placeholder required disabled readonly)
+  attr :rest, :global, include: ~w(placeholder required disabled readonly step min max)
 
   @spec input(map()) :: Phoenix.LiveView.Rendered.t()
   def input(%{field: %Phoenix.HTML.FormField{} = field} = assigns) do

@@ -56,6 +56,18 @@ defmodule ReccoWeb.Router do
     end
   end
 
+  # Authenticated LiveView pages (ratings, preferences)
+  scope "/", ReccoWeb do
+    pipe_through :browser
+
+    live_session :authenticated,
+      on_mount: [{ReccoWeb.Live.UserAuth, :ensure_authenticated}],
+      layout: {ReccoWeb.Layouts, :app} do
+      live "/ratings", RatingLive.Index
+      live "/preferences", PreferenceLive.Edit
+    end
+  end
+
   # Admin (browser + LiveView)
   scope "/admin", ReccoWeb do
     pipe_through :browser

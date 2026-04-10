@@ -2,6 +2,7 @@ defmodule ReccoWeb.GameLive.Show do
   use ReccoWeb, :live_view
 
   alias Recco.BoardGames
+  alias Recco.Ratings
 
   @impl true
   @spec mount(map(), map(), Phoenix.LiveView.Socket.t()) ::
@@ -9,10 +10,14 @@ defmodule ReccoWeb.GameLive.Show do
   def mount(%{"id" => id}, _session, socket) do
     case BoardGames.get_board_game(id) do
       {:ok, game} ->
+        user_rating = load_user_rating(socket.assigns[:current_user], game.id)
+
         {:ok,
          assign(socket,
            page_title: game.name,
-           game: game
+           game: game,
+           user_rating: user_rating,
+           rating_form_score: user_rating && user_rating.score
          )}
 
       {:error, :not_found} ->
@@ -20,6 +25,38 @@ defmodule ReccoWeb.GameLive.Show do
          socket
          |> put_flash(:error, "Game not found")
          |> redirect(to: ~p"/games")}
+    end
+  end
+
+  @impl true
+  @spec handle_event(String.t(), map(), Phoenix.LiveView.Socket.t()) ::
+          {:noreply, Phoenix.LiveView.Socket.t()}
+  def handle_event("rate", %{"score" => score_str}, socket) do
+    user = socket.assigns.current_user
+
+    if user do
+      {score, _} = Float.parse(score_str)
+
+      case Ratings.rate_game(user.id, socket.assigns.game.id, %{score: score}) do
+        {:ok, rating} ->
+          {:noreply, assign(socket, user_rating: rating, rating_form_score: rating.score)}
+
+        {:error, _, _} ->
+          {:noreply, put_flash(socket, :error, "Could not save rating")}
+      end
+    else
+      {:noreply, redirect(socket, to: ~p"/login")}
+    end
+  end
+
+  def handle_event("remove_rating", _params, socket) do
+    user = socket.assigns.current_user
+
+    if user && socket.assigns.user_rating do
+      :ok = Ratings.delete_rating(user.id, socket.assigns.game.id)
+      {:noreply, assign(socket, user_rating: nil, rating_form_score: nil)}
+    else
+      {:noreply, socket}
     end
   end
 
@@ -59,6 +96,12 @@ defmodule ReccoWeb.GameLive.Show do
               value={format_playtime(@game.min_playtime, @game.max_playtime)}
             />
           </div>
+
+          <.rating_widget
+            current_user={@current_user}
+            user_rating={@user_rating}
+            rating_form_score={@rating_form_score}
+          />
 
           <div :if={@game.description} class="mt-6">
             <h2 class="text-sm font-semibold text-zinc-700 mb-2">Description</h2>
@@ -101,6 +144,59 @@ defmodule ReccoWeb.GameLive.Show do
     """
   end
 
+  attr :current_user, :any, required: true
+  attr :user_rating, :any, required: true
+  attr :rating_form_score, :any, required: true
+
+  defp rating_widget(assigns) do
+    ~H"""
+    <div class="mt-6 rounded-lg border border-zinc-200 p-4">
+      <h2 class="text-sm font-semibold text-zinc-700 mb-3">Your Rating</h2>
+
+      <%= if @current_user do %>
+        <div class="flex items-center gap-4">
+          <div class="flex gap-1">
+            <button
+              :for={score <- 1..10}
+              phx-click="rate"
+              phx-value-score={score}
+              class={[
+                "w-8 h-8 rounded text-sm font-medium transition",
+                score_active?(score, @rating_form_score) &&
+                  "bg-brand-600 text-white",
+                !score_active?(score, @rating_form_score) &&
+                  "bg-zinc-100 text-zinc-600 hover:bg-zinc-200"
+              ]}
+              aria-label={"Rate #{score} out of 10"}
+            >
+              {score}
+            </button>
+          </div>
+
+          <button
+            :if={@user_rating}
+            phx-click="remove_rating"
+            class="text-sm text-red-600 hover:text-red-800"
+          >
+            Remove
+          </button>
+        </div>
+
+        <p :if={@user_rating} class="text-xs text-zinc-500 mt-2">
+          You rated this {Float.round(@user_rating.score, 1)}/10
+        </p>
+      <% else %>
+        <p class="text-sm text-zinc-500">
+          <a href={~p"/login"} class="text-brand-600 hover:underline">Sign in</a> to rate this game.
+        </p>
+      <% end %>
+    </div>
+    """
+  end
+
+  defp score_active?(_score, nil), do: false
+  defp score_active?(score, current) when is_number(current), do: score <= round(current)
+
   attr :label, :string, required: true
   attr :value, :string, required: true
 
@@ -123,4 +219,7 @@ defmodule ReccoWeb.GameLive.Show do
   defp format_playtime(nil, nil), do: "N/A"
   defp format_playtime(min, max) when min == max, do: "#{min}m"
   defp format_playtime(min, max), do: "#{min}-#{max}m"
+
+  defp load_user_rating(nil, _game_id), do: nil
+  defp load_user_rating(user, game_id), do: Ratings.get_user_rating(user.id, game_id)
 end

@@ -17,6 +17,9 @@ defmodule ReccoWeb.Navigation do
             <a href={~p"/"} class="text-xl font-bold text-brand-600">Recco</a>
             <div class="hidden md:flex items-center gap-6">
               <.nav_link href={~p"/games"} label="Browse" />
+              <%= if @current_user do %>
+                <.nav_link href={~p"/ratings"} label="My Ratings" />
+              <% end %>
             </div>
           </div>
 
@@ -79,6 +82,12 @@ defmodule ReccoWeb.Navigation do
           </a>
 
           <%= if @current_user do %>
+            <a
+              href={~p"/ratings"}
+              class="block rounded-lg px-3 py-2 text-base font-medium text-zinc-900 hover:bg-zinc-50"
+            >
+              My Ratings
+            </a>
             <div class="border-t border-zinc-200 pt-4 mt-4">
               <p class="px-3 text-sm text-zinc-500 mb-2">{@current_user.username}</p>
               <a

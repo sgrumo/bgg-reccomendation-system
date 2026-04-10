@@ -2,6 +2,7 @@ defmodule Recco.Factory do
   use ExMachina.Ecto, repo: Recco.Repo
 
   alias Recco.Accounts.User
+  alias Recco.Accounts.UserRating
   alias Recco.BoardGames.BoardGame
   alias Recco.BoardGames.CrawlState
 
@@ -42,6 +43,15 @@ defmodule Recco.Factory do
       publishers: [],
       families: [],
       ranks: []
+    }
+  end
+
+  @spec user_rating_factory() :: UserRating.t()
+  def user_rating_factory do
+    %UserRating{
+      user: build(:user),
+      board_game: build(:board_game),
+      score: 7.5
     }
   end
 
