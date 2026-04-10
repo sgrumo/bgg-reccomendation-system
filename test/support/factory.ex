@@ -1,8 +1,19 @@
 defmodule Recco.Factory do
   use ExMachina.Ecto, repo: Recco.Repo
 
+  alias Recco.Accounts.User
   alias Recco.BoardGames.BoardGame
   alias Recco.BoardGames.CrawlState
+
+  @spec user_factory() :: User.t()
+  def user_factory do
+    %User{
+      email: sequence(:email, &"user#{&1}@example.com"),
+      username: sequence(:username, &"user#{&1}"),
+      hashed_password: Bcrypt.hash_pwd_salt("valid_password123"),
+      role: "base"
+    }
+  end
 
   @spec board_game_factory() :: BoardGame.t()
   def board_game_factory do

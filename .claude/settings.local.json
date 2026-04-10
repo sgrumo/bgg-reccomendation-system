@@ -15,7 +15,8 @@
       "Bash(docker exec bgg-reccomendation-system-db-1:*)",
       "Bash(docker volume inspect:*)",
       "Bash(psql:*)",
-      "Bash(PGPASSWORD=postgres psql:*)"
+      "Bash(PGPASSWORD=postgres psql:*)",
+      "Bash(make up:*)"
     ]
   }
 }

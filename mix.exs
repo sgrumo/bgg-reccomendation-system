@@ -57,6 +57,7 @@ defmodule Recco.MixProject do
       {:bandit, "~> 1.5"},
 
       # Auth
+      {:bcrypt_elixir, "~> 3.0"},
       {:joken, "~> 2.6"},
 
       # CORS

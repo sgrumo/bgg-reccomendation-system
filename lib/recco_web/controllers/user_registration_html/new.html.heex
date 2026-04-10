@@ -1,0 +1,22 @@
+<div class="mx-auto max-w-sm mt-16 px-4">
+  <h1 class="text-2xl font-bold text-center mb-8">Create an account</h1>
+
+  <.flash_group flash={@flash} />
+
+  <.form for={@form} action={~p"/register"}>
+    <div class="space-y-4">
+      <.input field={@form[:email]} type="email" label="Email" required />
+      <.input field={@form[:username]} type="text" label="Username" required />
+      <.input field={@form[:password]} type="password" label="Password" required />
+    </div>
+
+    <button type="submit" class="mt-6 w-full rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-zinc-700">
+      Create account
+    </button>
+  </.form>
+
+  <p class="mt-6 text-center text-sm text-zinc-600">
+    Already have an account?
+    <a href={~p"/login"} class="font-semibold text-zinc-900 hover:underline">Sign in</a>
+  </p>
+</div>

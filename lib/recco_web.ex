@@ -83,6 +83,7 @@ defmodule ReccoWeb do
   defp html_helpers do
     quote do
       import Phoenix.HTML
+      import ReccoWeb.CoreComponents
 
       alias Phoenix.LiveView.JS
 

@@ -12,6 +12,7 @@ defmodule ReccoWeb.Router do
     plug :put_root_layout, html: {ReccoWeb.Layouts, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
+    plug ReccoWeb.Plugs.FetchCurrentUser
   end
 
   pipeline :authenticated do
@@ -31,11 +32,22 @@ defmodule ReccoWeb.Router do
     pipe_through [:api, :authenticated]
   end
 
+  # Auth routes (login/register)
+  scope "/", ReccoWeb do
+    pipe_through :browser
+
+    get "/login", UserSessionController, :new
+    post "/login", UserSessionController, :create
+    delete "/logout", UserSessionController, :delete
+    get "/register", UserRegistrationController, :new
+    post "/register", UserRegistrationController, :create
+  end
+
   # Admin (browser + LiveView)
   scope "/admin", ReccoWeb do
     pipe_through :browser
 
-    live_session :admin, on_mount: [ReccoWeb.Live.AuthHook] do
+    live_session :admin, on_mount: [ReccoWeb.Live.UserAuth, :ensure_superadmin] do
       # Admin LiveViews go here
     end
   end

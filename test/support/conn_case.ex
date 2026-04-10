@@ -34,4 +34,16 @@ defmodule ReccoWeb.ConnCase do
   def authenticate_superadmin(conn) do
     Plug.Conn.put_req_header(conn, "authorization", "Bearer valid_superadmin_token")
   end
+
+  @doc """
+  Logs in a user via session for browser/LiveView tests.
+  """
+  @spec log_in_user(Plug.Conn.t(), Recco.Accounts.User.t()) :: Plug.Conn.t()
+  def log_in_user(conn, user) do
+    token = Recco.Accounts.generate_user_session_token(user)
+
+    conn
+    |> Phoenix.ConnTest.init_test_session(%{})
+    |> Plug.Conn.put_session(:user_token, token)
+  end
 end
