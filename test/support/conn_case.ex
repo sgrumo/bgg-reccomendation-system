@@ -1,6 +1,12 @@
 defmodule ReccoWeb.ConnCase do
   use ExUnit.CaseTemplate
 
+  import Plug.Conn
+  import Phoenix.ConnTest
+
+  alias Recco.Accounts
+  alias Recco.Accounts.User
+
   using do
     quote do
       @endpoint ReccoWeb.Endpoint
@@ -24,7 +30,7 @@ defmodule ReccoWeb.ConnCase do
   """
   @spec authenticate(Plug.Conn.t()) :: Plug.Conn.t()
   def authenticate(conn) do
-    Plug.Conn.put_req_header(conn, "authorization", "Bearer valid_token")
+    put_req_header(conn, "authorization", "Bearer valid_token")
   end
 
   @doc """
@@ -32,18 +38,18 @@ defmodule ReccoWeb.ConnCase do
   """
   @spec authenticate_superadmin(Plug.Conn.t()) :: Plug.Conn.t()
   def authenticate_superadmin(conn) do
-    Plug.Conn.put_req_header(conn, "authorization", "Bearer valid_superadmin_token")
+    put_req_header(conn, "authorization", "Bearer valid_superadmin_token")
   end
 
   @doc """
   Logs in a user via session for browser/LiveView tests.
   """
-  @spec log_in_user(Plug.Conn.t(), Recco.Accounts.User.t()) :: Plug.Conn.t()
+  @spec log_in_user(Plug.Conn.t(), User.t()) :: Plug.Conn.t()
   def log_in_user(conn, user) do
-    token = Recco.Accounts.generate_user_session_token(user)
+    token = Accounts.generate_user_session_token(user)
 
     conn
-    |> Phoenix.ConnTest.init_test_session(%{})
-    |> Plug.Conn.put_session(:user_token, token)
+    |> init_test_session(%{})
+    |> put_session(:user_token, token)
   end
 end

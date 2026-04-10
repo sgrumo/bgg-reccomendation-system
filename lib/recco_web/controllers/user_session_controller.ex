@@ -3,6 +3,8 @@ defmodule ReccoWeb.UserSessionController do
 
   alias Recco.Accounts
 
+  plug :put_layout, html: {ReccoWeb.Layouts, :public}
+
   @spec new(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def new(conn, _params) do
     render(conn, :new, error_message: nil)

@@ -43,11 +43,24 @@ defmodule ReccoWeb.Router do
     post "/register", UserRegistrationController, :create
   end
 
+  # Public LiveView pages (browsing, landing)
+  scope "/", ReccoWeb do
+    pipe_through :browser
+
+    live_session :public,
+      on_mount: [{ReccoWeb.Live.UserAuth, :mount_current_user}],
+      layout: {ReccoWeb.Layouts, :app} do
+      live "/", LandingLive
+    end
+  end
+
   # Admin (browser + LiveView)
   scope "/admin", ReccoWeb do
     pipe_through :browser
 
-    live_session :admin, on_mount: [ReccoWeb.Live.UserAuth, :ensure_superadmin] do
+    live_session :admin,
+      on_mount: [{ReccoWeb.Live.UserAuth, :ensure_superadmin}],
+      layout: {ReccoWeb.Layouts, :admin} do
       # Admin LiveViews go here
     end
   end

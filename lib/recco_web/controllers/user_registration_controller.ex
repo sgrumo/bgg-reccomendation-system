@@ -4,6 +4,8 @@ defmodule ReccoWeb.UserRegistrationController do
   alias Recco.Accounts
   alias Recco.Accounts.User
 
+  plug :put_layout, html: {ReccoWeb.Layouts, :public}
+
   @spec new(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def new(conn, _params) do
     changeset = User.registration_changeset(%User{}, %{})
