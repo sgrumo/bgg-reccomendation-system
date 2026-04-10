@@ -18,6 +18,7 @@ config :recco, token_verifier: Recco.Auth.TokenMock
 
 config :bcrypt_elixir, log_rounds: 1
 config :recco, bgg_http_client: Recco.BoardGames.BggApi.MockClient
+config :recco, recommender_client: Recco.Recommender.Mock
 
 config :recco, Oban, testing: :inline
 

@@ -13,7 +13,7 @@ dev-api: up
 	export $$(grep -v '^#' .env | xargs) && mix setup && mix phx.server
 	cd recommender && uvicorn api:app --host 0.0.0.0 --port 8000 --reload
 
-dev-recommender: up
+dev-recommender: 
 	cd recommender && uvicorn api:app --host 0.0.0.0 --port 8000 --reload
 
 test: up

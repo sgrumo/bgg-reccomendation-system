@@ -65,6 +65,7 @@ defmodule ReccoWeb.Router do
       layout: {ReccoWeb.Layouts, :app} do
       live "/ratings", RatingLive.Index
       live "/preferences", PreferenceLive.Edit
+      live "/recommendations", RecommendationLive.Index
     end
   end
 

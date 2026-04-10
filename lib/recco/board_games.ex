@@ -89,6 +89,15 @@ defmodule Recco.BoardGames do
     end
   end
 
+  @spec get_board_games_by_bgg_ids([integer()]) :: %{integer() => BoardGame.t()}
+  def get_board_games_by_bgg_ids([]), do: %{}
+
+  def get_board_games_by_bgg_ids(bgg_ids) do
+    from(bg in BoardGame, where: bg.bgg_id in ^bgg_ids)
+    |> Repo.all()
+    |> Map.new(&{&1.bgg_id, &1})
+  end
+
   defp apply_search(query, %{search: search}) when is_binary(search) and search != "" do
     term = "%#{search}%"
     from bg in query, where: ilike(bg.name, ^term)

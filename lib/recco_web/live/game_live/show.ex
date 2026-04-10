@@ -3,6 +3,7 @@ defmodule ReccoWeb.GameLive.Show do
 
   alias Recco.BoardGames
   alias Recco.Ratings
+  alias Recco.Recommender
 
   @impl true
   @spec mount(map(), map(), Phoenix.LiveView.Socket.t()) ::
@@ -12,13 +13,21 @@ defmodule ReccoWeb.GameLive.Show do
       {:ok, game} ->
         user_rating = load_user_rating(socket.assigns[:current_user], game.id)
 
-        {:ok,
-         assign(socket,
-           page_title: game.name,
-           game: game,
-           user_rating: user_rating,
-           rating_form_score: user_rating && user_rating.score
-         )}
+        socket =
+          socket
+          |> assign(
+            page_title: game.name,
+            game: game,
+            user_rating: user_rating,
+            rating_form_score: user_rating && user_rating.score,
+            similar_games: nil,
+            similar_loading: true
+          )
+          |> start_async(:fetch_similar, fn ->
+            Recommender.game_recommendations(game.bgg_id, top_n: 6)
+          end)
+
+        {:ok, socket}
 
       {:error, :not_found} ->
         {:ok,
@@ -58,6 +67,18 @@ defmodule ReccoWeb.GameLive.Show do
     else
       {:noreply, socket}
     end
+  end
+
+  @impl true
+  @spec handle_async(atom(), {:ok, term()} | {:exit, term()}, Phoenix.LiveView.Socket.t()) ::
+          {:noreply, Phoenix.LiveView.Socket.t()}
+  def handle_async(:fetch_similar, {:ok, {:ok, recs}}, socket) do
+    enriched = Recommender.enrich_with_games(recs)
+    {:noreply, assign(socket, similar_games: enriched, similar_loading: false)}
+  end
+
+  def handle_async(:fetch_similar, _result, socket) do
+    {:noreply, assign(socket, similar_games: nil, similar_loading: false)}
   end
 
   @impl true
@@ -138,6 +159,49 @@ defmodule ReccoWeb.GameLive.Show do
               {Enum.map_join(@game.designers, ", ", & &1["value"])}
             </p>
           </div>
+        </div>
+      </div>
+
+      <div class="mt-10">
+        <h2 class="text-xl font-bold text-zinc-900 mb-4">Similar Games</h2>
+
+        <div :if={@similar_loading} class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          <div :for={_ <- 1..6} class="animate-pulse rounded-lg border border-zinc-200 p-4">
+            <div class="h-24 bg-zinc-200 rounded mb-2"></div>
+            <div class="h-4 bg-zinc-200 rounded w-3/4"></div>
+          </div>
+        </div>
+
+        <div
+          :if={!@similar_loading && (@similar_games == nil || @similar_games == [])}
+          class="text-sm text-zinc-500"
+        >
+          No similar games found.
+        </div>
+
+        <div
+          :if={!@similar_loading && @similar_games && @similar_games != []}
+          class="grid grid-cols-2 sm:grid-cols-3 gap-4"
+        >
+          <a
+            :for={rec <- @similar_games}
+            :if={rec.game}
+            href={~p"/games/#{rec.game.id}"}
+            class="block rounded-lg border border-zinc-200 hover:shadow-sm transition overflow-hidden"
+          >
+            <div class="aspect-[4/3] bg-zinc-100 flex items-center justify-center">
+              <img
+                :if={rec.game.image_url}
+                src={rec.game.image_url}
+                alt={rec.name}
+                class="max-w-full max-h-full object-contain"
+                loading="lazy"
+              />
+            </div>
+            <div class="p-2">
+              <p class="text-sm font-medium text-zinc-900 truncate">{rec.name}</p>
+            </div>
+          </a>
         </div>
       </div>
     </div>

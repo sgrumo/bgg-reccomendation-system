@@ -24,6 +24,10 @@ config :recco, ReccoWeb.Endpoint, http: [port: String.to_integer(System.get_env(
 
 config :recco, bgg_bearer_token: System.get_env("BGG_BEARER_TOKEN")
 
+if recommender_url = System.get_env("RECOMMENDER_URL") do
+  config :recco, recommender_url: recommender_url
+end
+
 if config_env() == :prod do
   database_url =
     System.get_env("DATABASE_URL") ||

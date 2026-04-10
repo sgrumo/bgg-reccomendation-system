@@ -2,7 +2,10 @@ import Config
 
 config :recco,
   ecto_repos: [Recco.Repo],
-  generators: [timestamp_type: :utc_datetime, binary_id: true]
+  generators: [timestamp_type: :utc_datetime, binary_id: true],
+  token_verifier: Recco.Auth.Token,
+  recommender_url: "http://localhost:8000",
+  recommender_client: Recco.Recommender.HttpClient
 
 config :recco, ReccoWeb.Endpoint,
   url: [host: "localhost"],
@@ -13,8 +16,6 @@ config :recco, ReccoWeb.Endpoint,
   ],
   pubsub_server: Recco.PubSub,
   live_view: [signing_salt: "8hHPku3H"]
-
-config :recco, token_verifier: Recco.Auth.Token
 
 config :recco, Oban,
   repo: Recco.Repo,
