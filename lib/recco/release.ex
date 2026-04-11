@@ -7,6 +7,8 @@ defmodule Recco.Release do
       bin/recco eval "Recco.Release.migrate()"
   """
 
+  alias Ecto.Migrator
+
   @app :recco
 
   @spec migrate :: :ok
@@ -14,7 +16,7 @@ defmodule Recco.Release do
     load_app()
 
     for repo <- repos() do
-      {:ok, _, _} = Ecto.Migrator.with_repo(repo, &Ecto.Migrator.run(&1, :up, all: true))
+      {:ok, _, _} = Migrator.with_repo(repo, &Migrator.run(&1, :up, all: true))
     end
 
     :ok
@@ -23,7 +25,7 @@ defmodule Recco.Release do
   @spec rollback(module(), integer()) :: :ok
   def rollback(repo, version) do
     load_app()
-    {:ok, _, _} = Ecto.Migrator.with_repo(repo, &Ecto.Migrator.run(&1, :down, to: version))
+    {:ok, _, _} = Migrator.with_repo(repo, &Migrator.run(&1, :down, to: version))
     :ok
   end
 
