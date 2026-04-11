@@ -74,7 +74,7 @@ defmodule ReccoWeb.GameLive.Index do
   def render(assigns) do
     ~H"""
     <div>
-      <h1 class="text-2xl font-bold text-zinc-900 mb-6">Browse Games</h1>
+      <h1 class="text-2xl font-bold mb-6">Browse Games</h1>
 
       <div class="mb-6 flex flex-col sm:flex-row gap-4">
         <form phx-change="search" phx-submit="search" class="flex-1">
@@ -90,7 +90,7 @@ defmodule ReccoWeb.GameLive.Index do
         <form phx-change="sort" class="w-full sm:w-48">
           <select
             name="sort"
-            class="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm"
+            class="w-full h-10 rounded-base border-2 border-border bg-bw px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
             aria-label="Sort by"
           >
             <option value="rating" selected={@sort == "rating"}>Top rated</option>
@@ -101,15 +101,18 @@ defmodule ReccoWeb.GameLive.Index do
         </form>
       </div>
 
-      <p class="text-sm text-zinc-500 mb-4">
+      <p class="text-sm font-medium mb-4">
         {@total} games found
       </p>
 
-      <div :if={@games == []} class="text-center py-16 text-zinc-500">
-        No games found. Try a different search.
+      <div
+        :if={@games == []}
+        class="text-center py-16 rounded-base border-2 border-border bg-bw shadow-brutalist"
+      >
+        <p class="font-medium">No games found. Try a different search.</p>
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
         <.game_card :for={game <- @games} game={game} />
       </div>
 
@@ -129,9 +132,9 @@ defmodule ReccoWeb.GameLive.Index do
     ~H"""
     <a
       href={~p"/games/#{@game.id}"}
-      class="block rounded-lg border border-zinc-200 hover:border-zinc-300 hover:shadow-sm transition overflow-hidden"
+      class="block rounded-base border-2 border-border bg-bw shadow-brutalist hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none transition-all overflow-hidden"
     >
-      <div class="aspect-square bg-zinc-100 flex items-center justify-center">
+      <div class="aspect-square bg-bg flex items-center justify-center border-b-2 border-border">
         <img
           :if={@game.image_url}
           src={@game.image_url}
@@ -141,14 +144,17 @@ defmodule ReccoWeb.GameLive.Index do
         />
       </div>
       <div class="p-3">
-        <h2 class="font-semibold text-zinc-900 text-sm truncate">{@game.name}</h2>
-        <div class="flex items-center justify-between mt-1 text-xs text-zinc-500">
+        <h2 class="font-bold text-sm truncate">{@game.name}</h2>
+        <div class="flex items-center justify-between mt-1 text-xs font-medium">
           <span :if={@game.year_published}>{@game.year_published}</span>
-          <span :if={@game.average_rating} class="font-medium text-zinc-700">
+          <span
+            :if={@game.average_rating}
+            class="inline-flex items-center rounded-base border-2 border-border bg-main px-1.5 py-0.5 text-xs font-bold"
+          >
             {Float.round(@game.average_rating, 1)}
           </span>
         </div>
-        <div :if={@game.min_players && @game.max_players} class="text-xs text-zinc-500 mt-1">
+        <div :if={@game.min_players && @game.max_players} class="text-xs font-medium mt-1">
           {@game.min_players}-{@game.max_players} players
         </div>
       </div>
@@ -163,12 +169,7 @@ defmodule ReccoWeb.GameLive.Index do
   defp pagination(assigns) do
     ~H"""
     <nav class="mt-8 flex justify-center gap-2" aria-label="Pagination">
-      <.page_link
-        :if={@page > 1}
-        page={@page - 1}
-        params={@params}
-        label="Previous"
-      />
+      <.page_link :if={@page > 1} page={@page - 1} params={@params} label="Previous" />
 
       <.page_link
         :for={p <- page_range(@page, @total_pages)}
@@ -178,12 +179,7 @@ defmodule ReccoWeb.GameLive.Index do
         current={p == @page}
       />
 
-      <.page_link
-        :if={@page < @total_pages}
-        page={@page + 1}
-        params={@params}
-        label="Next"
-      />
+      <.page_link :if={@page < @total_pages} page={@page + 1} params={@params} label="Next" />
     </nav>
     """
   end
@@ -201,9 +197,9 @@ defmodule ReccoWeb.GameLive.Index do
     <a
       href={@href}
       class={[
-        "px-3 py-2 text-sm rounded-lg",
-        @current && "bg-brand-600 text-white",
-        !@current && "text-zinc-600 hover:bg-zinc-100"
+        "px-3 py-2 text-sm font-bold rounded-base border-2 border-border transition-all",
+        @current && "bg-main shadow-brutalist",
+        !@current && "bg-bw hover:bg-main"
       ]}
       aria-current={@current && "page"}
     >

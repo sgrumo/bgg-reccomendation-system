@@ -61,34 +61,37 @@ defmodule ReccoWeb.PreferenceLive.Edit do
   def render(assigns) do
     ~H"""
     <div class="max-w-xl">
-      <h1 class="text-2xl font-bold text-zinc-900 mb-6">Preferences</h1>
-      <p class="text-sm text-zinc-500 mb-6">
-        Set your preferences to improve recommendations.
-      </p>
+      <h1 class="text-2xl font-bold mb-6">Preferences</h1>
 
-      <.form for={@form} phx-change="validate" phx-submit="save" class="space-y-6">
-        <div class="grid grid-cols-2 gap-4">
-          <.input field={@form[:min_players]} type="number" label="Min players" />
-          <.input field={@form[:max_players]} type="number" label="Max players" />
-        </div>
+      <div class="rounded-base border-2 border-border bg-bw p-6 shadow-brutalist">
+        <p class="text-sm font-medium mb-6">
+          Set your preferences to improve recommendations.
+        </p>
 
-        <div class="grid grid-cols-2 gap-4">
-          <.input field={@form[:min_weight]} type="number" label="Min weight" step="0.1" />
-          <.input field={@form[:max_weight]} type="number" label="Max weight" step="0.1" />
-        </div>
+        <.form for={@form} phx-change="validate" phx-submit="save" class="space-y-6">
+          <div class="grid grid-cols-2 gap-4">
+            <.input field={@form[:min_players]} type="number" label="Min players" />
+            <.input field={@form[:max_players]} type="number" label="Max players" />
+          </div>
 
-        <div class="grid grid-cols-2 gap-4">
-          <.input field={@form[:min_playtime]} type="number" label="Min playtime (min)" />
-          <.input field={@form[:max_playtime]} type="number" label="Max playtime (min)" />
-        </div>
+          <div class="grid grid-cols-2 gap-4">
+            <.input field={@form[:min_weight]} type="number" label="Min weight" step="0.1" />
+            <.input field={@form[:max_weight]} type="number" label="Max weight" step="0.1" />
+          </div>
 
-        <button
-          type="submit"
-          class="rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-500"
-        >
-          Save preferences
-        </button>
-      </.form>
+          <div class="grid grid-cols-2 gap-4">
+            <.input field={@form[:min_playtime]} type="number" label="Min playtime (min)" />
+            <.input field={@form[:max_playtime]} type="number" label="Max playtime (min)" />
+          </div>
+
+          <button
+            type="submit"
+            class="rounded-base border-2 border-border bg-main px-4 py-2.5 text-sm font-bold shadow-brutalist hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none transition-all"
+          >
+            Save preferences
+          </button>
+        </.form>
+      </div>
     </div>
     """
   end

@@ -24,7 +24,15 @@ defmodule ReccoWeb.CoreComponents do
   @spec flash_message(map()) :: Phoenix.LiveView.Rendered.t()
   def flash_message(assigns) do
     ~H"""
-    <div :if={msg = Phoenix.Flash.get(@flash, @kind)} role="alert">
+    <div
+      :if={msg = Phoenix.Flash.get(@flash, @kind)}
+      role="alert"
+      class={[
+        "mb-4 flex items-center justify-between rounded-base border-2 border-border p-4 text-sm font-medium",
+        @kind == :info && "bg-main",
+        @kind == :error && "bg-red-300"
+      ]}
+    >
       <p>{msg}</p>
       <button phx-click={JS.push("lv:clear-flash", value: %{key: @kind})}>
         <.icon name="hero-x-mark" class="h-5 w-5" />
@@ -73,15 +81,16 @@ defmodule ReccoWeb.CoreComponents do
   def input(assigns) do
     ~H"""
     <div>
-      <label :if={@label} for={@id}>{@label}</label>
+      <label :if={@label} for={@id} class="mb-1 block text-sm font-bold">{@label}</label>
       <input
         type={@type}
         name={@name}
         id={@id}
         value={Phoenix.HTML.Form.normalize_value(@type, @value)}
+        class="flex h-10 w-full rounded-base border-2 border-border bg-bw px-3 py-2 text-sm font-medium placeholder:text-fg/50 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
         {@rest}
       />
-      <p :for={msg <- @errors} class="text-red-600 text-sm">{msg}</p>
+      <p :for={msg <- @errors} class="mt-1 text-sm font-medium text-red-600">{msg}</p>
     </div>
     """
   end

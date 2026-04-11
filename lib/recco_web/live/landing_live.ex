@@ -13,11 +13,13 @@ defmodule ReccoWeb.LandingLive do
   def render(assigns) do
     ~H"""
     <div class="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
-      <h1 class="text-4xl sm:text-5xl font-bold text-zinc-900 mb-4">
+      <h1 class="text-4xl sm:text-5xl font-bold mb-4">
         Discover your next<br />
-        <span class="text-brand-600">favourite board game</span>
+        <span class="inline-block rounded-base border-2 border-border bg-main px-3 py-1 shadow-brutalist mt-2">
+          favourite board game
+        </span>
       </h1>
-      <p class="text-lg text-zinc-600 max-w-xl mb-8">
+      <p class="text-lg font-medium max-w-xl mb-8 mt-4">
         Browse thousands of board games, rate the ones you love,
         and get personalised recommendations powered by your taste.
       </p>
@@ -25,20 +27,20 @@ defmodule ReccoWeb.LandingLive do
         <%= if @current_user do %>
           <a
             href={~p"/games"}
-            class="rounded-lg bg-brand-600 px-6 py-3 text-sm font-semibold text-white hover:bg-brand-500"
+            class="rounded-base border-2 border-border bg-main px-6 py-3 text-sm font-bold shadow-brutalist hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none transition-all"
           >
             Browse games
           </a>
         <% else %>
           <a
             href={~p"/register"}
-            class="rounded-lg bg-brand-600 px-6 py-3 text-sm font-semibold text-white hover:bg-brand-500"
+            class="rounded-base border-2 border-border bg-main px-6 py-3 text-sm font-bold shadow-brutalist hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none transition-all"
           >
             Get started
           </a>
           <a
             href={~p"/login"}
-            class="rounded-lg border border-zinc-300 px-6 py-3 text-sm font-semibold text-zinc-700 hover:bg-zinc-50"
+            class="rounded-base border-2 border-border bg-bw px-6 py-3 text-sm font-bold shadow-brutalist hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none transition-all"
           >
             Sign in
           </a>

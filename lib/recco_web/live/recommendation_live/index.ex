@@ -40,17 +40,24 @@ defmodule ReccoWeb.RecommendationLive.Index do
   def render(assigns) do
     ~H"""
     <div>
-      <h1 class="text-2xl font-bold text-zinc-900 mb-6">Recommendations</h1>
-      <p class="text-sm text-zinc-500 mb-6">
+      <h1 class="text-2xl font-bold mb-6">Recommendations</h1>
+      <p class="text-sm font-medium mb-6">
         Personalised picks based on your ratings.
       </p>
 
-      <div :if={@loading} class="space-y-4">
-        <.loading_skeleton :for={_ <- 1..6} />
+      <div :if={@loading} class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div :for={_ <- 1..6} class="rounded-base border-2 border-border bg-bw p-4">
+          <div class="h-32 bg-bg rounded-base mb-3 animate-pulse"></div>
+          <div class="h-4 bg-bg rounded-base w-3/4 animate-pulse"></div>
+          <div class="h-3 bg-bg rounded-base w-1/2 mt-2 animate-pulse"></div>
+        </div>
       </div>
 
-      <div :if={@error} class="text-center py-16">
-        <p class="text-zinc-500">
+      <div
+        :if={@error}
+        class="text-center py-16 rounded-base border-2 border-border bg-bw shadow-brutalist"
+      >
+        <p class="font-medium">
           <%= case @error do %>
             <% :service_unavailable -> %>
               The recommendation engine is currently unavailable. Please try again later.
@@ -60,16 +67,22 @@ defmodule ReccoWeb.RecommendationLive.Index do
         </p>
       </div>
 
-      <div :if={@recommendations == []} class="text-center py-16 text-zinc-500">
-        <p>Rate some games first to get personalised recommendations.</p>
-        <a href={~p"/games"} class="mt-4 inline-block text-brand-600 hover:underline">
+      <div
+        :if={@recommendations == []}
+        class="text-center py-16 rounded-base border-2 border-border bg-bw shadow-brutalist"
+      >
+        <p class="font-medium">Rate some games first to get personalised recommendations.</p>
+        <a
+          href={~p"/games"}
+          class="mt-4 inline-block rounded-base border-2 border-border bg-main px-4 py-2 text-sm font-bold shadow-brutalist hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none transition-all"
+        >
           Browse games
         </a>
       </div>
 
       <div
         :if={@recommendations && @recommendations != []}
-        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"
       >
         <.recommendation_card :for={rec <- @recommendations} rec={rec} />
       </div>
@@ -81,10 +94,13 @@ defmodule ReccoWeb.RecommendationLive.Index do
 
   defp recommendation_card(assigns) do
     ~H"""
-    <div class="rounded-lg border border-zinc-200 overflow-hidden">
+    <div class="rounded-base border-2 border-border bg-bw shadow-brutalist overflow-hidden">
       <%= if @rec.game do %>
-        <a href={~p"/games/#{@rec.game.id}"} class="block hover:shadow-sm transition">
-          <div class="aspect-[4/3] bg-zinc-100 flex items-center justify-center">
+        <a
+          href={~p"/games/#{@rec.game.id}"}
+          class="block hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none transition-all"
+        >
+          <div class="aspect-[4/3] bg-bg flex items-center justify-center border-b-2 border-border">
             <img
               :if={@rec.game.image_url}
               src={@rec.game.image_url}
@@ -94,10 +110,15 @@ defmodule ReccoWeb.RecommendationLive.Index do
             />
           </div>
           <div class="p-3">
-            <h2 class="font-semibold text-zinc-900 text-sm truncate">{@rec.name}</h2>
-            <div class="flex items-center justify-between mt-1 text-xs text-zinc-500">
-              <span>Match: {format_score(@rec.score)}</span>
-              <span :if={@rec.game.average_rating} class="font-medium text-zinc-700">
+            <h2 class="font-bold text-sm truncate">{@rec.name}</h2>
+            <div class="flex items-center justify-between mt-1 text-xs font-medium">
+              <span class="inline-flex items-center rounded-base border-2 border-border bg-bg px-1.5 py-0.5 text-xs font-bold">
+                Match: {format_score(@rec.score)}
+              </span>
+              <span
+                :if={@rec.game.average_rating}
+                class="inline-flex items-center rounded-base border-2 border-border bg-main px-1.5 py-0.5 text-xs font-bold"
+              >
                 {Float.round(@rec.game.average_rating, 1)}
               </span>
             </div>
@@ -105,22 +126,10 @@ defmodule ReccoWeb.RecommendationLive.Index do
         </a>
       <% else %>
         <div class="p-3">
-          <h2 class="font-semibold text-zinc-900 text-sm">{@rec.name}</h2>
-          <p class="text-xs text-zinc-500 mt-1">Match: {format_score(@rec.score)}</p>
+          <h2 class="font-bold text-sm">{@rec.name}</h2>
+          <p class="text-xs font-medium mt-1">Match: {format_score(@rec.score)}</p>
         </div>
       <% end %>
-    </div>
-    """
-  end
-
-  defp loading_skeleton(assigns) do
-    ~H"""
-    <div class="animate-pulse flex gap-4 rounded-lg border border-zinc-200 p-4">
-      <div class="w-16 h-16 bg-zinc-200 rounded"></div>
-      <div class="flex-1 space-y-2 py-1">
-        <div class="h-4 bg-zinc-200 rounded w-3/4"></div>
-        <div class="h-3 bg-zinc-200 rounded w-1/2"></div>
-      </div>
     </div>
     """
   end

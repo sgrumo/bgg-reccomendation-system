@@ -86,36 +86,36 @@ defmodule ReccoWeb.GameLive.Show do
   def render(assigns) do
     ~H"""
     <div>
-      <a href={~p"/games"} class="text-sm text-brand-600 hover:underline mb-4 inline-block">
+      <a
+        href={~p"/games"}
+        class="text-sm font-bold underline decoration-2 underline-offset-2 hover:bg-main mb-4 inline-block"
+      >
         &larr; Back to browse
       </a>
 
       <div class="flex flex-col md:flex-row gap-8">
         <div class="w-full md:w-1/3 lg:w-1/4 flex-shrink-0">
-          <div class="aspect-square rounded-lg bg-zinc-100 overflow-hidden">
+          <div class="aspect-square rounded-base border-2 border-border bg-bw overflow-hidden shadow-brutalist flex items-center justify-center">
             <img
               :if={@game.image_url}
               src={@game.image_url}
               alt={@game.name}
-              class="w-full h-full object-cover"
+              class="max-w-full max-h-full object-contain"
             />
           </div>
         </div>
 
         <div class="flex-1 min-w-0">
-          <h1 class="text-3xl font-bold text-zinc-900">{@game.name}</h1>
-          <p :if={@game.year_published} class="text-zinc-500 mt-1">
+          <h1 class="text-3xl font-bold">{@game.name}</h1>
+          <p :if={@game.year_published} class="font-medium mt-1">
             {@game.year_published}
           </p>
 
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6">
             <.stat label="Rating" value={format_rating(@game.average_rating)} />
             <.stat label="Weight" value={format_rating(@game.average_weight)} />
             <.stat label="Players" value={format_players(@game.min_players, @game.max_players)} />
-            <.stat
-              label="Time"
-              value={format_playtime(@game.min_playtime, @game.max_playtime)}
-            />
+            <.stat label="Time" value={format_playtime(@game.min_playtime, @game.max_playtime)} />
           </div>
 
           <.rating_widget
@@ -124,17 +124,17 @@ defmodule ReccoWeb.GameLive.Show do
             rating_form_score={@rating_form_score}
           />
 
-          <div :if={@game.description} class="mt-6">
-            <h2 class="text-sm font-semibold text-zinc-700 mb-2">Description</h2>
-            <p class="text-sm text-zinc-600 leading-relaxed">{@game.description}</p>
+          <div :if={@game.description} class="mt-6 rounded-base border-2 border-border bg-bw p-4">
+            <h2 class="text-sm font-bold mb-2">Description</h2>
+            <p class="text-sm font-medium leading-relaxed">{@game.description}</p>
           </div>
 
-          <div :if={@game.categories != []} class="mt-6">
-            <h2 class="text-sm font-semibold text-zinc-700 mb-2">Categories</h2>
+          <div :if={@game.categories != []} class="mt-4">
+            <h2 class="text-sm font-bold mb-2">Categories</h2>
             <div class="flex flex-wrap gap-2">
               <span
                 :for={cat <- @game.categories}
-                class="inline-block rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-700"
+                class="inline-block rounded-base border-2 border-border bg-main px-2.5 py-0.5 text-xs font-bold"
               >
                 {cat["value"]}
               </span>
@@ -142,11 +142,11 @@ defmodule ReccoWeb.GameLive.Show do
           </div>
 
           <div :if={@game.mechanics != []} class="mt-4">
-            <h2 class="text-sm font-semibold text-zinc-700 mb-2">Mechanics</h2>
+            <h2 class="text-sm font-bold mb-2">Mechanics</h2>
             <div class="flex flex-wrap gap-2">
               <span
                 :for={mech <- @game.mechanics}
-                class="inline-block rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-700"
+                class="inline-block rounded-base border-2 border-border bg-bw px-2.5 py-0.5 text-xs font-bold"
               >
                 {mech["value"]}
               </span>
@@ -154,8 +154,8 @@ defmodule ReccoWeb.GameLive.Show do
           </div>
 
           <div :if={@game.designers != []} class="mt-4">
-            <h2 class="text-sm font-semibold text-zinc-700 mb-2">Designers</h2>
-            <p class="text-sm text-zinc-600">
+            <h2 class="text-sm font-bold mb-2">Designers</h2>
+            <p class="text-sm font-medium">
               {Enum.map_join(@game.designers, ", ", & &1["value"])}
             </p>
           </div>
@@ -163,18 +163,18 @@ defmodule ReccoWeb.GameLive.Show do
       </div>
 
       <div class="mt-10">
-        <h2 class="text-xl font-bold text-zinc-900 mb-4">Similar Games</h2>
+        <h2 class="text-xl font-bold mb-4">Similar Games</h2>
 
         <div :if={@similar_loading} class="grid grid-cols-2 sm:grid-cols-3 gap-4">
-          <div :for={_ <- 1..6} class="animate-pulse rounded-lg border border-zinc-200 p-4">
-            <div class="h-24 bg-zinc-200 rounded mb-2"></div>
-            <div class="h-4 bg-zinc-200 rounded w-3/4"></div>
+          <div :for={_ <- 1..6} class="rounded-base border-2 border-border bg-bw p-4">
+            <div class="h-24 bg-bg rounded-base mb-2 animate-pulse"></div>
+            <div class="h-4 bg-bg rounded-base w-3/4 animate-pulse"></div>
           </div>
         </div>
 
         <div
           :if={!@similar_loading && (@similar_games == nil || @similar_games == [])}
-          class="text-sm text-zinc-500"
+          class="text-sm font-medium"
         >
           No similar games found.
         </div>
@@ -187,9 +187,9 @@ defmodule ReccoWeb.GameLive.Show do
             :for={rec <- @similar_games}
             :if={rec.game}
             href={~p"/games/#{rec.game.id}"}
-            class="block rounded-lg border border-zinc-200 hover:shadow-sm transition overflow-hidden"
+            class="block rounded-base border-2 border-border bg-bw shadow-brutalist hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none transition-all overflow-hidden"
           >
-            <div class="aspect-[4/3] bg-zinc-100 flex items-center justify-center">
+            <div class="aspect-[4/3] bg-bg flex items-center justify-center border-b-2 border-border">
               <img
                 :if={rec.game.image_url}
                 src={rec.game.image_url}
@@ -199,7 +199,7 @@ defmodule ReccoWeb.GameLive.Show do
               />
             </div>
             <div class="p-2">
-              <p class="text-sm font-medium text-zinc-900 truncate">{rec.name}</p>
+              <p class="text-sm font-bold truncate">{rec.name}</p>
             </div>
           </a>
         </div>
@@ -214,8 +214,8 @@ defmodule ReccoWeb.GameLive.Show do
 
   defp rating_widget(assigns) do
     ~H"""
-    <div class="mt-6 rounded-lg border border-zinc-200 p-4">
-      <h2 class="text-sm font-semibold text-zinc-700 mb-3">Your Rating</h2>
+    <div class="mt-6 rounded-base border-2 border-border bg-bw p-4 shadow-brutalist">
+      <h2 class="text-sm font-bold mb-3">Your Rating</h2>
 
       <%= if @current_user do %>
         <div class="flex items-center gap-4">
@@ -225,11 +225,9 @@ defmodule ReccoWeb.GameLive.Show do
               phx-click="rate"
               phx-value-score={score}
               class={[
-                "w-8 h-8 rounded text-sm font-medium transition",
-                score_active?(score, @rating_form_score) &&
-                  "bg-brand-600 text-white",
-                !score_active?(score, @rating_form_score) &&
-                  "bg-zinc-100 text-zinc-600 hover:bg-zinc-200"
+                "w-8 h-8 rounded-base border-2 border-border text-sm font-bold transition-all",
+                score_active?(score, @rating_form_score) && "bg-main",
+                !score_active?(score, @rating_form_score) && "bg-bw hover:bg-bg"
               ]}
               aria-label={"Rate #{score} out of 10"}
             >
@@ -240,18 +238,24 @@ defmodule ReccoWeb.GameLive.Show do
           <button
             :if={@user_rating}
             phx-click="remove_rating"
-            class="text-sm text-red-600 hover:text-red-800"
+            class="rounded-base border-2 border-border bg-red-300 px-3 py-1 text-sm font-bold hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
           >
             Remove
           </button>
         </div>
 
-        <p :if={@user_rating} class="text-xs text-zinc-500 mt-2">
+        <p :if={@user_rating} class="text-xs font-medium mt-2">
           You rated this {Float.round(@user_rating.score, 1)}/10
         </p>
       <% else %>
-        <p class="text-sm text-zinc-500">
-          <a href={~p"/login"} class="text-brand-600 hover:underline">Sign in</a> to rate this game.
+        <p class="text-sm font-medium">
+          <a
+            href={~p"/login"}
+            class="font-bold underline decoration-2 underline-offset-2 hover:bg-main"
+          >
+            Sign in
+          </a>
+          to rate this game.
         </p>
       <% end %>
     </div>
@@ -266,9 +270,9 @@ defmodule ReccoWeb.GameLive.Show do
 
   defp stat(assigns) do
     ~H"""
-    <div class="rounded-lg bg-zinc-50 p-3">
-      <p class="text-xs text-zinc-500">{@label}</p>
-      <p class="text-lg font-semibold text-zinc-900">{@value}</p>
+    <div class="rounded-base border-2 border-border bg-bw p-3">
+      <p class="text-xs font-bold">{@label}</p>
+      <p class="text-lg font-bold">{@value}</p>
     </div>
     """
   end

@@ -11,19 +11,28 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        brand: {
-          50: "#f0f5ff",
-          100: "#e0ebff",
-          200: "#b8d4fe",
-          300: "#85b8fd",
-          400: "#4a94fa",
-          500: "#1a6ef5",
-          600: "#0b52d4",
-          700: "#0a40ac",
-          800: "#0d368e",
-          900: "#103075",
-          950: "#0b1e49",
-        },
+        main: "var(--main)",
+        bg: "var(--background)",
+        fg: "var(--foreground)",
+        bw: "var(--secondary-background)",
+        "main-fg": "var(--main-foreground)",
+        border: "var(--border)",
+        ring: "var(--ring)",
+        overlay: "var(--overlay)",
+      },
+      borderRadius: {
+        base: "5px",
+      },
+      boxShadow: {
+        brutalist: "var(--shadow)",
+      },
+      translate: {
+        "shadow-x": "4px",
+        "shadow-y": "4px",
+      },
+      fontWeight: {
+        base: "500",
+        heading: "700",
       },
     },
   },

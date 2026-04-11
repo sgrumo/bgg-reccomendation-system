@@ -30,11 +30,17 @@ defmodule ReccoWeb.RatingLive.Index do
   def render(assigns) do
     ~H"""
     <div>
-      <h1 class="text-2xl font-bold text-zinc-900 mb-6">My Ratings</h1>
+      <h1 class="text-2xl font-bold mb-6">My Ratings</h1>
 
-      <div :if={@ratings == []} class="text-center py-16 text-zinc-500">
-        <p>You haven't rated any games yet.</p>
-        <a href={~p"/games"} class="mt-4 inline-block text-brand-600 hover:underline">
+      <div
+        :if={@ratings == []}
+        class="text-center py-16 rounded-base border-2 border-border bg-bw shadow-brutalist"
+      >
+        <p class="font-medium">You haven't rated any games yet.</p>
+        <a
+          href={~p"/games"}
+          class="mt-4 inline-block rounded-base border-2 border-border bg-main px-4 py-2 text-sm font-bold shadow-brutalist hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none transition-all"
+        >
           Browse games to get started
         </a>
       </div>
@@ -42,9 +48,9 @@ defmodule ReccoWeb.RatingLive.Index do
       <div class="space-y-3">
         <div
           :for={rating <- @ratings}
-          class="flex items-center gap-4 rounded-lg border border-zinc-200 p-4"
+          class="flex items-center gap-4 rounded-base border-2 border-border bg-bw p-4"
         >
-          <div class="w-12 h-12 flex-shrink-0 rounded bg-zinc-100 overflow-hidden">
+          <div class="w-12 h-12 flex-shrink-0 rounded-base border-2 border-border bg-bg overflow-hidden">
             <img
               :if={rating.board_game.thumbnail_url}
               src={rating.board_game.thumbnail_url}
@@ -55,19 +61,19 @@ defmodule ReccoWeb.RatingLive.Index do
           <div class="flex-1 min-w-0">
             <a
               href={~p"/games/#{rating.board_game_id}"}
-              class="font-medium text-zinc-900 hover:underline truncate block"
+              class="font-bold hover:bg-main truncate block"
             >
               {rating.board_game.name}
             </a>
-            <p :if={rating.comment} class="text-sm text-zinc-500 truncate">{rating.comment}</p>
+            <p :if={rating.comment} class="text-sm font-medium truncate">{rating.comment}</p>
           </div>
-          <div class="text-lg font-bold text-brand-600 flex-shrink-0">
+          <div class="rounded-base border-2 border-border bg-main px-2.5 py-1 text-lg font-bold flex-shrink-0">
             {Float.round(rating.score, 1)}
           </div>
           <button
             phx-click="delete_rating"
             phx-value-game-id={rating.board_game_id}
-            class="text-sm text-red-600 hover:text-red-800 flex-shrink-0"
+            class="rounded-base border-2 border-border bg-red-300 px-3 py-1 text-sm font-bold hover:translate-x-[2px] hover:translate-y-[2px] transition-all flex-shrink-0"
             data-confirm="Remove this rating?"
           >
             Remove

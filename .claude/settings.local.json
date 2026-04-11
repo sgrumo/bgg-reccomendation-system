@@ -16,7 +16,16 @@
       "Bash(docker volume inspect:*)",
       "Bash(psql:*)",
       "Bash(PGPASSWORD=postgres psql:*)",
-      "Bash(make up:*)"
+      "Bash(make up:*)",
+      "Bash(curl -s -L \"https://www.neobrutalism.dev/docs/accordion\")",
+      "Bash(curl -s -L \"https://www.neobrutalism.dev/docs/button\")",
+      "Bash(curl -s -L \"https://www.neobrutalism.dev/docs/card\")",
+      "Bash(curl -s -L \"https://www.neobrutalism.dev/docs/input\")",
+      "Bash(curl -s -L \"https://www.neobrutalism.dev/docs/badge\")",
+      "WebFetch(domain:www.neobrutalism.dev)",
+      "Bash(curl -s \"https://www.neobrutalism.dev/_next/static/css/f89e5e80d33c43be.css\")",
+      "Bash(curl -s \"https://www.neobrutalism.dev/_next/static/css/7f782423881690b7.css\")",
+      "Bash(curl -s \"https://www.neobrutalism.dev/_next/static/css/8bd679f74bee88bb.css\")"
     ]
   }
 }

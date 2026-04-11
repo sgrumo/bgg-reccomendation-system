@@ -10,12 +10,12 @@ defmodule ReccoWeb.Navigation do
   @spec navbar(map()) :: Phoenix.LiveView.Rendered.t()
   def navbar(assigns) do
     ~H"""
-    <header class="sticky top-0 z-40 bg-white border-b border-zinc-200">
+    <header class="sticky top-0 z-40 border-b-2 border-border bg-bw">
       <nav class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8" aria-label="Main navigation">
         <div class="flex h-16 items-center justify-between">
           <div class="flex items-center gap-8">
-            <a href={~p"/"} class="text-xl font-bold text-brand-600">Recco</a>
-            <div class="hidden md:flex items-center gap-6">
+            <a href={~p"/"} class="text-xl font-bold">Recco</a>
+            <div class="hidden md:flex items-center gap-1">
               <.nav_link href={~p"/games"} label="Browse" />
               <%= if @current_user do %>
                 <.nav_link href={~p"/ratings"} label="My Ratings" />
@@ -24,14 +24,14 @@ defmodule ReccoWeb.Navigation do
             </div>
           </div>
 
-          <div class="hidden md:flex items-center gap-4">
+          <div class="hidden md:flex items-center gap-3">
             <.user_menu current_user={@current_user} />
           </div>
 
           <button
             id="mobile-menu-button"
             phx-hook="MobileMenu"
-            class="md:hidden p-2 text-zinc-600 hover:text-zinc-900"
+            class="md:hidden rounded-base border-2 border-border p-2 hover:bg-main"
             aria-expanded="false"
             aria-controls="mobile-menu"
             aria-label="Open menu"
@@ -58,16 +58,16 @@ defmodule ReccoWeb.Navigation do
       aria-modal="true"
       aria-label="Mobile navigation"
     >
-      <div id="mobile-menu-backdrop" class="fixed inset-0 bg-black/25"></div>
+      <div id="mobile-menu-backdrop" class="fixed inset-0 bg-black/40"></div>
       <div
         id="mobile-menu-panel"
-        class="fixed inset-y-0 right-0 w-full max-w-xs bg-white shadow-xl p-6 overflow-y-auto"
+        class="fixed inset-y-0 right-0 w-full max-w-xs border-l-2 border-border bg-bw p-6 overflow-y-auto"
       >
         <div class="flex items-center justify-between mb-8">
-          <span class="text-lg font-bold text-brand-600">Recco</span>
+          <span class="text-lg font-bold">Recco</span>
           <button
             id="mobile-menu-close"
-            class="p-2 text-zinc-600 hover:text-zinc-900"
+            class="rounded-base border-2 border-border p-2 hover:bg-main"
             aria-label="Close menu"
           >
             <.icon name="hero-x-mark" class="h-6 w-6" />
@@ -77,7 +77,7 @@ defmodule ReccoWeb.Navigation do
         <nav class="space-y-2" aria-label="Mobile navigation">
           <a
             href={~p"/games"}
-            class="block rounded-lg px-3 py-2 text-base font-medium text-zinc-900 hover:bg-zinc-50"
+            class="block rounded-base border-2 border-border px-3 py-2 text-base font-bold hover:bg-main"
           >
             Browse
           </a>
@@ -85,37 +85,37 @@ defmodule ReccoWeb.Navigation do
           <%= if @current_user do %>
             <a
               href={~p"/ratings"}
-              class="block rounded-lg px-3 py-2 text-base font-medium text-zinc-900 hover:bg-zinc-50"
+              class="block rounded-base border-2 border-border px-3 py-2 text-base font-bold hover:bg-main"
             >
               My Ratings
             </a>
             <a
               href={~p"/recommendations"}
-              class="block rounded-lg px-3 py-2 text-base font-medium text-zinc-900 hover:bg-zinc-50"
+              class="block rounded-base border-2 border-border px-3 py-2 text-base font-bold hover:bg-main"
             >
               For You
             </a>
-            <div class="border-t border-zinc-200 pt-4 mt-4">
-              <p class="px-3 text-sm text-zinc-500 mb-2">{@current_user.username}</p>
+            <div class="border-t-2 border-border pt-4 mt-4">
+              <p class="px-3 text-sm font-bold mb-2">{@current_user.username}</p>
               <a
                 href={~p"/logout"}
                 method="delete"
-                class="block rounded-lg px-3 py-2 text-base font-medium text-zinc-900 hover:bg-zinc-50"
+                class="block rounded-base border-2 border-border px-3 py-2 text-base font-bold hover:bg-red-300"
               >
                 Sign out
               </a>
             </div>
           <% else %>
-            <div class="border-t border-zinc-200 pt-4 mt-4 space-y-2">
+            <div class="border-t-2 border-border pt-4 mt-4 space-y-2">
               <a
                 href={~p"/login"}
-                class="block rounded-lg px-3 py-2 text-base font-medium text-zinc-900 hover:bg-zinc-50"
+                class="block rounded-base border-2 border-border px-3 py-2 text-base font-bold hover:bg-main"
               >
                 Sign in
               </a>
               <a
                 href={~p"/register"}
-                class="block rounded-lg px-3 py-2 text-base font-medium text-brand-600 hover:bg-brand-50"
+                class="block rounded-base border-2 border-border bg-main px-3 py-2 text-base font-bold shadow-brutalist hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none transition-all"
               >
                 Create account
               </a>
@@ -164,24 +164,27 @@ defmodule ReccoWeb.Navigation do
   def user_menu(assigns) do
     ~H"""
     <%= if @current_user do %>
-      <div class="flex items-center gap-4">
-        <span class="text-sm text-zinc-600">{@current_user.username}</span>
+      <div class="flex items-center gap-3">
+        <span class="text-sm font-bold">{@current_user.username}</span>
         <a
           href={~p"/logout"}
           method="delete"
-          class="text-sm font-medium text-zinc-600 hover:text-zinc-900"
+          class="rounded-base border-2 border-border bg-bw px-3 py-1.5 text-sm font-bold hover:bg-red-300 transition-colors"
         >
           Sign out
         </a>
       </div>
     <% else %>
       <div class="flex items-center gap-3">
-        <a href={~p"/login"} class="text-sm font-medium text-zinc-600 hover:text-zinc-900">
+        <a
+          href={~p"/login"}
+          class="rounded-base border-2 border-border bg-bw px-3 py-1.5 text-sm font-bold hover:bg-bg transition-colors"
+        >
           Sign in
         </a>
         <a
           href={~p"/register"}
-          class="rounded-lg bg-brand-600 px-3.5 py-2 text-sm font-semibold text-white hover:bg-brand-500"
+          class="rounded-base border-2 border-border bg-main px-3 py-1.5 text-sm font-bold shadow-brutalist hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none transition-all"
         >
           Create account
         </a>
@@ -195,7 +198,7 @@ defmodule ReccoWeb.Navigation do
 
   defp nav_link(assigns) do
     ~H"""
-    <a href={@href} class="text-sm font-medium text-zinc-600 hover:text-zinc-900">
+    <a href={@href} class="rounded-base px-3 py-1.5 text-sm font-bold hover:bg-main transition-colors">
       {@label}
     </a>
     """
