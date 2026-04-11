@@ -59,7 +59,10 @@ const MultiSelect = {
   },
 
   _bindListeners() {
-    this.header.addEventListener("click", () => this._toggle())
+    if (this._listenersBound) return
+    this._listenersBound = true
+
+    this.header.addEventListener("click", (e) => this._toggle(e))
     this.header.addEventListener("keydown", (e) => {
       if (["Enter", " ", "ArrowDown"].includes(e.key)) {
         e.preventDefault()
@@ -75,7 +78,8 @@ const MultiSelect = {
     }
   },
 
-  _toggle() {
+  _toggle(e) {
+    if (e) e.stopPropagation()
     this.open ? this._close() : this._open()
   },
 
@@ -87,7 +91,8 @@ const MultiSelect = {
       this.searchInput.value = ""
       this.search = ""
       this._filterOptions()
-      this.searchInput.focus()
+      // Delay focus to avoid virtual keyboard issues on mobile
+      requestAnimationFrame(() => this.searchInput.focus())
     }
   },
 
