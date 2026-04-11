@@ -27,11 +27,13 @@ RUN mkdir config
 COPY config/config.exs config/prod.exs config/
 RUN mix deps.compile
 
+RUN mix tailwind.install --if-missing \
+  && mix esbuild.install --if-missing
+
 COPY priv priv
+COPY lib lib
 COPY assets assets
 RUN mix assets.deploy
-
-COPY lib lib
 
 RUN mix compile
 

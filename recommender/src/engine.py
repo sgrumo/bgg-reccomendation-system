@@ -23,13 +23,28 @@ class RecommendationEngine:
     def load(self, min_ratings: int = 30) -> None:
         """Load data from the database, preprocess, and build similarity matrix."""
         raw = load_board_games(self._db_engine)
-        self._df = preprocess(raw, min_ratings=min_ratings)
+
+        if raw.empty:
+            self._df = raw
+            self._features = None
+            self._similarity_matrix = None
+            return
+
+        processed = preprocess(raw, min_ratings=min_ratings)
+
+        if processed.empty:
+            self._df = processed
+            self._features = None
+            self._similarity_matrix = None
+            return
+
+        self._df = processed
         self._features = build_feature_matrix(self._df)
         self._similarity_matrix = compute_similarity_matrix(self._features)
 
     @property
     def is_loaded(self) -> bool:
-        return self._df is not None and self._similarity_matrix is not None
+        return self._df is not None
 
     @property
     def game_count(self) -> int:

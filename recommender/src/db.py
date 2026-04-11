@@ -1,5 +1,7 @@
 """Database connection and queries for board game data."""
 
+import os
+
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
 
@@ -14,7 +16,10 @@ def connect(
     password: str = "postgres",
 ) -> Engine:
     """Create a SQLAlchemy engine connected to the Recco database."""
-    url = f"postgresql://{user}:{password}@{host}:{port}/{database}"
+    url = os.environ.get(
+        "DATABASE_URL",
+        f"postgresql://{user}:{password}@{host}:{port}/{database}",
+    )
     return create_engine(url)
 
 
