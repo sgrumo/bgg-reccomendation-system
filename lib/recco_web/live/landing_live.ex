@@ -47,6 +47,44 @@ defmodule ReccoWeb.LandingLive do
         <% end %>
       </div>
     </div>
+
+    <div class="max-w-5xl mx-auto px-4 py-16">
+      <h2 class="text-2xl sm:text-3xl font-bold text-center mb-12">
+        How it works
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="rounded-base border-2 border-border bg-bw p-6 shadow-brutalist">
+          <div class="rounded-base border-2 border-border bg-main w-12 h-12 flex items-center justify-center mb-4 text-xl font-bold">
+            1
+          </div>
+          <h3 class="text-lg font-bold mb-2">Browse &amp; explore</h3>
+          <p class="text-sm">
+            Search through thousands of board games sourced from BoardGameGeek.
+            Filter by category, mechanics, player count, and more to find games that catch your eye.
+          </p>
+        </div>
+        <div class="rounded-base border-2 border-border bg-bw p-6 shadow-brutalist">
+          <div class="rounded-base border-2 border-border bg-main w-12 h-12 flex items-center justify-center mb-4 text-xl font-bold">
+            2
+          </div>
+          <h3 class="text-lg font-bold mb-2">Rate your games</h3>
+          <p class="text-sm">
+            Rate the board games you've played on a 1-to-10 scale.
+            The more games you rate, the better the system understands your preferences and taste.
+          </p>
+        </div>
+        <div class="rounded-base border-2 border-border bg-bw p-6 shadow-brutalist">
+          <div class="rounded-base border-2 border-border bg-main w-12 h-12 flex items-center justify-center mb-4 text-xl font-bold">
+            3
+          </div>
+          <h3 class="text-lg font-bold mb-2">Get recommendations</h3>
+          <p class="text-sm">
+            Our engine analyses game features — categories, mechanics, complexity, and more — then uses
+            content-based similarity to find games you'll love based on your unique rating profile.
+          </p>
+        </div>
+      </div>
+    </div>
     """
   end
 end

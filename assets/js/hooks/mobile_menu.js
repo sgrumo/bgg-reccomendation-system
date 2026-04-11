@@ -3,8 +3,9 @@ const FOCUSABLE = 'a[href], button:not([disabled]), input, textarea, select, [ta
 const MobileMenu = {
   mounted() {
     this.menu = document.getElementById("mobile-menu")
-    this.closeBtn = document.getElementById("mobile-menu-close")
+    this.panel = document.getElementById("mobile-menu-panel")
     this.backdrop = document.getElementById("mobile-menu-backdrop")
+    this.closeBtn = document.getElementById("mobile-menu-close")
 
     this.el.addEventListener("click", () => this.open())
 
@@ -28,23 +29,39 @@ const MobileMenu = {
     document.addEventListener("keydown", this._onKeydown)
     document.body.style.overflow = "hidden"
 
-    // Focus close button
+    // Trigger transition on next frame
+    requestAnimationFrame(() => {
+      this.panel.classList.remove("-translate-x-full")
+      this.panel.classList.add("translate-x-0")
+      this.backdrop.classList.remove("opacity-0")
+      this.backdrop.classList.add("opacity-100")
+    })
+
     if (this.closeBtn) this.closeBtn.focus()
   },
 
   close() {
-    this.menu.classList.add("hidden")
+    this.panel.classList.remove("translate-x-0")
+    this.panel.classList.add("-translate-x-full")
+    this.backdrop.classList.remove("opacity-100")
+    this.backdrop.classList.add("opacity-0")
+
     this.el.setAttribute("aria-expanded", "false")
     document.removeEventListener("keydown", this._onKeydown)
     document.body.style.overflow = ""
+
+    // Hide after transition ends
+    this.panel.addEventListener("transitionend", () => {
+      this.menu.classList.add("hidden")
+    }, { once: true })
+
     this.el.focus()
   },
 
   _trapFocus(e) {
-    const panel = document.getElementById("mobile-menu-panel")
-    if (!panel) return
+    if (!this.panel) return
 
-    const focusable = [...panel.querySelectorAll(FOCUSABLE)]
+    const focusable = [...this.panel.querySelectorAll(FOCUSABLE)]
     if (focusable.length === 0) return
 
     const first = focusable[0]

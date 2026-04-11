@@ -9,6 +9,9 @@ module.exports = {
     "../lib/recco_web/**/*.*ex"
   ],
   theme: {
+    fontFamily: {
+      sans: ['"Red Hat Text"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+    },
     extend: {
       colors: {
         main: "var(--main)",

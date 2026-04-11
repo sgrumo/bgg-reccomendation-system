@@ -13,9 +13,22 @@ defmodule ReccoWeb.Navigation do
     <header class="sticky top-0 z-40 border-b-2 border-border bg-bw">
       <nav class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8" aria-label="Main navigation">
         <div class="flex h-16 items-center justify-between">
-          <div class="flex items-center gap-8">
-            <a href={~p"/"} class="text-xl font-bold">Recco</a>
-            <div class="hidden md:flex items-center gap-1">
+          <button
+            id="mobile-menu-button"
+            phx-hook="MobileMenu"
+            class="md:hidden rounded-base border-2 border-border p-2 hover:bg-main"
+            aria-expanded="false"
+            aria-controls="mobile-menu"
+            aria-label="Open menu"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-6 w-6">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+            </svg>
+          </button>
+
+          <div class="hidden md:flex items-center gap-8">
+            <a href={~p"/"} class="text-xl font-bold">BGRecco</a>
+            <div class="flex items-center gap-1">
               <.nav_link href={~p"/games"} label="Browse" />
               <%= if @current_user do %>
                 <.nav_link href={~p"/ratings"} label="My Ratings" />
@@ -27,17 +40,6 @@ defmodule ReccoWeb.Navigation do
           <div class="hidden md:flex items-center gap-3">
             <.user_menu current_user={@current_user} />
           </div>
-
-          <button
-            id="mobile-menu-button"
-            phx-hook="MobileMenu"
-            class="md:hidden rounded-base border-2 border-border p-2 hover:bg-main"
-            aria-expanded="false"
-            aria-controls="mobile-menu"
-            aria-label="Open menu"
-          >
-            <.icon name="hero-bars-3" class="h-6 w-6" />
-          </button>
         </div>
       </nav>
 
@@ -58,19 +60,21 @@ defmodule ReccoWeb.Navigation do
       aria-modal="true"
       aria-label="Mobile navigation"
     >
-      <div id="mobile-menu-backdrop" class="fixed inset-0 bg-black/40"></div>
+      <div id="mobile-menu-backdrop" class="fixed inset-0 bg-black/40 transition-opacity duration-300 opacity-0"></div>
       <div
         id="mobile-menu-panel"
-        class="fixed inset-y-0 right-0 w-full max-w-xs border-l-2 border-border bg-bw p-6 overflow-y-auto"
+        class="fixed inset-y-0 left-0 w-full max-w-xs border-r-2 border-border bg-bw p-6 overflow-y-auto transition-transform duration-300 -translate-x-full"
       >
         <div class="flex items-center justify-between mb-8">
-          <span class="text-lg font-bold">Recco</span>
+          <span class="text-lg font-bold">BGRecco</span>
           <button
             id="mobile-menu-close"
             class="rounded-base border-2 border-border p-2 hover:bg-main"
             aria-label="Close menu"
           >
-            <.icon name="hero-x-mark" class="h-6 w-6" />
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-6 w-6">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
           </button>
         </div>
 
@@ -97,13 +101,13 @@ defmodule ReccoWeb.Navigation do
             </a>
             <div class="border-t-2 border-border pt-4 mt-4">
               <p class="px-3 text-sm font-bold mb-2">{@current_user.username}</p>
-              <a
+              <.link
                 href={~p"/logout"}
                 method="delete"
                 class="block rounded-base border-2 border-border px-3 py-2 text-base font-bold hover:bg-red-300"
               >
                 Sign out
-              </a>
+              </.link>
             </div>
           <% else %>
             <div class="border-t-2 border-border pt-4 mt-4 space-y-2">
@@ -135,7 +139,7 @@ defmodule ReccoWeb.Navigation do
     <aside class="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col" aria-label="Admin sidebar">
       <div class="flex flex-col flex-grow border-r border-zinc-200 bg-zinc-50 pt-5 pb-4 overflow-y-auto">
         <div class="flex items-center flex-shrink-0 px-4 mb-6">
-          <a href={~p"/"} class="text-xl font-bold text-brand-600">Recco</a>
+          <a href={~p"/"} class="text-xl font-bold text-brand-600">BGRecco</a>
           <span class="ml-2 text-xs font-medium text-zinc-500 bg-zinc-200 rounded px-1.5 py-0.5">
             Admin
           </span>
@@ -166,13 +170,13 @@ defmodule ReccoWeb.Navigation do
     <%= if @current_user do %>
       <div class="flex items-center gap-3">
         <span class="text-sm font-bold">{@current_user.username}</span>
-        <a
+        <.link
           href={~p"/logout"}
           method="delete"
           class="rounded-base border-2 border-border bg-bw px-3 py-1.5 text-sm font-bold hover:bg-red-300 transition-colors"
         >
           Sign out
-        </a>
+        </.link>
       </div>
     <% else %>
       <div class="flex items-center gap-3">
