@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Recco is a board game recommendation system with a full LiveView web platform. The backend is a Phoenix 1.8 application (JSON API + LiveView) backed by PostgreSQL with Ecto. It crawls board game data from BoardGameGeek's XML API. The recommendation engine is a separate Python project under `recommender/` using scikit-learn for content-based similarity, exposed via a FastAPI service.
 
-The LiveView platform has two user roles: **superadmin** (admin dashboards, user management, crawler control, job monitoring) and **base users** (browse games, rate, get recommendations). Public browsing is allowed without login.
+The LiveView platform has two user roles: **superadmin** (admin dashboards, user management, crawler control, job monitoring) and **base users** (browse games, rate, get recommendations). Public browsing is allowed without login. The UI uses a **neobrutalist** design style (bold borders, offset shadows, high contrast colors) with light/dark theme support via CSS custom properties.
 
 ## Common Commands
 
@@ -35,7 +35,7 @@ Strict separation: `lib/recco/` (business logic) vs `lib/recco_web/` (web layer)
 ### Contexts
 
 - `Recco.Accounts` — user registration, authentication, session tokens, user listing/deletion (admin)
-- `Recco.BoardGames` — board game CRUD, search/filter/pagination, crawl state, batch lookups by bgg_id
+- `Recco.BoardGames` — board game CRUD, search/filter/pagination, crawl state, batch lookups by bgg_id, taxonomy sync (categories/mechanics lookup tables)
 - `Recco.Ratings` — rate/delete games, user rating lists, per-user stats (count, avg, min, max), ratings-as-map for recommender
 - `Recco.Preferences` — get/upsert user preferences (player count, weight, playtime ranges)
 - `Recco.Recommender` — orchestrates calls to the FastAPI recommender, enriches results with local game data
@@ -63,7 +63,7 @@ Pipelines: `:api`, `:browser` (includes `FetchCurrentUser`), `:authenticated` (J
 | Scope | Pipeline/Session | Description |
 |---|---|---|
 | `/health` | — | Health check (forwarded) |
-| `/api` | `:api` | Public JSON endpoints |
+| `/api` | `:api` | Public JSON endpoints (`/api/categories`, `/api/mechanics`) |
 | `/api` | `:api` + `:authenticated` | Protected JSON endpoints |
 | `/login`, `/register`, `/logout` | `:browser` | Session auth controllers (HTML) |
 | `/`, `/games`, `/games/:id` | `:public` live_session | Public LiveView (`:mount_current_user`) |
@@ -86,6 +86,14 @@ Three layout variants in `lib/recco_web/components/layouts/`:
 
 Flat `one_for_one`: Telemetry -> Repo -> [TelemetryUI] -> Oban -> DNSCluster -> PubSub -> Registry -> DynamicSupervisor -> Endpoint. Registry + DynamicSupervisor for per-session GenServer processes.
 
+### Navigation & JS Hooks
+
+`ReccoWeb.Navigation` provides four components: `navbar/1` (sticky header with mobile toggle), `mobile_menu/1` (slide-in panel with focus trapping), `admin_sidebar/1` (fixed left sidebar for admin pages), and `user_menu/1`.
+
+Two JS hooks registered in `app.js`:
+- `MobileMenu` — handles open/close animation, backdrop click, Escape key, tab focus trapping, body overflow
+- `MultiSelect` — dropdown with search, checkboxes, click-outside-to-close; sends `phx-click` event with `{selected: [...]}` on change
+
 ### BGG Crawler
 
 `Recco.BoardGames.Crawler` is a GenServer that crawls BGG XML API2 in batches of 20. Managed via `DynamicSupervisor`, controllable from `/admin/crawler`. Tracks progress in `crawl_state` table. Current BGG ID ceiling is ~468,680.
@@ -93,6 +101,8 @@ Flat `one_for_one`: Telemetry -> Repo -> [TelemetryUI] -> Oban -> DNSCluster -> 
 ### Background Jobs (Oban)
 
 `Recco.Workers.NewGameScanner` — weekly cron job (Monday 3 AM) that scans for new BGG entries beyond the current max `bgg_id`. Stops after 5 consecutive empty batches. Job status visible at `/admin/jobs`.
+
+`Recco.Workers.SyncTaxonomy` — daily cron job (4 AM) that extracts distinct categories and mechanics from board_games JSONB columns into dedicated lookup tables (`categories`, `mechanics`). These tables power the multi-select filter dropdowns on the games page.
 
 ### Telemetry
 
@@ -139,6 +149,8 @@ Located in `recommender/`. Uses scikit-learn for content-based recommendation vi
 
 - `board_games` — crawled BGG data (bgg_id unique, JSONB for categories/mechanics/families/etc, GIN indexes for search)
 - `crawl_state` — crawler progress tracking (key, last_fetched_id, status)
+- `categories` — taxonomy lookup (bgg_id unique, name unique), synced from board_games JSONB
+- `mechanics` — taxonomy lookup (bgg_id unique, name unique), synced from board_games JSONB
 
 ### User Tables
 

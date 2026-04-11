@@ -10,6 +10,7 @@ Board game recommendation system powered by data crawled from [BoardGameGeek](ht
 - **Recommendations** — personalised "For You" page powered by your ratings, plus "Similar Games" on each game detail page
 - **Preferences** — set preferred player count, weight, and playtime ranges
 - **Admin Dashboard** — user management with stats, background job monitoring, crawler control, telemetry metrics
+- **Neobrutalist Design** — bold borders, offset shadows, high contrast colors with light/dark theme
 - **Mobile-first** — responsive layouts, hamburger menu with focus trapping, accessible navigation
 
 ## Stack
@@ -130,8 +131,9 @@ Then log in at `/login` and visit `/admin`.
 | Route | Pipeline | Description |
 |---|---|---|
 | `/health` | — | Health check |
-| `/api/*` | `:api` | Public JSON endpoints |
-| `/api/*` | `:api` + `:authenticated` | Protected JSON endpoints (JWT Bearer) |
+| `/api/categories` | `:api` | List all game categories |
+| `/api/mechanics` | `:api` | List all game mechanics |
+| `/api/*` | `:authenticated` | Protected JSON endpoints (JWT Bearer) |
 
 ## Project Structure
 
@@ -150,6 +152,8 @@ lib/
       bgg_api.ex                     # BGG XML API client
       crawler.ex                     # GenServer-based BGG crawler
       crawl_state.ex                 # Crawler progress tracking
+      category.ex                    # Category lookup schema (synced from JSONB)
+      mechanic.ex                    # Mechanic lookup schema (synced from JSONB)
     ratings.ex                       # Ratings: rate/delete, user stats, ratings map
     preferences.ex                   # Preferences: get/upsert
     recommender.ex                   # Recommender: orchestrates FastAPI calls
@@ -162,6 +166,7 @@ lib/
       token_mock.ex                  # Test mock
     workers/
       new_game_scanner.ex            # Oban: weekly scan for new BGG entries
+      sync_taxonomy.ex               # Oban: daily sync categories/mechanics lookup tables
   recco_web/                     # Web layer
     endpoint.ex                      # HTTP endpoint (sessions, CORS, static)
     router.ex                        # Routes (public, auth, admin, API)
@@ -178,6 +183,7 @@ lib/
     controllers/
       user_session_controller.ex     # Login/logout (HTML)
       user_registration_controller.ex # Registration (HTML)
+      taxonomy_controller.ex           # GET /api/categories, /api/mechanics
       fallback_controller.ex         # Error tuple → HTTP response
     plugs/
       auth.ex                        # JWT Bearer token verification (API)
@@ -208,7 +214,8 @@ assets/
   js/
     app.js                           # LiveSocket setup, hook registration
     hooks/
-      mobile_menu.js                 # Focus trapping, escape-to-close
+      mobile_menu.js                 # Focus trapping, escape-to-close, slide animation
+      multi_select.js                # Dropdown with search, checkboxes, phx-click events
   css/
     app.css                          # Tailwind imports
   tailwind.config.js                 # Brand colors, heroicons, Phoenix variants
@@ -241,6 +248,8 @@ Recco.BoardGames.Crawler.start(max_id: 468_353)
 ### Weekly Scanner
 
 An Oban cron job (`Recco.Workers.NewGameScanner`) runs every Monday at 3 AM to scan for newly added BGG entries. It starts from the highest `bgg_id` in the database and stops after 5 consecutive empty batches. Monitor at `/admin/jobs`.
+
+A daily job (`Recco.Workers.SyncTaxonomy`) runs at 4 AM to extract distinct categories and mechanics from crawled game data into dedicated lookup tables, powering the multi-select filter dropdowns.
 
 ## Recommendation Engine
 

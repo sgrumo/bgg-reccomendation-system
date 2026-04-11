@@ -21,8 +21,19 @@ defmodule ReccoWeb.Navigation do
             aria-controls="mobile-menu"
             aria-label="Open menu"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-6 w-6">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="2"
+              stroke="currentColor"
+              class="h-6 w-6"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
+              />
             </svg>
           </button>
 
@@ -60,7 +71,11 @@ defmodule ReccoWeb.Navigation do
       aria-modal="true"
       aria-label="Mobile navigation"
     >
-      <div id="mobile-menu-backdrop" class="fixed inset-0 bg-black/40 transition-opacity duration-300 opacity-0"></div>
+      <div
+        id="mobile-menu-backdrop"
+        class="fixed inset-0 bg-black/40 transition-opacity duration-300 opacity-0"
+      >
+      </div>
       <div
         id="mobile-menu-panel"
         class="fixed inset-y-0 left-0 w-full max-w-xs border-r-2 border-border bg-bw p-6 overflow-y-auto transition-transform duration-300 -translate-x-full"
@@ -72,7 +87,14 @@ defmodule ReccoWeb.Navigation do
             class="rounded-base border-2 border-border p-2 hover:bg-main"
             aria-label="Close menu"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-6 w-6">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="2"
+              stroke="currentColor"
+              class="h-6 w-6"
+            >
               <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
             </svg>
           </button>

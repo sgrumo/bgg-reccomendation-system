@@ -28,7 +28,8 @@
       "Bash(curl -s \"https://www.neobrutalism.dev/_next/static/css/8bd679f74bee88bb.css\")",
       "Bash(gh api:*)",
       "WebFetch(domain:github.com)",
-      "WebFetch(domain:raw.githubusercontent.com)"
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(docker compose:*)"
     ]
   }
 }
