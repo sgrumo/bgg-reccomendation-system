@@ -84,15 +84,25 @@ defmodule ReccoWeb.RecommendationLive.Index do
         :if={@recommendations && @recommendations != []}
         class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"
       >
-        <.recommendation_card :for={rec <- @recommendations} rec={rec} />
+        <.recommendation_card
+          :for={{rec, idx} <- Enum.with_index(@recommendations)}
+          rec={rec}
+          rank={idx}
+          total={length(@recommendations)}
+        />
       </div>
     </div>
     """
   end
 
   attr :rec, :map, required: true
+  attr :rank, :integer, required: true
+  attr :total, :integer, required: true
 
   defp recommendation_card(assigns) do
+    {label, color} = match_label(assigns.rank, assigns.total)
+    assigns = assign(assigns, match_label: label, match_color: color)
+
     ~H"""
     <div class="rounded-base border-2 border-border bg-bw shadow-brutalist overflow-hidden">
       <%= if @rec.game do %>
@@ -112,8 +122,11 @@ defmodule ReccoWeb.RecommendationLive.Index do
           <div class="p-3">
             <h2 class="font-bold text-sm truncate">{@rec.name}</h2>
             <div class="flex items-center justify-between mt-1 text-xs font-medium">
-              <span class="inline-flex items-center rounded-base border-2 border-border bg-bg px-1.5 py-0.5 text-xs font-bold">
-                Match: {format_score(@rec.score)}
+              <span class={[
+                "inline-flex items-center rounded-base border-2 border-border px-1.5 py-0.5 text-xs font-bold",
+                @match_color
+              ]}>
+                {@match_label}
               </span>
               <span
                 :if={@rec.game.average_rating}
@@ -127,16 +140,22 @@ defmodule ReccoWeb.RecommendationLive.Index do
       <% else %>
         <div class="p-3">
           <h2 class="font-bold text-sm">{@rec.name}</h2>
-          <p class="text-xs font-medium mt-1">Match: {format_score(@rec.score)}</p>
+          <p class="text-xs font-medium mt-1">{@match_label}</p>
         </div>
       <% end %>
     </div>
     """
   end
 
-  defp format_score(score) when is_float(score) do
-    "#{round(score * 100)}%"
-  end
+  defp match_label(rank, total) do
+    percentile = rank / max(total - 1, 1)
 
-  defp format_score(_), do: "N/A"
+    cond do
+      rank == 0 -> {"Top pick", "bg-main"}
+      percentile <= 0.15 -> {"Excellent match", "bg-main"}
+      percentile <= 0.4 -> {"Great match", "bg-main/60"}
+      percentile <= 0.7 -> {"Good match", "bg-bg"}
+      true -> {"Worth a look", "bg-bg"}
+    end
+  end
 end
