@@ -104,6 +104,8 @@ Two JS hooks registered in `app.js`:
 
 `Recco.Workers.SyncTaxonomy` — daily cron job (4 AM) that extracts distinct categories and mechanics from board_games JSONB columns into dedicated lookup tables (`categories`, `mechanics`). These tables power the multi-select filter dropdowns on the games page.
 
+`Recco.Workers.DatabaseBackup` — weekly cron job (Sunday 2 AM) that runs `pg_dump --format=custom` to create compressed database dumps. Only active when `BACKUP_PATH` env var is set (prod only). Retains the last 4 backups and auto-prunes older ones. Restore with `pg_restore --dbname=<url> <file>`.
+
 ### Telemetry
 
 `ReccoWeb.Telemetry` defines two metric sets: `metrics/0` (standard `Telemetry.Metrics` for reporters) and `ui_metrics/0` (`TelemetryUI.Metrics` for the dashboard). TelemetryUI uses its own metric types — do not pass `Telemetry.Metrics` structs to it. Avoid `queue_time` and `idle_time` DB metrics as they can be nil. Dashboard at `/admin/metrics`.
@@ -200,3 +202,4 @@ Located in `recommender/`. Uses scikit-learn for content-based recommendation vi
 - `mix ecto.reset` will destroy all crawled data — avoid unless intentional
 - FastAPI recommender runs on port **8000** (configurable via `RECOMMENDER_URL` env var)
 - bcrypt log_rounds set to 1 in test config for fast password hashing
+- Weekly database backups via Oban (`BACKUP_PATH` env var, prod only). Named volume `backups` in docker-compose. App container includes `postgresql-client` for `pg_dump`

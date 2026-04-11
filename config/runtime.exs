@@ -28,6 +28,10 @@ if recommender_url = System.get_env("RECOMMENDER_URL") do
   config :recco, recommender_url: recommender_url
 end
 
+if backup_path = System.get_env("BACKUP_PATH") do
+  config :recco, backup_path: backup_path
+end
+
 if config_env() == :prod do
   database_url =
     System.get_env("DATABASE_URL") ||

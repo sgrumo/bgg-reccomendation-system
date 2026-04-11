@@ -30,6 +30,9 @@ services:
       PORT: 4000
       RECOMMENDER_URL: http://recommender:8000
       BGG_BEARER_TOKEN: ${BGG_BEARER_TOKEN}
+      BACKUP_PATH: /backups
+    volumes:
+      - backups:/backups
     expose:
       - "4000"
 
@@ -72,5 +75,6 @@ services:
 
 volumes:
   pgdata:
+  backups:
   caddy_data:
   caddy_config:
