@@ -1,7 +1,7 @@
-{$PHX_HOST} {
+{$SITE_ADDRESS} {
 	reverse_proxy app:4000
 }
 
-logs.{$PHX_HOST} {
+logs.{$SITE_ADDRESS} {
 	reverse_proxy dozzle:8080
 }

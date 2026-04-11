@@ -1,61 +1,68 @@
 ARG ELIXIR_VERSION=1.19.5
-ARG OTP_VERSION=28.2
-ARG DEBIAN_CODENAME=bookworm
+ARG OTP_VERSION=28.4.1
+ARG DEBIAN_VERSION=trixie-20260223-slim
 
-ARG BUILDER_IMAGE="hexpm/elixir:${ELIXIR_VERSION}-erlang-${OTP_VERSION}-debian-${DEBIAN_CODENAME}-20250407"
-ARG RUNNER_IMAGE="debian:${DEBIAN_CODENAME}-slim"
+ARG BUILDER_IMAGE="hexpm/elixir:${ELIXIR_VERSION}-erlang-${OTP_VERSION}-debian-${DEBIAN_VERSION}"
+ARG RUNNER_IMAGE="debian:${DEBIAN_VERSION}"
 
-# --- Build stage ---
+# ── Build ──
 FROM ${BUILDER_IMAGE} AS builder
 
-ENV MIX_ENV=prod
-
-RUN apt-get update -y && apt-get install -y build-essential git curl \
-    && apt-get clean && rm -f /var/lib/apt/lists/*_*
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends build-essential git \
+  && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-RUN mix local.hex --force && mix local.rebar --force
+RUN mix local.hex --force \
+  && mix local.rebar --force
 
-# Install deps first (cache layer)
+ENV MIX_ENV=prod
+
+# ── Install dependencies ──
 COPY mix.exs mix.lock ./
-RUN mix deps.get --only prod
+RUN mix deps.get --only $MIX_ENV
 RUN mkdir config
+
 COPY config/config.exs config/prod.exs config/
 RUN mix deps.compile
 
-# Build assets
 COPY priv priv
 COPY assets assets
 RUN mix assets.deploy
 
-# Compile application
 COPY lib lib
+
 RUN mix compile
 
-# Copy runtime config last
 COPY config/runtime.exs config/
 
-# Build release
 RUN mix release
 
-# --- Runtime stage ---
-FROM ${RUNNER_IMAGE}
+# ── Production ──
+FROM ${RUNNER_IMAGE} AS final
 
-ENV MIX_ENV=prod
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends libstdc++6 openssl libncurses6 locales ca-certificates curl \
+  && rm -rf /var/lib/apt/lists/*
+
+RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen \
+  && locale-gen
+
 ENV LANG=en_US.UTF-8
 ENV LANGUAGE=en_US:en
 ENV LC_ALL=en_US.UTF-8
 
-RUN apt-get update -y && \
-    apt-get install -y libstdc++6 openssl libncurses5 locales ca-certificates \
-    && sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && locale-gen \
-    && apt-get clean && rm -f /var/lib/apt/lists/*_*
-
 WORKDIR /app
-RUN useradd --system --create-home app && chown -R app:app /app
-USER app
+RUN chown nobody /app
 
-COPY --from=builder --chown=app:app /app/_build/prod/rel/recco ./
+ENV MIX_ENV=prod
 
-CMD ["bin/recco", "start"]
+COPY --from=builder --chown=nobody:root /app/_build/${MIX_ENV}/rel/recco ./
+
+ENV PORT=4000
+EXPOSE 4000
+
+USER nobody
+
+CMD /app/bin/recco eval "Recco.Release.migrate()" && /app/bin/recco start
