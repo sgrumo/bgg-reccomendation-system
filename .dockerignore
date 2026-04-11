@@ -1,0 +1,29 @@
+# Build artifacts
+_build/
+deps/
+.elixir_ls/
+
+# Generated on deploy
+priv/static/assets/
+priv/static/cache_manifest.json
+
+# Dev/test
+.env
+*.secret.exs
+test/
+cover/
+
+# Version control
+.git/
+.gitignore
+
+# Docker
+infra/
+
+# Recommender (separate build context)
+recommender/
+
+# Misc
+.DS_Store
+tmp/
+node_modules/

@@ -1,10 +1,19 @@
-.PHONY: up down dev-api dev-recommender test
+.PHONY: up down dev-api dev-recommender test prod-up prod-down prod-logs
 
 up:
-	docker compose up -d
+	docker compose -f infra/local/docker-compose.yml up -d
 
 down:
-	docker compose down
+	docker compose -f infra/local/docker-compose.yml down
+
+prod-up:
+	docker compose -f infra/prod/docker-compose.yml --env-file infra/prod/.env up -d --build
+
+prod-down:
+	docker compose -f infra/prod/docker-compose.yml --env-file infra/prod/.env down
+
+prod-logs:
+	docker compose -f infra/prod/docker-compose.yml --env-file infra/prod/.env logs -f
 
 env-import:
 	export $$(grep -v '^#' .env | xargs) 
