@@ -79,7 +79,7 @@ defmodule Recco.BoardGamesTest do
         categories: [%{"id" => 2, "value" => "Party Game"}]
       )
 
-      %{games: games} = BoardGames.list_board_games(%{category: "Strategy"})
+      %{games: games} = BoardGames.list_board_games(%{categories: ["Strategy"]})
 
       assert length(games) == 1
       assert hd(games).name == "Strategic"
@@ -93,7 +93,7 @@ defmodule Recco.BoardGamesTest do
         mechanics: [%{"id" => 2, "value" => "Worker Placement"}]
       )
 
-      %{games: games} = BoardGames.list_board_games(%{mechanic: "Dice Rolling"})
+      %{games: games} = BoardGames.list_board_games(%{mechanics: ["Dice Rolling"]})
 
       assert length(games) == 1
       assert hd(games).name == "Dicer"
@@ -138,6 +138,46 @@ defmodule Recco.BoardGamesTest do
 
     test "returns not_found for unknown id" do
       assert {:error, :not_found} = BoardGames.get_board_game(Ecto.UUID.generate())
+    end
+  end
+
+  describe "taxonomy" do
+    test "sync_taxonomy extracts categories and mechanics from board games" do
+      insert(:board_game,
+        categories: [%{"id" => 10, "value" => "Strategy"}, %{"id" => 11, "value" => "War"}],
+        mechanics: [%{"id" => 20, "value" => "Dice Rolling"}]
+      )
+
+      {cat_count, mech_count} = BoardGames.sync_taxonomy()
+
+      assert cat_count == 2
+      assert mech_count == 1
+      assert length(BoardGames.list_categories()) == 2
+      assert length(BoardGames.list_mechanics()) == 1
+    end
+
+    test "sync_taxonomy is idempotent" do
+      insert(:board_game,
+        categories: [%{"id" => 10, "value" => "Strategy"}],
+        mechanics: []
+      )
+
+      BoardGames.sync_taxonomy()
+      {cat_count, _} = BoardGames.sync_taxonomy()
+
+      assert cat_count == 0
+      assert length(BoardGames.list_categories()) == 1
+    end
+
+    test "list_categories returns sorted names" do
+      insert(:board_game,
+        categories: [%{"id" => 1, "value" => "Zulu"}, %{"id" => 2, "value" => "Alpha"}],
+        mechanics: []
+      )
+
+      BoardGames.sync_taxonomy()
+      names = Enum.map(BoardGames.list_categories(), & &1.name)
+      assert names == ["Alpha", "Zulu"]
     end
   end
 

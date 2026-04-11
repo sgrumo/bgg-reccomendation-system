@@ -2,7 +2,9 @@ defmodule Recco.BoardGames do
   import Ecto.Query
 
   alias Recco.BoardGames.BoardGame
+  alias Recco.BoardGames.Category
   alias Recco.BoardGames.CrawlState
+  alias Recco.BoardGames.Mechanic
   alias Recco.Errors
   alias Recco.Repo
 
@@ -46,8 +48,8 @@ defmodule Recco.BoardGames do
 
   @type list_opts :: %{
           optional(:search) => String.t(),
-          optional(:category) => String.t(),
-          optional(:mechanic) => String.t(),
+          optional(:categories) => [String.t()],
+          optional(:mechanics) => [String.t()],
           optional(:min_players) => pos_integer(),
           optional(:max_players) => pos_integer(),
           optional(:page) => pos_integer(),
@@ -105,16 +107,20 @@ defmodule Recco.BoardGames do
 
   defp apply_search(query, _opts), do: query
 
-  defp apply_category(query, %{category: category}) when is_binary(category) and category != "" do
-    from bg in query,
-      where: fragment("? @> ?", bg.categories, ^[%{"value" => category}])
+  defp apply_category(query, %{categories: categories})
+       when is_list(categories) and categories != [] do
+    Enum.reduce(categories, query, fn cat, q ->
+      from bg in q, where: fragment("? @> ?", bg.categories, ^[%{"value" => cat}])
+    end)
   end
 
   defp apply_category(query, _opts), do: query
 
-  defp apply_mechanic(query, %{mechanic: mechanic}) when is_binary(mechanic) and mechanic != "" do
-    from bg in query,
-      where: fragment("? @> ?", bg.mechanics, ^[%{"value" => mechanic}])
+  defp apply_mechanic(query, %{mechanics: mechanics})
+       when is_list(mechanics) and mechanics != [] do
+    Enum.reduce(mechanics, query, fn mech, q ->
+      from bg in q, where: fragment("? @> ?", bg.mechanics, ^[%{"value" => mech}])
+    end)
   end
 
   defp apply_mechanic(query, _opts), do: query
@@ -125,16 +131,17 @@ defmodule Recco.BoardGames do
 
   defp apply_player_count(query, _opts), do: query
 
-  defp apply_sort(query, %{sort: "name"}), do: from(bg in query, order_by: [asc: bg.name])
+  defp apply_sort(query, %{sort: "name"}),
+    do: from(bg in query, order_by: [asc_nulls_last: bg.name])
 
   defp apply_sort(query, %{sort: "year"}),
-    do: from(bg in query, order_by: [desc: bg.year_published])
+    do: from(bg in query, order_by: [desc_nulls_last: bg.year_published])
 
   defp apply_sort(query, %{sort: "weight"}),
-    do: from(bg in query, order_by: [desc: bg.average_weight])
+    do: from(bg in query, order_by: [desc_nulls_last: bg.average_weight])
 
   defp apply_sort(query, _opts) do
-    from bg in query, order_by: [desc: bg.bayes_average_rating]
+    from bg in query, order_by: [desc_nulls_last: bg.bayes_average_rating]
   end
 
   @spec upsert_crawl_state(String.t(), map()) :: {:ok, CrawlState.t()} | Errors.t(map())
@@ -147,5 +154,76 @@ defmodule Recco.BoardGames do
       returning: true
     )
     |> Errors.handle_changeset_error()
+  end
+
+  # Taxonomy (categories & mechanics lookup tables)
+
+  @spec list_categories() :: [Category.t()]
+  def list_categories do
+    from(c in Category, order_by: [asc: c.name]) |> Repo.all()
+  end
+
+  @spec list_mechanics() :: [Mechanic.t()]
+  def list_mechanics do
+    from(m in Mechanic, order_by: [asc: m.name]) |> Repo.all()
+  end
+
+  @spec sync_taxonomy() :: {non_neg_integer(), non_neg_integer()}
+  def sync_taxonomy do
+    cat_count = sync_table(Category, "categories")
+    mech_count = sync_table(Mechanic, "mechanics")
+    {cat_count, mech_count}
+  end
+
+  defp sync_table(schema, jsonb_field) do
+    existing_bgg_ids =
+      from(s in schema, select: s.bgg_id)
+      |> Repo.all()
+      |> MapSet.new()
+
+    distinct_entries = extract_distinct_entries(jsonb_field)
+
+    new_entries =
+      distinct_entries
+      |> Enum.reject(fn %{"id" => id} -> MapSet.member?(existing_bgg_ids, id) end)
+
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+    rows =
+      Enum.map(new_entries, fn %{"id" => id, "value" => name} ->
+        %{
+          id: Ecto.UUID.generate(),
+          bgg_id: id,
+          name: name,
+          inserted_at: now,
+          updated_at: now
+        }
+      end)
+
+    case rows do
+      [] ->
+        0
+
+      rows ->
+        {count, _} = Repo.insert_all(schema, rows, on_conflict: :nothing)
+        count
+    end
+  end
+
+  defp extract_distinct_entries(jsonb_field) do
+    query =
+      from(bg in BoardGame,
+        select:
+          fragment(
+            "DISTINCT jsonb_array_elements(?)",
+            field(bg, ^String.to_existing_atom(jsonb_field))
+          )
+      )
+
+    Repo.all(query)
+    |> Enum.filter(fn entry ->
+      is_map(entry) and not is_nil(entry["id"]) and not is_nil(entry["value"])
+    end)
+    |> Enum.uniq_by(fn entry -> entry["id"] end)
   end
 end

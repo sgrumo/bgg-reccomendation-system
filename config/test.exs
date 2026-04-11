@@ -22,7 +22,7 @@ config :recco, recommender_client: Recco.Recommender.Mock
 
 config :recco, Oban, testing: :inline
 
-config :logger, level: :warning
+config :logger, level: :none
 
 config :phoenix, :plug_init_mode, :runtime
 

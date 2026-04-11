@@ -2,9 +2,11 @@ import "phoenix_html"
 import {Socket} from "phoenix"
 import {LiveSocket} from "phoenix_live_view"
 import MobileMenu from "./hooks/mobile_menu"
+import MultiSelect from "./hooks/multi_select"
 
 let Hooks = {
-  MobileMenu
+  MobileMenu,
+  MultiSelect
 }
 
 let csrfToken = document.querySelector("meta[name='csrf-token']")?.getAttribute("content")

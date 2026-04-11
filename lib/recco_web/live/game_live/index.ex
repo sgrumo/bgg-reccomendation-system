@@ -9,7 +9,11 @@ defmodule ReccoWeb.GameLive.Index do
   @spec mount(map(), map(), Phoenix.LiveView.Socket.t()) ::
           {:ok, Phoenix.LiveView.Socket.t()}
   def mount(_params, _session, socket) do
-    {:ok, socket}
+    {:ok,
+     assign(socket,
+       all_categories: BoardGames.list_categories(),
+       all_mechanics: BoardGames.list_mechanics()
+     )}
   end
 
   @impl true
@@ -18,15 +22,15 @@ defmodule ReccoWeb.GameLive.Index do
   def handle_params(params, _uri, socket) do
     page = parse_int(params["page"], 1)
     search = params["search"] || ""
-    category = params["category"] || ""
-    mechanic = params["mechanic"] || ""
+    categories = parse_list(params["categories"])
+    mechanics = parse_list(params["mechanics"])
     sort = params["sort"] || "rating"
 
     opts =
       %{page: page, per_page: @per_page, sort: sort}
       |> maybe_put(:search, search)
-      |> maybe_put(:category, category)
-      |> maybe_put(:mechanic, mechanic)
+      |> maybe_put_list(:categories, categories)
+      |> maybe_put_list(:mechanics, mechanics)
 
     %{games: games, total: total} = BoardGames.list_board_games(opts)
     total_pages = max(ceil(total / @per_page), 1)
@@ -39,8 +43,8 @@ defmodule ReccoWeb.GameLive.Index do
        page: page,
        total_pages: total_pages,
        search: search,
-       category: category,
-       mechanic: mechanic,
+       categories: categories,
+       mechanics: mechanics,
        sort: sort
      )}
   end
@@ -53,15 +57,19 @@ defmodule ReccoWeb.GameLive.Index do
     {:noreply, push_patch(socket, to: ~p"/games?#{params}")}
   end
 
-  def handle_event("filter", params, socket) do
-    filter_params =
-      build_params(socket.assigns,
-        category: params["category"] || "",
-        mechanic: params["mechanic"] || "",
-        page: 1
-      )
+  def handle_event("filter_categories", %{"selected" => selected}, socket) do
+    params = build_params(socket.assigns, categories: selected, page: 1)
+    {:noreply, push_patch(socket, to: ~p"/games?#{params}")}
+  end
 
-    {:noreply, push_patch(socket, to: ~p"/games?#{filter_params}")}
+  def handle_event("filter_mechanics", %{"selected" => selected}, socket) do
+    params = build_params(socket.assigns, mechanics: selected, page: 1)
+    {:noreply, push_patch(socket, to: ~p"/games?#{params}")}
+  end
+
+  def handle_event("clear_filters", _params, socket) do
+    params = build_params(socket.assigns, categories: [], mechanics: [], page: 1)
+    {:noreply, push_patch(socket, to: ~p"/games?#{params}")}
   end
 
   def handle_event("sort", %{"sort" => sort}, socket) do
@@ -74,7 +82,7 @@ defmodule ReccoWeb.GameLive.Index do
   def render(assigns) do
     ~H"""
     <div>
-      <h1 class="text-2xl font-bold mb-6">Browse Games</h1>
+      <h1 class="text-2xl font-heading mb-6">Browse Games</h1>
 
       <div class="mb-6 flex flex-col sm:flex-row gap-4">
         <form phx-change="search" phx-submit="search" class="flex-1">
@@ -90,7 +98,7 @@ defmodule ReccoWeb.GameLive.Index do
         <form phx-change="sort" class="w-full sm:w-48">
           <select
             name="sort"
-            class="w-full h-10 rounded-base border-2 border-border bg-bw px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+            class="w-full h-10 rounded-base border-2 border-border bg-bw px-3 py-2 text-sm font-base focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
             aria-label="Sort by"
           >
             <option value="rating" selected={@sort == "rating"}>Top rated</option>
@@ -101,7 +109,34 @@ defmodule ReccoWeb.GameLive.Index do
         </form>
       </div>
 
-      <p class="text-sm font-medium mb-4">
+      <div class="mb-6 flex flex-col sm:flex-row gap-4">
+        <.multi_select
+          id="category-filter"
+          label="Categories"
+          options={@all_categories}
+          selected={@categories}
+          event="filter_categories"
+          placeholder="All categories"
+        />
+        <.multi_select
+          id="mechanic-filter"
+          label="Mechanics"
+          options={@all_mechanics}
+          selected={@mechanics}
+          event="filter_mechanics"
+          placeholder="All mechanics"
+        />
+      </div>
+
+      <button
+        :if={@categories != [] or @mechanics != []}
+        phx-click="clear_filters"
+        class="mb-4 rounded-base border-2 border-border bg-bw px-3 py-1.5 text-sm font-heading hover:bg-bg transition-colors"
+      >
+        Clear all filters
+      </button>
+
+      <p class="text-sm font-base mb-4">
         {@total} games found
       </p>
 
@@ -109,7 +144,7 @@ defmodule ReccoWeb.GameLive.Index do
         :if={@games == []}
         class="text-center py-16 rounded-base border-2 border-border bg-bw shadow-brutalist"
       >
-        <p class="font-medium">No games found. Try a different search.</p>
+        <p class="font-base">No games found. Try a different search.</p>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
@@ -144,21 +179,84 @@ defmodule ReccoWeb.GameLive.Index do
         />
       </div>
       <div class="p-3">
-        <h2 class="font-bold text-sm truncate">{@game.name}</h2>
-        <div class="flex items-center justify-between mt-1 text-xs font-medium">
+        <h2 class="font-heading text-sm truncate">{@game.name}</h2>
+        <div class="flex items-center justify-between mt-1 text-xs font-base">
           <span :if={@game.year_published}>{@game.year_published}</span>
           <span
             :if={@game.average_rating}
-            class="inline-flex items-center rounded-base border-2 border-border bg-main px-1.5 py-0.5 text-xs font-bold"
+            class="inline-flex items-center rounded-base border-2 border-border bg-main px-1.5 py-0.5 text-xs font-heading"
           >
             {Float.round(@game.average_rating, 1)}
           </span>
         </div>
-        <div :if={@game.min_players && @game.max_players} class="text-xs font-medium mt-1">
+        <div :if={@game.min_players && @game.max_players} class="text-xs font-base mt-1">
           {@game.min_players}-{@game.max_players} players
         </div>
       </div>
     </a>
+    """
+  end
+
+  attr :id, :string, required: true
+  attr :label, :string, required: true
+  attr :options, :list, required: true
+  attr :selected, :list, required: true
+  attr :event, :string, required: true
+  attr :placeholder, :string, default: "Select..."
+
+  defp multi_select(assigns) do
+    options_json = Jason.encode!(Enum.map(assigns.options, &%{name: &1.name}))
+    selected_json = Jason.encode!(assigns.selected)
+    assigns = assign(assigns, options_json: options_json, selected_json: selected_json)
+
+    ~H"""
+    <div class="flex-1">
+      <label class="mb-1 block text-sm font-heading">{@label}</label>
+      <div
+        id={@id}
+        phx-hook="MultiSelect"
+        data-options={@options_json}
+        data-selected={@selected_json}
+        data-event={@event}
+        class="relative"
+      >
+        <div
+          data-header
+          tabindex="0"
+          role="combobox"
+          aria-expanded="false"
+          aria-haspopup="listbox"
+          class="flex flex-wrap items-center gap-1 min-h-[2.5rem] w-full rounded-base border-2 border-border bg-bw px-3 py-1.5 cursor-pointer"
+        >
+          <span data-tags class="flex flex-wrap gap-1"></span>
+          <span data-placeholder class="text-sm text-fg/50 font-base">{@placeholder}</span>
+          <span class="ml-auto pl-2">
+            <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+              <path
+                fill-rule="evenodd"
+                d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+                clip-rule="evenodd"
+              />
+            </svg>
+          </span>
+        </div>
+        <div
+          data-dropdown
+          role="listbox"
+          class="hidden absolute top-full left-0 right-0 z-50 mt-1 rounded-base border-2 border-border bg-bw shadow-brutalist max-h-[40dvh] overflow-y-auto"
+        >
+          <div class="p-2 border-b-2 border-border">
+            <input
+              data-search
+              type="text"
+              placeholder="Search..."
+              class="w-full rounded-base border-2 border-border bg-bw px-3 py-1.5 text-sm font-base placeholder:text-fg/50 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1"
+            />
+          </div>
+          <div data-options class="p-1"></div>
+        </div>
+      </div>
+    </div>
     """
   end
 
@@ -197,7 +295,7 @@ defmodule ReccoWeb.GameLive.Index do
     <a
       href={@href}
       class={[
-        "px-3 py-2 text-sm font-bold rounded-base border-2 border-border transition-all",
+        "px-3 py-2 text-sm font-heading rounded-base border-2 border-border transition-all",
         @current && "bg-main shadow-brutalist",
         !@current && "bg-bw hover:bg-main"
       ]}
@@ -215,13 +313,26 @@ defmodule ReccoWeb.GameLive.Index do
   end
 
   defp build_params(assigns, overrides \\ []) do
-    %{
+    categories = Keyword.get(overrides, :categories, assigns.categories)
+    mechanics = Keyword.get(overrides, :mechanics, assigns.mechanics)
+
+    params = %{
       "search" => Keyword.get(overrides, :search, assigns.search),
-      "category" => Keyword.get(overrides, :category, assigns.category),
-      "mechanic" => Keyword.get(overrides, :mechanic, assigns.mechanic),
       "sort" => Keyword.get(overrides, :sort, assigns.sort),
       "page" => Keyword.get(overrides, :page, assigns.page)
     }
+
+    params =
+      if categories != [],
+        do: Map.put(params, "categories", Enum.join(categories, ",")),
+        else: params
+
+    params =
+      if mechanics != [],
+        do: Map.put(params, "mechanics", Enum.join(mechanics, ",")),
+        else: params
+
+    params
     |> Enum.reject(fn {_k, v} -> v in ["", nil, 1, "rating"] end)
     |> Map.new()
   end
@@ -235,6 +346,13 @@ defmodule ReccoWeb.GameLive.Index do
     end
   end
 
+  defp parse_list(nil), do: []
+  defp parse_list(""), do: []
+  defp parse_list(val) when is_binary(val), do: String.split(val, ",", trim: true)
+
   defp maybe_put(map, _key, ""), do: map
   defp maybe_put(map, key, value), do: Map.put(map, key, value)
+
+  defp maybe_put_list(map, _key, []), do: map
+  defp maybe_put_list(map, key, value), do: Map.put(map, key, value)
 end

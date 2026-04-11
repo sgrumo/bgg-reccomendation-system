@@ -25,6 +25,9 @@ defmodule ReccoWeb.Router do
   # Public API
   scope "/api", ReccoWeb do
     pipe_through :api
+
+    get "/categories", TaxonomyController, :categories
+    get "/mechanics", TaxonomyController, :mechanics
   end
 
   # Authenticated API

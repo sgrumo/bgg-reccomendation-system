@@ -25,7 +25,10 @@
       "WebFetch(domain:www.neobrutalism.dev)",
       "Bash(curl -s \"https://www.neobrutalism.dev/_next/static/css/f89e5e80d33c43be.css\")",
       "Bash(curl -s \"https://www.neobrutalism.dev/_next/static/css/7f782423881690b7.css\")",
-      "Bash(curl -s \"https://www.neobrutalism.dev/_next/static/css/8bd679f74bee88bb.css\")"
+      "Bash(curl -s \"https://www.neobrutalism.dev/_next/static/css/8bd679f74bee88bb.css\")",
+      "Bash(gh api:*)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)"
     ]
   }
 }

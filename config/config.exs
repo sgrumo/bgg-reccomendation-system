@@ -23,7 +23,8 @@ config :recco, Oban,
   plugins: [
     {Oban.Plugins.Cron,
      crontab: [
-       {"0 3 * * 1", Recco.Workers.NewGameScanner}
+       {"0 3 * * 1", Recco.Workers.NewGameScanner},
+       {"0 4 * * *", Recco.Workers.SyncTaxonomy}
      ]}
   ]
 
