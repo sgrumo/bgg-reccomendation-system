@@ -15,9 +15,7 @@ services:
       retries: 5
 
   app:
-    build:
-      context: ../../
-      dockerfile: Dockerfile
+    image: ghcr.io/sgrumo/bgg-reccomendation-system/app:latest
     restart: unless-stopped
     depends_on:
       db:
@@ -33,13 +31,11 @@ services:
       BACKUP_PATH: /backups
     volumes:
       - backups:/backups
-    expose:
-      - "4000"
+    ports:
+      - "4000:4000"
 
   recommender:
-    build:
-      context: ../../recommender
-      dockerfile: Dockerfile
+    image: ghcr.io/sgrumo/bgg-reccomendation-system/recommender:latest
     restart: unless-stopped
     depends_on:
       db:

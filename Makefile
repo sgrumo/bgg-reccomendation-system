@@ -1,4 +1,4 @@
-.PHONY: up down dev-api dev-recommender test prod-up prod-down prod-logs
+.PHONY: up down dev-api dev-recommender test prod-pull prod-up prod-down prod-logs
 
 up:
 	docker compose -f infra/local/docker-compose.yml up -d
@@ -6,8 +6,11 @@ up:
 down:
 	docker compose -f infra/local/docker-compose.yml down
 
+prod-pull:
+	docker compose -f infra/prod/docker-compose.yml --env-file infra/prod/.env pull
+
 prod-up:
-	docker compose -f infra/prod/docker-compose.yml --env-file infra/prod/.env up -d --build
+	docker compose -f infra/prod/docker-compose.yml --env-file infra/prod/.env up -d
 
 prod-down:
 	docker compose -f infra/prod/docker-compose.yml --env-file infra/prod/.env down
