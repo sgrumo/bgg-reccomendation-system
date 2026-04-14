@@ -86,7 +86,7 @@ defmodule ReccoWeb.Admin.CrawlerLive do
 
   defp assign_crawler_state(socket) do
     {status, last_fetched_id} =
-      case BoardGames.get_crawl_state("main") do
+      case BoardGames.get_crawl_state("board_games") do
         {:ok, state} -> {state.status, state.last_fetched_id}
         _ -> {"idle", 0}
       end
