@@ -33,6 +33,8 @@ if backup_path = System.get_env("BACKUP_PATH") do
 end
 
 if config_env() == :prod do
+  config :recco, telemetry_ui_enabled: true
+
   database_url =
     System.get_env("DATABASE_URL") ||
       raise """
