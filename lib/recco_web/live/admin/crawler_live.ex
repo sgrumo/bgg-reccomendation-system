@@ -37,7 +37,16 @@ defmodule ReccoWeb.Admin.CrawlerLive do
         :ok
 
       {:error, :not_running} ->
-        BoardGames.upsert_crawl_state("board_games", %{status: "stopped"})
+        case BoardGames.get_crawl_state("board_games") do
+          {:ok, state} ->
+            BoardGames.upsert_crawl_state("board_games", %{
+              status: "stopped",
+              last_fetched_id: state.last_fetched_id
+            })
+
+          _ ->
+            :ok
+        end
     end
 
     {:noreply, assign_crawler_state(socket)}
