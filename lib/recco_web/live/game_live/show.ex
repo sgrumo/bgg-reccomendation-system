@@ -4,6 +4,7 @@ defmodule ReccoWeb.GameLive.Show do
   alias Recco.BoardGames
   alias Recco.Ratings
   alias Recco.Recommender
+  alias Recco.Wishlists
 
   @impl true
   @spec mount(map(), map(), Phoenix.LiveView.Socket.t()) ::
@@ -12,6 +13,7 @@ defmodule ReccoWeb.GameLive.Show do
     case BoardGames.get_board_game(id) do
       {:ok, game} ->
         user_rating = load_user_rating(socket.assigns[:current_user], game.id)
+        wishlisted = load_wishlisted(socket.assigns[:current_user], game.id)
 
         socket =
           socket
@@ -20,6 +22,7 @@ defmodule ReccoWeb.GameLive.Show do
             game: game,
             user_rating: user_rating,
             rating_form_score: user_rating && user_rating.score,
+            wishlisted: wishlisted,
             similar_games: nil,
             similar_loading: true
           )
@@ -64,6 +67,33 @@ defmodule ReccoWeb.GameLive.Show do
     if user && socket.assigns.user_rating do
       :ok = Ratings.delete_rating(user.id, socket.assigns.game.id)
       {:noreply, assign(socket, user_rating: nil, rating_form_score: nil)}
+    else
+      {:noreply, socket}
+    end
+  end
+
+  def handle_event("add_to_wishlist", _params, socket) do
+    user = socket.assigns.current_user
+
+    if user do
+      case Wishlists.add_to_wishlist(user.id, socket.assigns.game.id) do
+        {:ok, _} ->
+          {:noreply, assign(socket, wishlisted: true)}
+
+        {:error, _, _} ->
+          {:noreply, put_flash(socket, :error, "Could not add to wishlist")}
+      end
+    else
+      {:noreply, redirect(socket, to: ~p"/login")}
+    end
+  end
+
+  def handle_event("remove_from_wishlist", _params, socket) do
+    user = socket.assigns.current_user
+
+    if user && socket.assigns.wishlisted do
+      :ok = Wishlists.remove_from_wishlist(user.id, socket.assigns.game.id)
+      {:noreply, assign(socket, wishlisted: false)}
     else
       {:noreply, socket}
     end
@@ -123,6 +153,8 @@ defmodule ReccoWeb.GameLive.Show do
             user_rating={@user_rating}
             rating_form_score={@rating_form_score}
           />
+
+          <.wishlist_widget current_user={@current_user} wishlisted={@wishlisted} />
 
           <div :if={@game.description} class="mt-6 rounded-base border-2 border-border bg-bw p-4">
             <h2 class="text-sm font-bold mb-2">Description</h2>
@@ -288,6 +320,46 @@ defmodule ReccoWeb.GameLive.Show do
   defp format_playtime(min, max) when min == max, do: "#{min}m"
   defp format_playtime(min, max), do: "#{min}-#{max}m"
 
+  attr :current_user, :any, required: true
+  attr :wishlisted, :boolean, required: true
+
+  defp wishlist_widget(assigns) do
+    ~H"""
+    <div class="mt-4 flex items-center gap-3">
+      <%= if @current_user do %>
+        <%= if @wishlisted do %>
+          <button
+            phx-click="remove_from_wishlist"
+            class="rounded-base border-2 border-border bg-main px-4 py-2 text-sm font-bold shadow-brutalist hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none transition-all"
+          >
+            Remove from wishlist
+          </button>
+        <% else %>
+          <button
+            phx-click="add_to_wishlist"
+            class="rounded-base border-2 border-border bg-bw px-4 py-2 text-sm font-bold hover:bg-bg transition-colors"
+          >
+            Add to wishlist
+          </button>
+        <% end %>
+      <% else %>
+        <p class="text-sm font-medium">
+          <a
+            href={~p"/login"}
+            class="font-bold underline decoration-2 underline-offset-2 hover:bg-main"
+          >
+            Sign in
+          </a>
+          to add to your wishlist.
+        </p>
+      <% end %>
+    </div>
+    """
+  end
+
   defp load_user_rating(nil, _game_id), do: nil
   defp load_user_rating(user, game_id), do: Ratings.get_user_rating(user.id, game_id)
+
+  defp load_wishlisted(nil, _game_id), do: false
+  defp load_wishlisted(user, game_id), do: Wishlists.wishlisted?(user.id, game_id)
 end

@@ -67,6 +67,7 @@ defmodule ReccoWeb.Router do
       on_mount: [{ReccoWeb.Live.UserAuth, :ensure_authenticated}],
       layout: {ReccoWeb.Layouts, :app} do
       live "/ratings", RatingLive.Index
+      live "/wishlist", WishlistLive.Index
       live "/preferences", PreferenceLive.Edit
       live "/recommendations", RecommendationLive.Index
     end

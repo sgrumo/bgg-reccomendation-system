@@ -3,6 +3,7 @@ defmodule Recco.Factory do
 
   alias Recco.Accounts.User
   alias Recco.Accounts.UserRating
+  alias Recco.Accounts.UserWishlist
   alias Recco.BoardGames.BoardGame
   alias Recco.BoardGames.CrawlState
 
@@ -52,6 +53,14 @@ defmodule Recco.Factory do
       user: build(:user),
       board_game: build(:board_game),
       score: 7.5
+    }
+  end
+
+  @spec user_wishlist_factory() :: UserWishlist.t()
+  def user_wishlist_factory do
+    %UserWishlist{
+      user: build(:user),
+      board_game: build(:board_game)
     }
   end
 

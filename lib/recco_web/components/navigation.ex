@@ -43,6 +43,7 @@ defmodule ReccoWeb.Navigation do
               <.nav_link href={~p"/games"} label="Browse" />
               <%= if @current_user do %>
                 <.nav_link href={~p"/ratings"} label="My Ratings" />
+                <.nav_link href={~p"/wishlist"} label="Wishlist" />
                 <.nav_link href={~p"/recommendations"} label="For You" />
               <% end %>
             </div>
@@ -114,6 +115,12 @@ defmodule ReccoWeb.Navigation do
               class="block rounded-base border-2 border-border px-3 py-2 text-base font-bold hover:bg-main"
             >
               My Ratings
+            </a>
+            <a
+              href={~p"/wishlist"}
+              class="block rounded-base border-2 border-border px-3 py-2 text-base font-bold hover:bg-main"
+            >
+              Wishlist
             </a>
             <a
               href={~p"/recommendations"}
