@@ -32,7 +32,14 @@ defmodule ReccoWeb.Admin.CrawlerLive do
   end
 
   def handle_event("stop", _params, socket) do
-    Crawler.stop()
+    case Crawler.stop() do
+      :ok ->
+        :ok
+
+      {:error, :not_running} ->
+        BoardGames.upsert_crawl_state("board_games", %{status: "stopped"})
+    end
+
     {:noreply, assign_crawler_state(socket)}
   end
 
