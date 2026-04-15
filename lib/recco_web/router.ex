@@ -85,6 +85,7 @@ defmodule ReccoWeb.Router do
       live "/users/:id", Admin.UserLive.Show
       live "/jobs", Admin.JobLive
       live "/crawler", Admin.CrawlerLive
+      live "/feedback", Admin.FeedbackLive
     end
   end
 

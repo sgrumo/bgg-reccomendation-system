@@ -1,6 +1,7 @@
 defmodule ReccoWeb.RecommendationLive.Index do
   use ReccoWeb, :live_view
 
+  alias Recco.Feedback
   alias Recco.Recommender
 
   @impl true
@@ -9,9 +10,17 @@ defmodule ReccoWeb.RecommendationLive.Index do
   def mount(_params, _session, socket) do
     user_id = socket.assigns.current_user.id
 
+    feedback_map = Feedback.user_feedback_map(user_id)
+
     socket =
       socket
-      |> assign(page_title: "Recommendations", recommendations: nil, loading: true, error: nil)
+      |> assign(
+        page_title: "Recommendations",
+        recommendations: nil,
+        loading: true,
+        error: nil,
+        feedback_map: feedback_map
+      )
       |> start_async(:fetch_recommendations, fn ->
         Recommender.user_recommendations(user_id)
       end)
@@ -33,6 +42,29 @@ defmodule ReccoWeb.RecommendationLive.Index do
 
   def handle_async(:fetch_recommendations, {:exit, _reason}, socket) do
     {:noreply, assign(socket, error: :service_unavailable, loading: false)}
+  end
+
+  @impl true
+  @spec handle_event(String.t(), map(), Phoenix.LiveView.Socket.t()) ::
+          {:noreply, Phoenix.LiveView.Socket.t()}
+  def handle_event("feedback", %{"game-id" => game_id, "positive" => positive_str}, socket) do
+    user_id = socket.assigns.current_user.id
+    positive = positive_str == "true"
+    current = Map.get(socket.assigns.feedback_map, game_id)
+
+    if current == positive do
+      :ok = Feedback.delete_feedback(user_id, game_id)
+      {:noreply, assign(socket, feedback_map: Map.delete(socket.assigns.feedback_map, game_id))}
+    else
+      {:ok, _} =
+        Feedback.upsert_feedback(user_id, game_id, %{
+          positive: positive,
+          source: "user_recommendations"
+        })
+
+      {:noreply,
+       assign(socket, feedback_map: Map.put(socket.assigns.feedback_map, game_id, positive))}
+    end
   end
 
   @impl true
@@ -89,6 +121,7 @@ defmodule ReccoWeb.RecommendationLive.Index do
           rec={rec}
           rank={idx}
           total={length(@recommendations)}
+          feedback={Map.get(@feedback_map, rec.game && rec.game.id)}
         />
       </div>
     </div>
@@ -98,6 +131,7 @@ defmodule ReccoWeb.RecommendationLive.Index do
   attr :rec, :map, required: true
   attr :rank, :integer, required: true
   attr :total, :integer, required: true
+  attr :feedback, :any, required: true
 
   defp recommendation_card(assigns) do
     {label, color} = match_label(assigns.rank, assigns.total)
@@ -137,6 +171,35 @@ defmodule ReccoWeb.RecommendationLive.Index do
             </div>
           </div>
         </a>
+        <div class="flex items-center gap-1 px-3 pb-3">
+          <span class="text-xs font-medium mr-1">Useful?</span>
+          <button
+            phx-click="feedback"
+            phx-value-game-id={@rec.game.id}
+            phx-value-positive="true"
+            class={[
+              "rounded-base border-2 border-border px-2 py-0.5 text-xs font-bold transition-all",
+              @feedback == true && "bg-main",
+              @feedback != true && "bg-bw hover:bg-bg"
+            ]}
+            aria-label="Good recommendation"
+          >
+            &#x1F44D;
+          </button>
+          <button
+            phx-click="feedback"
+            phx-value-game-id={@rec.game.id}
+            phx-value-positive="false"
+            class={[
+              "rounded-base border-2 border-border px-2 py-0.5 text-xs font-bold transition-all",
+              @feedback == false && "bg-red-300",
+              @feedback != false && "bg-bw hover:bg-bg"
+            ]}
+            aria-label="Bad recommendation"
+          >
+            &#x1F44E;
+          </button>
+        </div>
       <% else %>
         <div class="p-3">
           <h2 class="font-bold text-sm">{@rec.name}</h2>

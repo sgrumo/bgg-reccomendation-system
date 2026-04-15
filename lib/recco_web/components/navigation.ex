@@ -178,6 +178,7 @@ defmodule ReccoWeb.Navigation do
           <.sidebar_link href={~p"/admin/users"} icon="hero-users" label="Users" />
           <.sidebar_link href={~p"/admin/jobs"} icon="hero-queue-list" label="Jobs" />
           <.sidebar_link href={~p"/admin/crawler"} icon="hero-arrow-path" label="Crawler" />
+          <.sidebar_link href={~p"/admin/feedback"} icon="hero-hand-thumb-up" label="Feedback" />
           <.sidebar_link href={~p"/admin/metrics"} icon="hero-signal" label="Metrics" />
           <div class="border-t border-zinc-200 my-3"></div>
           <.sidebar_link href={~p"/"} icon="hero-arrow-left" label="Back to site" />

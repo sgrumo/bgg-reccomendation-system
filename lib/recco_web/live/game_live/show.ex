@@ -2,6 +2,7 @@ defmodule ReccoWeb.GameLive.Show do
   use ReccoWeb, :live_view
 
   alias Recco.BoardGames
+  alias Recco.Feedback
   alias Recco.Ratings
   alias Recco.Recommender
   alias Recco.Wishlists
@@ -14,6 +15,7 @@ defmodule ReccoWeb.GameLive.Show do
       {:ok, game} ->
         user_rating = load_user_rating(socket.assigns[:current_user], game.id)
         wishlisted = load_wishlisted(socket.assigns[:current_user], game.id)
+        feedback_map = load_feedback_map(socket.assigns[:current_user])
 
         socket =
           socket
@@ -23,6 +25,7 @@ defmodule ReccoWeb.GameLive.Show do
             user_rating: user_rating,
             rating_form_score: user_rating && user_rating.score,
             wishlisted: wishlisted,
+            feedback_map: feedback_map,
             similar_games: nil,
             similar_loading: true
           )
@@ -96,6 +99,31 @@ defmodule ReccoWeb.GameLive.Show do
       {:noreply, assign(socket, wishlisted: false)}
     else
       {:noreply, socket}
+    end
+  end
+
+  def handle_event("feedback", %{"game-id" => game_id, "positive" => positive_str}, socket) do
+    user = socket.assigns.current_user
+
+    if user do
+      positive = positive_str == "true"
+      current = Map.get(socket.assigns.feedback_map, game_id)
+
+      if current == positive do
+        :ok = Feedback.delete_feedback(user.id, game_id)
+        {:noreply, assign(socket, feedback_map: Map.delete(socket.assigns.feedback_map, game_id))}
+      else
+        {:ok, _} =
+          Feedback.upsert_feedback(user.id, game_id, %{
+            positive: positive,
+            source: "similar_games"
+          })
+
+        {:noreply,
+         assign(socket, feedback_map: Map.put(socket.assigns.feedback_map, game_id, positive))}
+      end
+    else
+      {:noreply, redirect(socket, to: ~p"/login")}
     end
   end
 
@@ -215,25 +243,58 @@ defmodule ReccoWeb.GameLive.Show do
           :if={!@similar_loading && @similar_games && @similar_games != []}
           class="grid grid-cols-2 sm:grid-cols-3 gap-4"
         >
-          <a
+          <div
             :for={rec <- @similar_games}
             :if={rec.game}
-            href={~p"/games/#{rec.game.id}"}
-            class="block rounded-base border-2 border-border bg-bw shadow-brutalist hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none transition-all overflow-hidden"
+            class="rounded-base border-2 border-border bg-bw shadow-brutalist overflow-hidden"
           >
-            <div class="aspect-[4/3] bg-bg flex items-center justify-center border-b-2 border-border">
-              <img
-                :if={rec.game.image_url}
-                src={rec.game.image_url}
-                alt={rec.name}
-                class="max-w-full max-h-full object-contain"
-                loading="lazy"
-              />
+            <a
+              href={~p"/games/#{rec.game.id}"}
+              class="block hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none transition-all"
+            >
+              <div class="aspect-[4/3] bg-bg flex items-center justify-center border-b-2 border-border">
+                <img
+                  :if={rec.game.image_url}
+                  src={rec.game.image_url}
+                  alt={rec.name}
+                  class="max-w-full max-h-full object-contain"
+                  loading="lazy"
+                />
+              </div>
+              <div class="p-2">
+                <p class="text-sm font-bold truncate">{rec.name}</p>
+              </div>
+            </a>
+            <div :if={@current_user} class="flex items-center gap-1 px-2 pb-2">
+              <span class="text-xs font-medium mr-1">Useful?</span>
+              <button
+                phx-click="feedback"
+                phx-value-game-id={rec.game.id}
+                phx-value-positive="true"
+                class={[
+                  "rounded-base border-2 border-border px-2 py-0.5 text-xs font-bold transition-all",
+                  Map.get(@feedback_map, rec.game.id) == true && "bg-main",
+                  Map.get(@feedback_map, rec.game.id) != true && "bg-bw hover:bg-bg"
+                ]}
+                aria-label="Good recommendation"
+              >
+                &#x1F44D;
+              </button>
+              <button
+                phx-click="feedback"
+                phx-value-game-id={rec.game.id}
+                phx-value-positive="false"
+                class={[
+                  "rounded-base border-2 border-border px-2 py-0.5 text-xs font-bold transition-all",
+                  Map.get(@feedback_map, rec.game.id) == false && "bg-red-300",
+                  Map.get(@feedback_map, rec.game.id) != false && "bg-bw hover:bg-bg"
+                ]}
+                aria-label="Bad recommendation"
+              >
+                &#x1F44E;
+              </button>
             </div>
-            <div class="p-2">
-              <p class="text-sm font-bold truncate">{rec.name}</p>
-            </div>
-          </a>
+          </div>
         </div>
       </div>
     </div>
@@ -362,4 +423,7 @@ defmodule ReccoWeb.GameLive.Show do
 
   defp load_wishlisted(nil, _game_id), do: false
   defp load_wishlisted(user, game_id), do: Wishlists.wishlisted?(user.id, game_id)
+
+  defp load_feedback_map(nil), do: %{}
+  defp load_feedback_map(user), do: Feedback.user_feedback_map(user.id)
 end

@@ -1,6 +1,7 @@
 defmodule Recco.Factory do
   use ExMachina.Ecto, repo: Recco.Repo
 
+  alias Recco.Accounts.RecommendationFeedback
   alias Recco.Accounts.User
   alias Recco.Accounts.UserRating
   alias Recco.Accounts.UserWishlist
@@ -61,6 +62,16 @@ defmodule Recco.Factory do
     %UserWishlist{
       user: build(:user),
       board_game: build(:board_game)
+    }
+  end
+
+  @spec recommendation_feedback_factory() :: RecommendationFeedback.t()
+  def recommendation_feedback_factory do
+    %RecommendationFeedback{
+      user: build(:user),
+      board_game: build(:board_game),
+      positive: true,
+      source: "user_recommendations"
     }
   end
 
