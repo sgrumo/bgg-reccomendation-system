@@ -11,14 +11,14 @@ msgstr ""
 "Language: it\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: lib/recco_web/live/game_live/index.ex:140
+#: lib/recco_web/live/game_live/index.ex:180
 #, elixir-autogen, elixir-format
 msgid "%{count} game found"
 msgid_plural "%{count} games found"
 msgstr[0] "%{count} gioco trovato"
 msgstr[1] "%{count} giochi trovati"
 
-#: lib/recco_web/live/game_live/index.ex:193
+#: lib/recco_web/live/game_live/index.ex:234
 #, elixir-autogen, elixir-format
 msgid "%{min}-%{max} players"
 msgstr "%{min}-%{max} giocatori"
@@ -28,27 +28,27 @@ msgstr "%{min}-%{max} giocatori"
 msgid "Account created successfully!"
 msgstr "Account creato con successo!"
 
-#: lib/recco_web/live/game_live/show.ex:409
+#: lib/recco_web/live/game_live/show.ex:414
 #, elixir-autogen, elixir-format
 msgid "Add to wishlist"
 msgstr "Aggiungi alla lista desideri"
 
-#: lib/recco_web/components/navigation.ex:176
+#: lib/recco_web/components/navigation.ex:184
 #, elixir-autogen, elixir-format
 msgid "Admin navigation"
 msgstr "Navigazione admin"
 
-#: lib/recco_web/components/navigation.ex:168
+#: lib/recco_web/components/navigation.ex:175
 #, elixir-autogen, elixir-format
 msgid "Admin sidebar"
 msgstr "Barra laterale admin"
 
-#: lib/recco_web/live/game_live/index.ex:119
+#: lib/recco_web/live/game_live/index.ex:159
 #, elixir-autogen, elixir-format
 msgid "All categories"
 msgstr "Tutte le categorie"
 
-#: lib/recco_web/live/game_live/index.ex:127
+#: lib/recco_web/live/game_live/index.ex:167
 #, elixir-autogen, elixir-format
 msgid "All mechanics"
 msgstr "Tutte le meccaniche"
@@ -63,13 +63,13 @@ msgstr "Hai già un account?"
 msgid "Back to browse"
 msgstr "Torna alla ricerca"
 
-#: lib/recco_web/components/navigation.ex:184
+#: lib/recco_web/components/navigation.ex:196
 #, elixir-autogen, elixir-format
 msgid "Back to site"
 msgstr "Torna al sito"
 
-#: lib/recco_web/live/game_live/show.ex:298
-#: lib/recco_web/live/recommendation_live/index.ex:198
+#: lib/recco_web/live/game_live/show.ex:299
+#: lib/recco_web/live/recommendation_live/index.ex:200
 #, elixir-autogen, elixir-format
 msgid "Bad recommendation"
 msgstr "Raccomandazione non utile"
@@ -80,7 +80,7 @@ msgid "Board Game Recommendations"
 msgstr "Raccomandazioni Giochi da Tavolo"
 
 #: lib/recco_web/components/navigation.ex:43
-#: lib/recco_web/components/navigation.ex:109
+#: lib/recco_web/components/navigation.ex:110
 #, elixir-autogen, elixir-format
 msgid "Browse"
 msgstr "Esplora"
@@ -90,14 +90,14 @@ msgstr "Esplora"
 msgid "Browse & explore"
 msgstr "Cerca ed esplora"
 
-#: lib/recco_web/live/game_live/index.ex:40
-#: lib/recco_web/live/game_live/index.ex:85
+#: lib/recco_web/live/game_live/index.ex:42
+#: lib/recco_web/live/game_live/index.ex:94
 #, elixir-autogen, elixir-format
 msgid "Browse Games"
 msgstr "Esplora i giochi"
 
 #: lib/recco_web/live/landing_live.ex:33
-#: lib/recco_web/live/recommendation_live/index.ex:111
+#: lib/recco_web/live/recommendation_live/index.ex:113
 #, elixir-autogen, elixir-format
 msgid "Browse games"
 msgstr "Esplora i giochi"
@@ -117,18 +117,18 @@ msgstr "Esplora i giochi per iniziare"
 msgid "Browse thousands of board games, rate the ones you love, and get personalised recommendations powered by your taste."
 msgstr "Esplora migliaia di giochi da tavolo, valuta quelli che ami e ricevi raccomandazioni personalizzate basate sui tuoi gusti."
 
-#: lib/recco_web/live/game_live/index.ex:115
-#: lib/recco_web/live/game_live/show.ex:199
+#: lib/recco_web/live/game_live/index.ex:155
+#: lib/recco_web/live/game_live/show.ex:200
 #, elixir-autogen, elixir-format
 msgid "Categories"
 msgstr "Categorie"
 
-#: lib/recco_web/live/game_live/index.ex:136
+#: lib/recco_web/live/game_live/index.ex:176
 #, elixir-autogen, elixir-format
 msgid "Clear all filters"
 msgstr "Rimuovi tutti i filtri"
 
-#: lib/recco_web/components/navigation.ex:89
+#: lib/recco_web/components/navigation.ex:90
 #, elixir-autogen, elixir-format
 msgid "Close menu"
 msgstr "Chiudi menu"
@@ -143,13 +143,13 @@ msgstr "Impossibile aggiungere alla lista desideri"
 msgid "Could not save rating"
 msgstr "Impossibile salvare la valutazione"
 
-#: lib/recco_web/components/navigation.ex:180
+#: lib/recco_web/components/navigation.ex:188
 #, elixir-autogen, elixir-format
 msgid "Crawler"
 msgstr "Crawler"
 
-#: lib/recco_web/components/navigation.ex:153
-#: lib/recco_web/components/navigation.ex:223
+#: lib/recco_web/components/navigation.ex:154
+#: lib/recco_web/components/navigation.ex:235
 #: lib/recco_web/controllers/user_registration_html/new.html.heex:15
 #, elixir-autogen, elixir-format
 msgid "Create account"
@@ -160,17 +160,17 @@ msgstr "Crea account"
 msgid "Create an account"
 msgstr "Crea un account"
 
-#: lib/recco_web/components/navigation.ex:177
+#: lib/recco_web/components/navigation.ex:185
 #, elixir-autogen, elixir-format
 msgid "Dashboard"
 msgstr "Dashboard"
 
-#: lib/recco_web/live/game_live/show.ex:194
+#: lib/recco_web/live/game_live/show.ex:195
 #, elixir-autogen, elixir-format
 msgid "Description"
 msgstr "Descrizione"
 
-#: lib/recco_web/live/game_live/show.ex:223
+#: lib/recco_web/live/game_live/show.ex:224
 #, elixir-autogen, elixir-format
 msgid "Designers"
 msgstr "Autori"
@@ -191,18 +191,18 @@ msgstr "Non hai un account?"
 msgid "Email"
 msgstr "Email"
 
-#: lib/recco_web/live/recommendation_live/index.ex:218
+#: lib/recco_web/live/recommendation_live/index.ex:220
 #, elixir-autogen, elixir-format
 msgid "Excellent match"
 msgstr "Corrispondenza eccellente"
 
-#: lib/recco_web/components/navigation.ex:181
+#: lib/recco_web/components/navigation.ex:192
 #, elixir-autogen, elixir-format
 msgid "Feedback"
 msgstr "Feedback"
 
 #: lib/recco_web/components/navigation.ex:47
-#: lib/recco_web/components/navigation.ex:129
+#: lib/recco_web/components/navigation.ex:130
 #, elixir-autogen, elixir-format
 msgid "For You"
 msgstr "Per te"
@@ -222,23 +222,23 @@ msgstr "Ricevi raccomandazioni"
 msgid "Get started"
 msgstr "Inizia"
 
-#: lib/recco_web/live/recommendation_live/index.ex:220
+#: lib/recco_web/live/recommendation_live/index.ex:222
 #, elixir-autogen, elixir-format
 msgid "Good match"
 msgstr "Buona corrispondenza"
 
-#: lib/recco_web/live/game_live/show.ex:285
-#: lib/recco_web/live/recommendation_live/index.ex:185
+#: lib/recco_web/live/game_live/show.ex:286
+#: lib/recco_web/live/recommendation_live/index.ex:187
 #, elixir-autogen, elixir-format
 msgid "Good recommendation"
 msgstr "Raccomandazione utile"
 
-#: lib/recco_web/live/recommendation_live/index.ex:219
+#: lib/recco_web/live/recommendation_live/index.ex:221
 #, elixir-autogen, elixir-format
 msgid "Great match"
 msgstr "Ottima corrispondenza"
 
-#: lib/recco_web/live/game_live/index.ex:107
+#: lib/recco_web/live/game_live/index.ex:117
 #, elixir-autogen, elixir-format
 msgid "Heaviest"
 msgstr "Più complessi"
@@ -253,7 +253,7 @@ msgstr "Come funziona"
 msgid "Invalid email or password"
 msgstr "Email o password non validi"
 
-#: lib/recco_web/components/navigation.ex:179
+#: lib/recco_web/components/navigation.ex:187
 #, elixir-autogen, elixir-format
 msgid "Jobs"
 msgstr "Processi"
@@ -283,13 +283,13 @@ msgstr "Durata max (min)"
 msgid "Max weight"
 msgstr "Complessità max"
 
-#: lib/recco_web/live/game_live/index.ex:123
-#: lib/recco_web/live/game_live/show.ex:211
+#: lib/recco_web/live/game_live/index.ex:163
+#: lib/recco_web/live/game_live/show.ex:212
 #, elixir-autogen, elixir-format
 msgid "Mechanics"
 msgstr "Meccaniche"
 
-#: lib/recco_web/components/navigation.ex:182
+#: lib/recco_web/components/navigation.ex:194
 #, elixir-autogen, elixir-format
 msgid "Metrics"
 msgstr "Metriche"
@@ -309,14 +309,14 @@ msgstr "Durata min (min)"
 msgid "Min weight"
 msgstr "Complessità min"
 
-#: lib/recco_web/components/navigation.ex:73
-#: lib/recco_web/components/navigation.ex:104
+#: lib/recco_web/components/navigation.ex:74
+#: lib/recco_web/components/navigation.ex:105
 #, elixir-autogen, elixir-format
 msgid "Mobile navigation"
 msgstr "Navigazione mobile"
 
 #: lib/recco_web/components/navigation.ex:45
-#: lib/recco_web/components/navigation.ex:117
+#: lib/recco_web/components/navigation.ex:118
 #: lib/recco_web/live/rating_live/index.ex:14
 #: lib/recco_web/live/rating_live/index.ex:33
 #, elixir-autogen, elixir-format
@@ -329,34 +329,35 @@ msgstr "Le mie valutazioni"
 msgid "My Wishlist"
 msgstr "La mia lista desideri"
 
-#: lib/recco_web/live/game_live/show.ex:379
-#: lib/recco_web/live/game_live/show.ex:382
-#: lib/recco_web/live/game_live/show.ex:386
+#: lib/recco_web/live/game_live/show.ex:380
+#: lib/recco_web/live/game_live/show.ex:384
+#: lib/recco_web/live/game_live/show.ex:387
+#: lib/recco_web/live/game_live/show.ex:391
 #, elixir-autogen, elixir-format
 msgid "N/A"
 msgstr "N/D"
 
-#: lib/recco_web/live/game_live/index.ex:105
+#: lib/recco_web/live/game_live/index.ex:115
 #, elixir-autogen, elixir-format
 msgid "Name"
 msgstr "Nome"
 
-#: lib/recco_web/live/game_live/index.ex:106
+#: lib/recco_web/live/game_live/index.ex:116
 #, elixir-autogen, elixir-format
 msgid "Newest"
 msgstr "Più recenti"
 
-#: lib/recco_web/live/game_live/index.ex:280
+#: lib/recco_web/live/game_live/index.ex:329
 #, elixir-autogen, elixir-format
 msgid "Next"
 msgstr "Successiva"
 
-#: lib/recco_web/live/game_live/index.ex:147
+#: lib/recco_web/live/game_live/index.ex:187
 #, elixir-autogen, elixir-format
 msgid "No games found. Try a different search."
 msgstr "Nessun gioco trovato. Prova una ricerca diversa."
 
-#: lib/recco_web/live/game_live/show.ex:245
+#: lib/recco_web/live/game_live/show.ex:246
 #, elixir-autogen, elixir-format
 msgid "No similar games found."
 msgstr "Nessun gioco simile trovato."
@@ -382,7 +383,7 @@ msgstr "Password"
 msgid "Personalised picks based on your ratings."
 msgstr "Selezioni personalizzate basate sulle tue valutazioni."
 
-#: lib/recco_web/live/game_live/show.ex:176
+#: lib/recco_web/live/game_live/show.ex:177
 #, elixir-autogen, elixir-format
 msgid "Players"
 msgstr "Giocatori"
@@ -398,12 +399,12 @@ msgstr "Preferenze"
 msgid "Preferences saved!"
 msgstr "Preferenze salvate!"
 
-#: lib/recco_web/live/game_live/index.ex:270
+#: lib/recco_web/live/game_live/index.ex:315
 #, elixir-autogen, elixir-format
 msgid "Previous"
 msgstr "Precedente"
 
-#: lib/recco_web/live/recommendation_live/index.ex:106
+#: lib/recco_web/live/recommendation_live/index.ex:107
 #, elixir-autogen, elixir-format
 msgid "Rate some games first to get personalised recommendations."
 msgstr "Valuta prima alcuni giochi per ricevere raccomandazioni personalizzate."
@@ -429,14 +430,14 @@ msgstr "Voto"
 msgid "Recommendations"
 msgstr "Raccomandazioni"
 
-#: lib/recco_web/live/game_live/show.ex:342
+#: lib/recco_web/live/game_live/show.ex:343
 #: lib/recco_web/live/rating_live/index.ex:79
 #: lib/recco_web/live/wishlist_live/index.ex:78
 #, elixir-autogen, elixir-format
 msgid "Remove"
 msgstr "Rimuovi"
 
-#: lib/recco_web/live/game_live/show.ex:402
+#: lib/recco_web/live/game_live/show.ex:407
 #, elixir-autogen, elixir-format
 msgid "Remove from wishlist"
 msgstr "Rimuovi dalla lista desideri"
@@ -456,7 +457,7 @@ msgstr "Rimuovere questa valutazione?"
 msgid "Save preferences"
 msgstr "Salva preferenze"
 
-#: lib/recco_web/live/game_live/index.ex:93
+#: lib/recco_web/live/game_live/index.ex:102
 #, elixir-autogen, elixir-format
 msgid "Search games..."
 msgstr "Cerca giochi..."
@@ -471,20 +472,20 @@ msgstr "Cerca tra migliaia di giochi da tavolo provenienti da BoardGameGeek. Fil
 msgid "Set your preferences to improve recommendations."
 msgstr "Imposta le tue preferenze per migliorare le raccomandazioni."
 
-#: lib/recco_web/components/navigation.ex:147
-#: lib/recco_web/components/navigation.ex:217
+#: lib/recco_web/components/navigation.ex:148
+#: lib/recco_web/components/navigation.ex:229
 #: lib/recco_web/controllers/user_registration_html/new.html.heex:21
 #: lib/recco_web/controllers/user_session_html/new.html.heex:3
 #: lib/recco_web/controllers/user_session_html/new.html.heex:18
-#: lib/recco_web/live/game_live/show.ex:355
-#: lib/recco_web/live/game_live/show.ex:418
+#: lib/recco_web/live/game_live/show.ex:356
+#: lib/recco_web/live/game_live/show.ex:423
 #: lib/recco_web/live/landing_live.ex:46
 #, elixir-autogen, elixir-format
 msgid "Sign in"
 msgstr "Accedi"
 
-#: lib/recco_web/components/navigation.ex:138
-#: lib/recco_web/components/navigation.ex:208
+#: lib/recco_web/components/navigation.ex:139
+#: lib/recco_web/components/navigation.ex:220
 #, elixir-autogen, elixir-format
 msgid "Sign out"
 msgstr "Esci"
@@ -494,7 +495,7 @@ msgstr "Esci"
 msgid "Sign up"
 msgstr "Registrati"
 
-#: lib/recco_web/live/game_live/show.ex:232
+#: lib/recco_web/live/game_live/show.ex:233
 #, elixir-autogen, elixir-format
 msgid "Similar Games"
 msgstr "Giochi simili"
@@ -509,7 +510,7 @@ msgstr "Vai al contenuto"
 msgid "Something went wrong loading recommendations."
 msgstr "Si è verificato un errore nel caricamento delle raccomandazioni."
 
-#: lib/recco_web/live/game_live/index.ex:102
+#: lib/recco_web/live/game_live/index.ex:112
 #, elixir-autogen, elixir-format
 msgid "Sort by"
 msgstr "Ordina per"
@@ -519,23 +520,23 @@ msgstr "Ordina per"
 msgid "The recommendation engine is currently unavailable. Please try again later."
 msgstr "Il motore di raccomandazione non è al momento disponibile. Riprova più tardi."
 
-#: lib/recco_web/live/game_live/show.ex:180
+#: lib/recco_web/live/game_live/show.ex:181
 #, elixir-autogen, elixir-format
 msgid "Time"
 msgstr "Durata"
 
-#: lib/recco_web/live/recommendation_live/index.ex:217
+#: lib/recco_web/live/recommendation_live/index.ex:219
 #, elixir-autogen, elixir-format
 msgid "Top pick"
 msgstr "Scelta top"
 
-#: lib/recco_web/live/game_live/index.ex:104
+#: lib/recco_web/live/game_live/index.ex:114
 #, elixir-autogen, elixir-format
 msgid "Top rated"
 msgstr "Più votati"
 
-#: lib/recco_web/live/game_live/show.ex:275
-#: lib/recco_web/live/recommendation_live/index.ex:175
+#: lib/recco_web/live/game_live/show.ex:276
+#: lib/recco_web/live/recommendation_live/index.ex:177
 #, elixir-autogen, elixir-format
 msgid "Useful?"
 msgstr "Utile?"
@@ -545,12 +546,12 @@ msgstr "Utile?"
 msgid "Username"
 msgstr "Nome utente"
 
-#: lib/recco_web/components/navigation.ex:178
+#: lib/recco_web/components/navigation.ex:186
 #, elixir-autogen, elixir-format
 msgid "Users"
 msgstr "Utenti"
 
-#: lib/recco_web/live/game_live/show.ex:174
+#: lib/recco_web/live/game_live/show.ex:175
 #, elixir-autogen, elixir-format
 msgid "Weight"
 msgstr "Complessità"
@@ -561,12 +562,12 @@ msgid "Welcome back!"
 msgstr "Bentornato!"
 
 #: lib/recco_web/components/navigation.ex:46
-#: lib/recco_web/components/navigation.ex:123
+#: lib/recco_web/components/navigation.ex:124
 #, elixir-autogen, elixir-format
 msgid "Wishlist"
 msgstr "Lista desideri"
 
-#: lib/recco_web/live/recommendation_live/index.ex:221
+#: lib/recco_web/live/recommendation_live/index.ex:223
 #, elixir-autogen, elixir-format
 msgid "Worth a look"
 msgstr "Da considerare"
@@ -576,12 +577,12 @@ msgstr "Da considerare"
 msgid "You haven't rated any games yet."
 msgstr "Non hai ancora valutato nessun gioco."
 
-#: lib/recco_web/live/game_live/show.ex:347
+#: lib/recco_web/live/game_live/show.ex:348
 #, elixir-autogen, elixir-format
 msgid "You rated this %{score}/10"
 msgstr "Hai valutato %{score}/10"
 
-#: lib/recco_web/live/game_live/show.ex:317
+#: lib/recco_web/live/game_live/show.ex:318
 #, elixir-autogen, elixir-format
 msgid "Your Rating"
 msgstr "La tua valutazione"
@@ -596,12 +597,39 @@ msgstr "La tua lista desideri è vuota."
 msgid "favourite board game"
 msgstr "gioco da tavolo preferito"
 
-#: lib/recco_web/live/game_live/show.ex:420
+#: lib/recco_web/live/game_live/show.ex:425
 #, elixir-autogen, elixir-format
 msgid "to add to your wishlist."
 msgstr "per aggiungere alla tua lista desideri."
 
-#: lib/recco_web/live/game_live/show.ex:357
+#: lib/recco_web/live/game_live/show.ex:358
 #, elixir-autogen, elixir-format
 msgid "to rate this game."
 msgstr "per valutare questo gioco."
+
+#: lib/recco_web/live/game_live/index.ex:237
+#, elixir-autogen, elixir-format
+msgid "%{count} vote"
+msgid_plural "%{count} votes"
+msgstr[0] "%{count} voto"
+msgstr[1] "%{count} voti"
+
+#: lib/recco_web/live/game_live/index.ex:124
+#, elixir-autogen, elixir-format
+msgid "Ascending"
+msgstr "Crescente"
+
+#: lib/recco_web/live/game_live/index.ex:124
+#, elixir-autogen, elixir-format
+msgid "Descending"
+msgstr "Decrescente"
+
+#: lib/recco_web/live/game_live/index.ex:123
+#, elixir-autogen, elixir-format
+msgid "Toggle sort direction"
+msgstr "Inverti ordinamento"
+
+#: lib/recco_web/live/game_live/show.ex:174
+#, elixir-autogen, elixir-format
+msgid "Votes"
+msgstr "Voti"

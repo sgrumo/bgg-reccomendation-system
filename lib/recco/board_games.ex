@@ -54,7 +54,8 @@ defmodule Recco.BoardGames do
           optional(:max_players) => pos_integer(),
           optional(:page) => pos_integer(),
           optional(:per_page) => pos_integer(),
-          optional(:sort) => String.t()
+          optional(:sort) => String.t(),
+          optional(:sort_dir) => String.t()
         }
 
   @spec list_board_games(list_opts()) :: %{games: [BoardGame.t()], total: non_neg_integer()}
@@ -131,17 +132,25 @@ defmodule Recco.BoardGames do
 
   defp apply_player_count(query, _opts), do: query
 
-  defp apply_sort(query, %{sort: "name"}),
-    do: from(bg in query, order_by: [asc_nulls_last: bg.name])
+  defp apply_sort(query, opts) do
+    dir = sort_direction(opts)
 
-  defp apply_sort(query, %{sort: "year"}),
-    do: from(bg in query, order_by: [desc_nulls_last: bg.year_published])
+    case Map.get(opts, :sort) do
+      "name" -> from(bg in query, order_by: [{^dir, bg.name}])
+      "year" -> from(bg in query, order_by: [{^dir, bg.year_published}])
+      "weight" -> from(bg in query, order_by: [{^dir, bg.average_weight}])
+      _ -> from(bg in query, order_by: [{^dir, bg.bayes_average_rating}])
+    end
+  end
 
-  defp apply_sort(query, %{sort: "weight"}),
-    do: from(bg in query, order_by: [desc_nulls_last: bg.average_weight])
+  defp sort_direction(%{sort_dir: "asc"}), do: :asc_nulls_last
+  defp sort_direction(%{sort_dir: "desc"}), do: :desc_nulls_last
 
-  defp apply_sort(query, _opts) do
-    from bg in query, order_by: [desc_nulls_last: bg.bayes_average_rating]
+  defp sort_direction(opts) do
+    case Map.get(opts, :sort) do
+      "name" -> :asc_nulls_last
+      _ -> :desc_nulls_last
+    end
   end
 
   @spec upsert_crawl_state(String.t(), map()) :: {:ok, CrawlState.t()} | Errors.t(map())

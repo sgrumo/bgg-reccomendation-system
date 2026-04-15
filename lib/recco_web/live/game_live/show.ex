@@ -169,8 +169,9 @@ defmodule ReccoWeb.GameLive.Show do
             {@game.year_published}
           </p>
 
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6">
+          <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mt-6">
             <.stat label={gettext("Rating")} value={format_rating(@game.average_rating)} />
+            <.stat label={gettext("Votes")} value={format_votes(@game.users_rated)} />
             <.stat label={gettext("Weight")} value={format_rating(@game.average_weight)} />
             <.stat
               label={gettext("Players")}
@@ -375,6 +376,10 @@ defmodule ReccoWeb.GameLive.Show do
     </div>
     """
   end
+
+  defp format_votes(nil), do: gettext("N/A")
+  defp format_votes(n) when n >= 1000, do: "#{Float.round(n / 1000, 1)}k"
+  defp format_votes(n), do: to_string(n)
 
   defp format_rating(nil), do: gettext("N/A")
   defp format_rating(val), do: :erlang.float_to_binary(val / 1, decimals: 1)

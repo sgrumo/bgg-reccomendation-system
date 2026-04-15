@@ -25,10 +25,12 @@ defmodule ReccoWeb.GameLive.Index do
     categories = parse_list(params["categories"])
     mechanics = parse_list(params["mechanics"])
     sort = params["sort"] || "rating"
+    sort_dir = params["sort_dir"]
 
     opts =
       %{page: page, per_page: @per_page, sort: sort}
       |> maybe_put(:search, search)
+      |> maybe_put(:sort_dir, sort_dir)
       |> maybe_put_list(:categories, categories)
       |> maybe_put_list(:mechanics, mechanics)
 
@@ -45,7 +47,8 @@ defmodule ReccoWeb.GameLive.Index do
        search: search,
        categories: categories,
        mechanics: mechanics,
-       sort: sort
+       sort: sort,
+       sort_dir: sort_dir || default_dir(sort)
      )}
   end
 
@@ -73,7 +76,13 @@ defmodule ReccoWeb.GameLive.Index do
   end
 
   def handle_event("sort", %{"sort" => sort}, socket) do
-    params = build_params(socket.assigns, sort: sort, page: 1)
+    params = build_params(socket.assigns, sort: sort, sort_dir: default_dir(sort), page: 1)
+    {:noreply, push_patch(socket, to: ~p"/games?#{params}")}
+  end
+
+  def handle_event("toggle_sort_dir", _params, socket) do
+    new_dir = if socket.assigns.sort_dir == "asc", do: "desc", else: "asc"
+    params = build_params(socket.assigns, sort_dir: new_dir, page: 1)
     {:noreply, push_patch(socket, to: ~p"/games?#{params}")}
   end
 
@@ -95,18 +104,57 @@ defmodule ReccoWeb.GameLive.Index do
           />
         </form>
 
-        <form phx-change="sort" class="w-full sm:w-48">
-          <select
-            name="sort"
-            class="w-full h-10 rounded-base border-2 border-border bg-bw px-3 py-2 text-sm font-base focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-            aria-label={gettext("Sort by")}
+        <div class="flex gap-2 w-full sm:w-auto">
+          <form phx-change="sort" class="flex-1 sm:w-48">
+            <select
+              name="sort"
+              class="w-full h-10 rounded-base border-2 border-border bg-bw px-3 py-2 text-sm font-base focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+              aria-label={gettext("Sort by")}
+            >
+              <option value="rating" selected={@sort == "rating"}>{gettext("Top rated")}</option>
+              <option value="name" selected={@sort == "name"}>{gettext("Name")}</option>
+              <option value="year" selected={@sort == "year"}>{gettext("Newest")}</option>
+              <option value="weight" selected={@sort == "weight"}>{gettext("Heaviest")}</option>
+            </select>
+          </form>
+          <button
+            phx-click="toggle_sort_dir"
+            class="h-10 w-10 flex items-center justify-center rounded-base border-2 border-border bg-bw hover:bg-bg transition-colors flex-shrink-0"
+            aria-label={gettext("Toggle sort direction")}
+            title={if @sort_dir == "asc", do: gettext("Ascending"), else: gettext("Descending")}
           >
-            <option value="rating" selected={@sort == "rating"}>{gettext("Top rated")}</option>
-            <option value="name" selected={@sort == "name"}>{gettext("Name")}</option>
-            <option value="year" selected={@sort == "year"}>{gettext("Newest")}</option>
-            <option value="weight" selected={@sort == "weight"}>{gettext("Heaviest")}</option>
-          </select>
-        </form>
+            <svg
+              :if={@sort_dir == "asc"}
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="2"
+              stroke="currentColor"
+              class="w-5 h-5"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M4.5 10.5 12 3m0 0 7.5 7.5M12 3v18"
+              />
+            </svg>
+            <svg
+              :if={@sort_dir != "asc"}
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="2"
+              stroke="currentColor"
+              class="w-5 h-5"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M19.5 13.5 12 21m0 0-7.5-7.5M12 21V3"
+              />
+            </svg>
+          </button>
+        </div>
       </div>
 
       <div class="mb-6 flex flex-col sm:flex-row gap-4">
@@ -189,8 +237,13 @@ defmodule ReccoWeb.GameLive.Index do
             {Float.round(@game.average_rating, 1)}
           </span>
         </div>
-        <div :if={@game.min_players && @game.max_players} class="text-xs font-base mt-1">
-          {gettext("%{min}-%{max} players", min: @game.min_players, max: @game.max_players)}
+        <div class="flex items-center justify-between mt-1 text-xs font-base">
+          <span :if={@game.min_players && @game.max_players}>
+            {gettext("%{min}-%{max} players", min: @game.min_players, max: @game.max_players)}
+          </span>
+          <span :if={@game.users_rated}>
+            {ngettext("%{count} vote", "%{count} votes", @game.users_rated)}
+          </span>
         </div>
       </div>
     </a>
@@ -320,10 +373,13 @@ defmodule ReccoWeb.GameLive.Index do
   defp build_params(assigns, overrides \\ []) do
     categories = Keyword.get(overrides, :categories, assigns.categories)
     mechanics = Keyword.get(overrides, :mechanics, assigns.mechanics)
+    sort = Keyword.get(overrides, :sort, assigns.sort)
+    sort_dir = Keyword.get(overrides, :sort_dir, assigns.sort_dir)
 
     params = %{
       "search" => Keyword.get(overrides, :search, assigns.search),
-      "sort" => Keyword.get(overrides, :sort, assigns.sort),
+      "sort" => sort,
+      "sort_dir" => sort_dir,
       "page" => Keyword.get(overrides, :page, assigns.page)
     }
 
@@ -337,8 +393,12 @@ defmodule ReccoWeb.GameLive.Index do
         do: Map.put(params, "mechanics", Enum.join(mechanics, ",")),
         else: params
 
+    # Strip defaults to keep URLs clean
     params
-    |> Enum.reject(fn {_k, v} -> v in ["", nil, 1, "rating"] end)
+    |> Enum.reject(fn
+      {"sort_dir", dir} -> dir == default_dir(sort)
+      {_k, v} -> v in ["", nil, 1, "rating"]
+    end)
     |> Map.new()
   end
 
@@ -356,8 +416,12 @@ defmodule ReccoWeb.GameLive.Index do
   defp parse_list(val) when is_binary(val), do: String.split(val, ",", trim: true)
 
   defp maybe_put(map, _key, ""), do: map
+  defp maybe_put(map, _key, nil), do: map
   defp maybe_put(map, key, value), do: Map.put(map, key, value)
 
   defp maybe_put_list(map, _key, []), do: map
   defp maybe_put_list(map, key, value), do: Map.put(map, key, value)
+
+  defp default_dir("name"), do: "asc"
+  defp default_dir(_), do: "desc"
 end
