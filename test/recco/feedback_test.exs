@@ -1,6 +1,7 @@
 defmodule Recco.FeedbackTest do
   use Recco.DataCase, async: true
 
+  alias Ecto.UUID
   alias Recco.Feedback
 
   describe "upsert_feedback/3" do
@@ -60,7 +61,7 @@ defmodule Recco.FeedbackTest do
 
     test "returns not_found for missing feedback" do
       assert {:error, :not_found} =
-               Feedback.delete_feedback(Ecto.UUID.generate(), Ecto.UUID.generate())
+               Feedback.delete_feedback(UUID.generate(), UUID.generate())
     end
   end
 
@@ -72,7 +73,7 @@ defmodule Recco.FeedbackTest do
     end
 
     test "returns nil when no feedback exists" do
-      assert is_nil(Feedback.get_feedback(Ecto.UUID.generate(), Ecto.UUID.generate()))
+      assert is_nil(Feedback.get_feedback(UUID.generate(), UUID.generate()))
     end
   end
 
