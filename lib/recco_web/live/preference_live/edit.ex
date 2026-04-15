@@ -16,7 +16,7 @@ defmodule ReccoWeb.PreferenceLive.Edit do
 
     {:ok,
      assign(socket,
-       page_title: "Preferences",
+       page_title: gettext("Preferences"),
        preference: preference,
        form: form
      )}
@@ -42,7 +42,7 @@ defmodule ReccoWeb.PreferenceLive.Edit do
 
         {:noreply,
          socket
-         |> put_flash(:info, "Preferences saved!")
+         |> put_flash(:info, gettext("Preferences saved!"))
          |> assign(preference: preference, form: form)}
 
       {:error, :unprocessable_entity, _errors} ->
@@ -61,34 +61,34 @@ defmodule ReccoWeb.PreferenceLive.Edit do
   def render(assigns) do
     ~H"""
     <div class="max-w-xl">
-      <h1 class="text-2xl font-bold mb-6">Preferences</h1>
+      <h1 class="text-2xl font-bold mb-6">{gettext("Preferences")}</h1>
 
       <div class="rounded-base border-2 border-border bg-bw p-6 shadow-brutalist">
         <p class="text-sm font-medium mb-6">
-          Set your preferences to improve recommendations.
+          {gettext("Set your preferences to improve recommendations.")}
         </p>
 
         <.form for={@form} phx-change="validate" phx-submit="save" class="space-y-6">
           <div class="grid grid-cols-2 gap-4">
-            <.input field={@form[:min_players]} type="number" label="Min players" />
-            <.input field={@form[:max_players]} type="number" label="Max players" />
+            <.input field={@form[:min_players]} type="number" label={gettext("Min players")} />
+            <.input field={@form[:max_players]} type="number" label={gettext("Max players")} />
           </div>
 
           <div class="grid grid-cols-2 gap-4">
-            <.input field={@form[:min_weight]} type="number" label="Min weight" step="0.1" />
-            <.input field={@form[:max_weight]} type="number" label="Max weight" step="0.1" />
+            <.input field={@form[:min_weight]} type="number" label={gettext("Min weight")} step="0.1" />
+            <.input field={@form[:max_weight]} type="number" label={gettext("Max weight")} step="0.1" />
           </div>
 
           <div class="grid grid-cols-2 gap-4">
-            <.input field={@form[:min_playtime]} type="number" label="Min playtime (min)" />
-            <.input field={@form[:max_playtime]} type="number" label="Max playtime (min)" />
+            <.input field={@form[:min_playtime]} type="number" label={gettext("Min playtime (min)")} />
+            <.input field={@form[:max_playtime]} type="number" label={gettext("Max playtime (min)")} />
           </div>
 
           <button
             type="submit"
             class="rounded-base border-2 border-border bg-main px-4 py-2.5 text-sm font-bold shadow-brutalist hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none transition-all"
           >
-            Save preferences
+            {gettext("Save preferences")}
           </button>
         </.form>
       </div>

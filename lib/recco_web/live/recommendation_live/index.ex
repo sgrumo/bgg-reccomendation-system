@@ -15,7 +15,7 @@ defmodule ReccoWeb.RecommendationLive.Index do
     socket =
       socket
       |> assign(
-        page_title: "Recommendations",
+        page_title: gettext("Recommendations"),
         recommendations: nil,
         loading: true,
         error: nil,
@@ -72,9 +72,9 @@ defmodule ReccoWeb.RecommendationLive.Index do
   def render(assigns) do
     ~H"""
     <div>
-      <h1 class="text-2xl font-bold mb-6">Recommendations</h1>
+      <h1 class="text-2xl font-bold mb-6">{gettext("Recommendations")}</h1>
       <p class="text-sm font-medium mb-6">
-        Personalised picks based on your ratings.
+        {gettext("Personalised picks based on your ratings.")}
       </p>
 
       <div :if={@loading} class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -92,9 +92,9 @@ defmodule ReccoWeb.RecommendationLive.Index do
         <p class="font-medium">
           <%= case @error do %>
             <% :service_unavailable -> %>
-              The recommendation engine is currently unavailable. Please try again later.
+              {gettext("The recommendation engine is currently unavailable. Please try again later.")}
             <% _ -> %>
-              Something went wrong loading recommendations.
+              {gettext("Something went wrong loading recommendations.")}
           <% end %>
         </p>
       </div>
@@ -103,12 +103,14 @@ defmodule ReccoWeb.RecommendationLive.Index do
         :if={@recommendations == []}
         class="text-center py-16 rounded-base border-2 border-border bg-bw shadow-brutalist"
       >
-        <p class="font-medium">Rate some games first to get personalised recommendations.</p>
+        <p class="font-medium">
+          {gettext("Rate some games first to get personalised recommendations.")}
+        </p>
         <a
           href={~p"/games"}
           class="mt-4 inline-block rounded-base border-2 border-border bg-main px-4 py-2 text-sm font-bold shadow-brutalist hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none transition-all"
         >
-          Browse games
+          {gettext("Browse games")}
         </a>
       </div>
 
@@ -172,7 +174,7 @@ defmodule ReccoWeb.RecommendationLive.Index do
           </div>
         </a>
         <div class="flex items-center gap-1 px-3 pb-3">
-          <span class="text-xs font-medium mr-1">Useful?</span>
+          <span class="text-xs font-medium mr-1">{gettext("Useful?")}</span>
           <button
             phx-click="feedback"
             phx-value-game-id={@rec.game.id}
@@ -182,7 +184,7 @@ defmodule ReccoWeb.RecommendationLive.Index do
               @feedback == true && "bg-main",
               @feedback != true && "bg-bw hover:bg-bg"
             ]}
-            aria-label="Good recommendation"
+            aria-label={gettext("Good recommendation")}
           >
             &#x1F44D;
           </button>
@@ -195,7 +197,7 @@ defmodule ReccoWeb.RecommendationLive.Index do
               @feedback == false && "bg-red-300",
               @feedback != false && "bg-bw hover:bg-bg"
             ]}
-            aria-label="Bad recommendation"
+            aria-label={gettext("Bad recommendation")}
           >
             &#x1F44E;
           </button>
@@ -214,11 +216,11 @@ defmodule ReccoWeb.RecommendationLive.Index do
     percentile = rank / max(total - 1, 1)
 
     cond do
-      rank == 0 -> {"Top pick", "bg-main"}
-      percentile <= 0.15 -> {"Excellent match", "bg-main"}
-      percentile <= 0.4 -> {"Great match", "bg-main/60"}
-      percentile <= 0.7 -> {"Good match", "bg-bg"}
-      true -> {"Worth a look", "bg-bg"}
+      rank == 0 -> {gettext("Top pick"), "bg-main"}
+      percentile <= 0.15 -> {gettext("Excellent match"), "bg-main"}
+      percentile <= 0.4 -> {gettext("Great match"), "bg-main/60"}
+      percentile <= 0.7 -> {gettext("Good match"), "bg-bg"}
+      true -> {gettext("Worth a look"), "bg-bg"}
     end
   end
 end

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang={Gettext.get_locale(ReccoWeb.Gettext)}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -19,7 +19,7 @@
   </head>
   <body class="bg-bg text-fg antialiased font-base">
     <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-4 focus:bg-main focus:text-main-fg focus:border-2 focus:border-border focus:rounded-base">
-      Skip to content
+      {gettext("Skip to content")}
     </a>
     {@inner_content}
   </body>

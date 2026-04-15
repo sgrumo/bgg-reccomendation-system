@@ -1,0 +1,607 @@
+## This file is a PO Template file.
+##
+## "msgid"s here are often extracted from source code.
+## Add new messages manually only if they're dynamic
+## messages that can't be statically extracted.
+##
+## Run "mix gettext.extract" to bring this file up to
+## date. Leave "msgstr"s empty as changing them here has no
+## effect: edit them in PO (.po) files instead.
+#
+msgid ""
+msgstr ""
+
+#: lib/recco_web/live/game_live/index.ex:140
+#, elixir-autogen, elixir-format
+msgid "%{count} game found"
+msgid_plural "%{count} games found"
+msgstr[0] ""
+msgstr[1] ""
+
+#: lib/recco_web/live/game_live/index.ex:193
+#, elixir-autogen, elixir-format
+msgid "%{min}-%{max} players"
+msgstr ""
+
+#: lib/recco_web/controllers/user_registration_controller.ex:23
+#, elixir-autogen, elixir-format
+msgid "Account created successfully!"
+msgstr ""
+
+#: lib/recco_web/live/game_live/show.ex:409
+#, elixir-autogen, elixir-format
+msgid "Add to wishlist"
+msgstr ""
+
+#: lib/recco_web/components/navigation.ex:176
+#, elixir-autogen, elixir-format
+msgid "Admin navigation"
+msgstr ""
+
+#: lib/recco_web/components/navigation.ex:168
+#, elixir-autogen, elixir-format
+msgid "Admin sidebar"
+msgstr ""
+
+#: lib/recco_web/live/game_live/index.ex:119
+#, elixir-autogen, elixir-format
+msgid "All categories"
+msgstr ""
+
+#: lib/recco_web/live/game_live/index.ex:127
+#, elixir-autogen, elixir-format
+msgid "All mechanics"
+msgstr ""
+
+#: lib/recco_web/controllers/user_registration_html/new.html.heex:20
+#, elixir-autogen, elixir-format
+msgid "Already have an account?"
+msgstr ""
+
+#: lib/recco_web/live/game_live/show.ex:151
+#, elixir-autogen, elixir-format
+msgid "Back to browse"
+msgstr ""
+
+#: lib/recco_web/components/navigation.ex:184
+#, elixir-autogen, elixir-format
+msgid "Back to site"
+msgstr ""
+
+#: lib/recco_web/live/game_live/show.ex:298
+#: lib/recco_web/live/recommendation_live/index.ex:198
+#, elixir-autogen, elixir-format
+msgid "Bad recommendation"
+msgstr ""
+
+#: lib/recco_web/live/landing_live.ex:8
+#, elixir-autogen, elixir-format
+msgid "Board Game Recommendations"
+msgstr ""
+
+#: lib/recco_web/components/navigation.ex:43
+#: lib/recco_web/components/navigation.ex:109
+#, elixir-autogen, elixir-format
+msgid "Browse"
+msgstr ""
+
+#: lib/recco_web/live/landing_live.ex:61
+#, elixir-autogen, elixir-format
+msgid "Browse & explore"
+msgstr ""
+
+#: lib/recco_web/live/game_live/index.ex:40
+#: lib/recco_web/live/game_live/index.ex:85
+#, elixir-autogen, elixir-format
+msgid "Browse Games"
+msgstr ""
+
+#: lib/recco_web/live/landing_live.ex:33
+#: lib/recco_web/live/recommendation_live/index.ex:111
+#, elixir-autogen, elixir-format
+msgid "Browse games"
+msgstr ""
+
+#: lib/recco_web/live/wishlist_live/index.ex:44
+#, elixir-autogen, elixir-format
+msgid "Browse games to find something you like"
+msgstr ""
+
+#: lib/recco_web/live/rating_live/index.ex:44
+#, elixir-autogen, elixir-format
+msgid "Browse games to get started"
+msgstr ""
+
+#: lib/recco_web/live/landing_live.ex:23
+#, elixir-autogen, elixir-format
+msgid "Browse thousands of board games, rate the ones you love, and get personalised recommendations powered by your taste."
+msgstr ""
+
+#: lib/recco_web/live/game_live/index.ex:115
+#: lib/recco_web/live/game_live/show.ex:199
+#, elixir-autogen, elixir-format
+msgid "Categories"
+msgstr ""
+
+#: lib/recco_web/live/game_live/index.ex:136
+#, elixir-autogen, elixir-format
+msgid "Clear all filters"
+msgstr ""
+
+#: lib/recco_web/components/navigation.ex:89
+#, elixir-autogen, elixir-format
+msgid "Close menu"
+msgstr ""
+
+#: lib/recco_web/live/game_live/show.ex:87
+#, elixir-autogen, elixir-format
+msgid "Could not add to wishlist"
+msgstr ""
+
+#: lib/recco_web/live/game_live/show.ex:60
+#, elixir-autogen, elixir-format
+msgid "Could not save rating"
+msgstr ""
+
+#: lib/recco_web/components/navigation.ex:180
+#, elixir-autogen, elixir-format
+msgid "Crawler"
+msgstr ""
+
+#: lib/recco_web/components/navigation.ex:153
+#: lib/recco_web/components/navigation.ex:223
+#: lib/recco_web/controllers/user_registration_html/new.html.heex:15
+#, elixir-autogen, elixir-format
+msgid "Create account"
+msgstr ""
+
+#: lib/recco_web/controllers/user_registration_html/new.html.heex:3
+#, elixir-autogen, elixir-format
+msgid "Create an account"
+msgstr ""
+
+#: lib/recco_web/components/navigation.ex:177
+#, elixir-autogen, elixir-format
+msgid "Dashboard"
+msgstr ""
+
+#: lib/recco_web/live/game_live/show.ex:194
+#, elixir-autogen, elixir-format
+msgid "Description"
+msgstr ""
+
+#: lib/recco_web/live/game_live/show.ex:223
+#, elixir-autogen, elixir-format
+msgid "Designers"
+msgstr ""
+
+#: lib/recco_web/live/landing_live.ex:17
+#, elixir-autogen, elixir-format
+msgid "Discover your next"
+msgstr ""
+
+#: lib/recco_web/controllers/user_session_html/new.html.heex:23
+#, elixir-autogen, elixir-format
+msgid "Don't have an account?"
+msgstr ""
+
+#: lib/recco_web/controllers/user_registration_html/new.html.heex:9
+#: lib/recco_web/controllers/user_session_html/new.html.heex:13
+#, elixir-autogen, elixir-format
+msgid "Email"
+msgstr ""
+
+#: lib/recco_web/live/recommendation_live/index.ex:218
+#, elixir-autogen, elixir-format
+msgid "Excellent match"
+msgstr ""
+
+#: lib/recco_web/components/navigation.ex:181
+#, elixir-autogen, elixir-format
+msgid "Feedback"
+msgstr ""
+
+#: lib/recco_web/components/navigation.ex:47
+#: lib/recco_web/components/navigation.ex:129
+#, elixir-autogen, elixir-format
+msgid "For You"
+msgstr ""
+
+#: lib/recco_web/live/game_live/show.ex:41
+#, elixir-autogen, elixir-format
+msgid "Game not found"
+msgstr ""
+
+#: lib/recco_web/live/landing_live.ex:83
+#, elixir-autogen, elixir-format
+msgid "Get recommendations"
+msgstr ""
+
+#: lib/recco_web/live/landing_live.ex:40
+#, elixir-autogen, elixir-format
+msgid "Get started"
+msgstr ""
+
+#: lib/recco_web/live/recommendation_live/index.ex:220
+#, elixir-autogen, elixir-format
+msgid "Good match"
+msgstr ""
+
+#: lib/recco_web/live/game_live/show.ex:285
+#: lib/recco_web/live/recommendation_live/index.ex:185
+#, elixir-autogen, elixir-format
+msgid "Good recommendation"
+msgstr ""
+
+#: lib/recco_web/live/recommendation_live/index.ex:219
+#, elixir-autogen, elixir-format
+msgid "Great match"
+msgstr ""
+
+#: lib/recco_web/live/game_live/index.ex:107
+#, elixir-autogen, elixir-format
+msgid "Heaviest"
+msgstr ""
+
+#: lib/recco_web/live/landing_live.ex:54
+#, elixir-autogen, elixir-format
+msgid "How it works"
+msgstr ""
+
+#: lib/recco_web/controllers/user_session_controller.ex:26
+#, elixir-autogen, elixir-format
+msgid "Invalid email or password"
+msgstr ""
+
+#: lib/recco_web/components/navigation.ex:179
+#, elixir-autogen, elixir-format
+msgid "Jobs"
+msgstr ""
+
+#: lib/recco_web/controllers/user_session_controller.ex:37
+#, elixir-autogen, elixir-format
+msgid "Logged out successfully."
+msgstr ""
+
+#: lib/recco_web/components/navigation.ex:14
+#, elixir-autogen, elixir-format
+msgid "Main navigation"
+msgstr ""
+
+#: lib/recco_web/live/preference_live/edit.ex:74
+#, elixir-autogen, elixir-format
+msgid "Max players"
+msgstr ""
+
+#: lib/recco_web/live/preference_live/edit.ex:84
+#, elixir-autogen, elixir-format
+msgid "Max playtime (min)"
+msgstr ""
+
+#: lib/recco_web/live/preference_live/edit.ex:79
+#, elixir-autogen, elixir-format
+msgid "Max weight"
+msgstr ""
+
+#: lib/recco_web/live/game_live/index.ex:123
+#: lib/recco_web/live/game_live/show.ex:211
+#, elixir-autogen, elixir-format
+msgid "Mechanics"
+msgstr ""
+
+#: lib/recco_web/components/navigation.ex:182
+#, elixir-autogen, elixir-format
+msgid "Metrics"
+msgstr ""
+
+#: lib/recco_web/live/preference_live/edit.ex:73
+#, elixir-autogen, elixir-format
+msgid "Min players"
+msgstr ""
+
+#: lib/recco_web/live/preference_live/edit.ex:83
+#, elixir-autogen, elixir-format
+msgid "Min playtime (min)"
+msgstr ""
+
+#: lib/recco_web/live/preference_live/edit.ex:78
+#, elixir-autogen, elixir-format
+msgid "Min weight"
+msgstr ""
+
+#: lib/recco_web/components/navigation.ex:73
+#: lib/recco_web/components/navigation.ex:104
+#, elixir-autogen, elixir-format
+msgid "Mobile navigation"
+msgstr ""
+
+#: lib/recco_web/components/navigation.ex:45
+#: lib/recco_web/components/navigation.ex:117
+#: lib/recco_web/live/rating_live/index.ex:14
+#: lib/recco_web/live/rating_live/index.ex:33
+#, elixir-autogen, elixir-format
+msgid "My Ratings"
+msgstr ""
+
+#: lib/recco_web/live/wishlist_live/index.ex:14
+#: lib/recco_web/live/wishlist_live/index.ex:33
+#, elixir-autogen, elixir-format
+msgid "My Wishlist"
+msgstr ""
+
+#: lib/recco_web/live/game_live/show.ex:379
+#: lib/recco_web/live/game_live/show.ex:382
+#: lib/recco_web/live/game_live/show.ex:386
+#, elixir-autogen, elixir-format
+msgid "N/A"
+msgstr ""
+
+#: lib/recco_web/live/game_live/index.ex:105
+#, elixir-autogen, elixir-format
+msgid "Name"
+msgstr ""
+
+#: lib/recco_web/live/game_live/index.ex:106
+#, elixir-autogen, elixir-format
+msgid "Newest"
+msgstr ""
+
+#: lib/recco_web/live/game_live/index.ex:280
+#, elixir-autogen, elixir-format
+msgid "Next"
+msgstr ""
+
+#: lib/recco_web/live/game_live/index.ex:147
+#, elixir-autogen, elixir-format
+msgid "No games found. Try a different search."
+msgstr ""
+
+#: lib/recco_web/live/game_live/show.ex:245
+#, elixir-autogen, elixir-format
+msgid "No similar games found."
+msgstr ""
+
+#: lib/recco_web/components/navigation.ex:22
+#, elixir-autogen, elixir-format
+msgid "Open menu"
+msgstr ""
+
+#: lib/recco_web/live/landing_live.ex:85
+#, elixir-autogen, elixir-format
+msgid "Our engine analyses game features — categories, mechanics, complexity, and more — then uses content-based similarity to find games you'll love based on your unique rating profile."
+msgstr ""
+
+#: lib/recco_web/controllers/user_registration_html/new.html.heex:11
+#: lib/recco_web/controllers/user_session_html/new.html.heex:14
+#, elixir-autogen, elixir-format
+msgid "Password"
+msgstr ""
+
+#: lib/recco_web/live/recommendation_live/index.ex:77
+#, elixir-autogen, elixir-format
+msgid "Personalised picks based on your ratings."
+msgstr ""
+
+#: lib/recco_web/live/game_live/show.ex:176
+#, elixir-autogen, elixir-format
+msgid "Players"
+msgstr ""
+
+#: lib/recco_web/live/preference_live/edit.ex:19
+#: lib/recco_web/live/preference_live/edit.ex:64
+#, elixir-autogen, elixir-format
+msgid "Preferences"
+msgstr ""
+
+#: lib/recco_web/live/preference_live/edit.ex:45
+#, elixir-autogen, elixir-format
+msgid "Preferences saved!"
+msgstr ""
+
+#: lib/recco_web/live/game_live/index.ex:270
+#, elixir-autogen, elixir-format
+msgid "Previous"
+msgstr ""
+
+#: lib/recco_web/live/recommendation_live/index.ex:106
+#, elixir-autogen, elixir-format
+msgid "Rate some games first to get personalised recommendations."
+msgstr ""
+
+#: lib/recco_web/live/landing_live.ex:74
+#, elixir-autogen, elixir-format
+msgid "Rate the board games you've played on a 1-to-10 scale. The more games you rate, the better the system understands your preferences and taste."
+msgstr ""
+
+#: lib/recco_web/live/landing_live.ex:72
+#, elixir-autogen, elixir-format
+msgid "Rate your games"
+msgstr ""
+
+#: lib/recco_web/live/game_live/show.ex:173
+#, elixir-autogen, elixir-format
+msgid "Rating"
+msgstr ""
+
+#: lib/recco_web/live/recommendation_live/index.ex:18
+#: lib/recco_web/live/recommendation_live/index.ex:75
+#, elixir-autogen, elixir-format
+msgid "Recommendations"
+msgstr ""
+
+#: lib/recco_web/live/game_live/show.ex:342
+#: lib/recco_web/live/rating_live/index.ex:79
+#: lib/recco_web/live/wishlist_live/index.ex:78
+#, elixir-autogen, elixir-format
+msgid "Remove"
+msgstr ""
+
+#: lib/recco_web/live/game_live/show.ex:402
+#, elixir-autogen, elixir-format
+msgid "Remove from wishlist"
+msgstr ""
+
+#: lib/recco_web/live/wishlist_live/index.ex:76
+#, elixir-autogen, elixir-format
+msgid "Remove from wishlist?"
+msgstr ""
+
+#: lib/recco_web/live/rating_live/index.ex:77
+#, elixir-autogen, elixir-format
+msgid "Remove this rating?"
+msgstr ""
+
+#: lib/recco_web/live/preference_live/edit.ex:91
+#, elixir-autogen, elixir-format
+msgid "Save preferences"
+msgstr ""
+
+#: lib/recco_web/live/game_live/index.ex:93
+#, elixir-autogen, elixir-format
+msgid "Search games..."
+msgstr ""
+
+#: lib/recco_web/live/landing_live.ex:63
+#, elixir-autogen, elixir-format
+msgid "Search through thousands of board games sourced from BoardGameGeek. Filter by category, mechanics, player count, and more to find games that catch your eye."
+msgstr ""
+
+#: lib/recco_web/live/preference_live/edit.ex:68
+#, elixir-autogen, elixir-format
+msgid "Set your preferences to improve recommendations."
+msgstr ""
+
+#: lib/recco_web/components/navigation.ex:147
+#: lib/recco_web/components/navigation.ex:217
+#: lib/recco_web/controllers/user_registration_html/new.html.heex:21
+#: lib/recco_web/controllers/user_session_html/new.html.heex:3
+#: lib/recco_web/controllers/user_session_html/new.html.heex:18
+#: lib/recco_web/live/game_live/show.ex:355
+#: lib/recco_web/live/game_live/show.ex:418
+#: lib/recco_web/live/landing_live.ex:46
+#, elixir-autogen, elixir-format
+msgid "Sign in"
+msgstr ""
+
+#: lib/recco_web/components/navigation.ex:138
+#: lib/recco_web/components/navigation.ex:208
+#, elixir-autogen, elixir-format
+msgid "Sign out"
+msgstr ""
+
+#: lib/recco_web/controllers/user_session_html/new.html.heex:24
+#, elixir-autogen, elixir-format
+msgid "Sign up"
+msgstr ""
+
+#: lib/recco_web/live/game_live/show.ex:232
+#, elixir-autogen, elixir-format
+msgid "Similar Games"
+msgstr ""
+
+#: lib/recco_web/components/layouts/root.html.heex:22
+#, elixir-autogen, elixir-format
+msgid "Skip to content"
+msgstr ""
+
+#: lib/recco_web/live/recommendation_live/index.ex:97
+#, elixir-autogen, elixir-format
+msgid "Something went wrong loading recommendations."
+msgstr ""
+
+#: lib/recco_web/live/game_live/index.ex:102
+#, elixir-autogen, elixir-format
+msgid "Sort by"
+msgstr ""
+
+#: lib/recco_web/live/recommendation_live/index.ex:95
+#, elixir-autogen, elixir-format
+msgid "The recommendation engine is currently unavailable. Please try again later."
+msgstr ""
+
+#: lib/recco_web/live/game_live/show.ex:180
+#, elixir-autogen, elixir-format
+msgid "Time"
+msgstr ""
+
+#: lib/recco_web/live/recommendation_live/index.ex:217
+#, elixir-autogen, elixir-format
+msgid "Top pick"
+msgstr ""
+
+#: lib/recco_web/live/game_live/index.ex:104
+#, elixir-autogen, elixir-format
+msgid "Top rated"
+msgstr ""
+
+#: lib/recco_web/live/game_live/show.ex:275
+#: lib/recco_web/live/recommendation_live/index.ex:175
+#, elixir-autogen, elixir-format
+msgid "Useful?"
+msgstr ""
+
+#: lib/recco_web/controllers/user_registration_html/new.html.heex:10
+#, elixir-autogen, elixir-format
+msgid "Username"
+msgstr ""
+
+#: lib/recco_web/components/navigation.ex:178
+#, elixir-autogen, elixir-format
+msgid "Users"
+msgstr ""
+
+#: lib/recco_web/live/game_live/show.ex:174
+#, elixir-autogen, elixir-format
+msgid "Weight"
+msgstr ""
+
+#: lib/recco_web/controllers/user_session_controller.ex:22
+#, elixir-autogen, elixir-format
+msgid "Welcome back!"
+msgstr ""
+
+#: lib/recco_web/components/navigation.ex:46
+#: lib/recco_web/components/navigation.ex:123
+#, elixir-autogen, elixir-format
+msgid "Wishlist"
+msgstr ""
+
+#: lib/recco_web/live/recommendation_live/index.ex:221
+#, elixir-autogen, elixir-format
+msgid "Worth a look"
+msgstr ""
+
+#: lib/recco_web/live/rating_live/index.ex:39
+#, elixir-autogen, elixir-format
+msgid "You haven't rated any games yet."
+msgstr ""
+
+#: lib/recco_web/live/game_live/show.ex:347
+#, elixir-autogen, elixir-format
+msgid "You rated this %{score}/10"
+msgstr ""
+
+#: lib/recco_web/live/game_live/show.ex:317
+#, elixir-autogen, elixir-format
+msgid "Your Rating"
+msgstr ""
+
+#: lib/recco_web/live/wishlist_live/index.ex:39
+#, elixir-autogen, elixir-format
+msgid "Your wishlist is empty."
+msgstr ""
+
+#: lib/recco_web/live/landing_live.ex:19
+#, elixir-autogen, elixir-format
+msgid "favourite board game"
+msgstr ""
+
+#: lib/recco_web/live/game_live/show.ex:420
+#, elixir-autogen, elixir-format
+msgid "to add to your wishlist."
+msgstr ""
+
+#: lib/recco_web/live/game_live/show.ex:357
+#, elixir-autogen, elixir-format
+msgid "to rate this game."
+msgstr ""

@@ -11,7 +11,7 @@ defmodule ReccoWeb.Navigation do
   def navbar(assigns) do
     ~H"""
     <header class="sticky top-0 z-40 border-b-2 border-border bg-bw">
-      <nav class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8" aria-label="Main navigation">
+      <nav class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8" aria-label={gettext("Main navigation")}>
         <div class="flex h-16 items-center justify-between">
           <button
             id="mobile-menu-button"
@@ -19,7 +19,7 @@ defmodule ReccoWeb.Navigation do
             class="md:hidden rounded-base border-2 border-border p-2 hover:bg-main"
             aria-expanded="false"
             aria-controls="mobile-menu"
-            aria-label="Open menu"
+            aria-label={gettext("Open menu")}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -40,16 +40,17 @@ defmodule ReccoWeb.Navigation do
           <div class="hidden md:flex items-center gap-8">
             <a href={~p"/"} class="text-xl font-bold">BGRecco</a>
             <div class="flex items-center gap-1">
-              <.nav_link href={~p"/games"} label="Browse" />
+              <.nav_link href={~p"/games"} label={gettext("Browse")} />
               <%= if @current_user do %>
-                <.nav_link href={~p"/ratings"} label="My Ratings" />
-                <.nav_link href={~p"/wishlist"} label="Wishlist" />
-                <.nav_link href={~p"/recommendations"} label="For You" />
+                <.nav_link href={~p"/ratings"} label={gettext("My Ratings")} />
+                <.nav_link href={~p"/wishlist"} label={gettext("Wishlist")} />
+                <.nav_link href={~p"/recommendations"} label={gettext("For You")} />
               <% end %>
             </div>
           </div>
 
           <div class="hidden md:flex items-center gap-3">
+            <.locale_switcher />
             <.user_menu current_user={@current_user} />
           </div>
         </div>
@@ -70,7 +71,7 @@ defmodule ReccoWeb.Navigation do
       class="hidden md:hidden fixed inset-0 z-50"
       role="dialog"
       aria-modal="true"
-      aria-label="Mobile navigation"
+      aria-label={gettext("Mobile navigation")}
     >
       <div
         id="mobile-menu-backdrop"
@@ -86,7 +87,7 @@ defmodule ReccoWeb.Navigation do
           <button
             id="mobile-menu-close"
             class="rounded-base border-2 border-border p-2 hover:bg-main"
-            aria-label="Close menu"
+            aria-label={gettext("Close menu")}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -101,12 +102,12 @@ defmodule ReccoWeb.Navigation do
           </button>
         </div>
 
-        <nav class="space-y-2" aria-label="Mobile navigation">
+        <nav class="space-y-2" aria-label={gettext("Mobile navigation")}>
           <a
             href={~p"/games"}
             class="block rounded-base border-2 border-border px-3 py-2 text-base font-bold hover:bg-main"
           >
-            Browse
+            {gettext("Browse")}
           </a>
 
           <%= if @current_user do %>
@@ -114,19 +115,19 @@ defmodule ReccoWeb.Navigation do
               href={~p"/ratings"}
               class="block rounded-base border-2 border-border px-3 py-2 text-base font-bold hover:bg-main"
             >
-              My Ratings
+              {gettext("My Ratings")}
             </a>
             <a
               href={~p"/wishlist"}
               class="block rounded-base border-2 border-border px-3 py-2 text-base font-bold hover:bg-main"
             >
-              Wishlist
+              {gettext("Wishlist")}
             </a>
             <a
               href={~p"/recommendations"}
               class="block rounded-base border-2 border-border px-3 py-2 text-base font-bold hover:bg-main"
             >
-              For You
+              {gettext("For You")}
             </a>
             <div class="border-t-2 border-border pt-4 mt-4">
               <p class="px-3 text-sm font-bold mb-2">{@current_user.username}</p>
@@ -135,7 +136,7 @@ defmodule ReccoWeb.Navigation do
                 method="delete"
                 class="block rounded-base border-2 border-border px-3 py-2 text-base font-bold hover:bg-red-300"
               >
-                Sign out
+                {gettext("Sign out")}
               </.link>
             </div>
           <% else %>
@@ -144,16 +145,20 @@ defmodule ReccoWeb.Navigation do
                 href={~p"/login"}
                 class="block rounded-base border-2 border-border px-3 py-2 text-base font-bold hover:bg-main"
               >
-                Sign in
+                {gettext("Sign in")}
               </a>
               <a
                 href={~p"/register"}
                 class="block rounded-base border-2 border-border bg-main px-3 py-2 text-base font-bold shadow-brutalist hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none transition-all"
               >
-                Create account
+                {gettext("Create account")}
               </a>
             </div>
           <% end %>
+
+          <div class="border-t-2 border-border pt-4 mt-4">
+            <.locale_switcher />
+          </div>
         </nav>
       </div>
     </div>
@@ -165,7 +170,10 @@ defmodule ReccoWeb.Navigation do
   @spec admin_sidebar(map()) :: Phoenix.LiveView.Rendered.t()
   def admin_sidebar(assigns) do
     ~H"""
-    <aside class="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col" aria-label="Admin sidebar">
+    <aside
+      class="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col"
+      aria-label={gettext("Admin sidebar")}
+    >
       <div class="flex flex-col flex-grow border-r border-zinc-200 bg-zinc-50 pt-5 pb-4 overflow-y-auto">
         <div class="flex items-center flex-shrink-0 px-4 mb-6">
           <a href={~p"/"} class="text-xl font-bold text-brand-600">BGRecco</a>
@@ -173,15 +181,19 @@ defmodule ReccoWeb.Navigation do
             Admin
           </span>
         </div>
-        <nav class="flex-1 px-3 space-y-1" aria-label="Admin navigation">
-          <.sidebar_link href={~p"/admin"} icon="hero-chart-bar" label="Dashboard" />
-          <.sidebar_link href={~p"/admin/users"} icon="hero-users" label="Users" />
-          <.sidebar_link href={~p"/admin/jobs"} icon="hero-queue-list" label="Jobs" />
-          <.sidebar_link href={~p"/admin/crawler"} icon="hero-arrow-path" label="Crawler" />
-          <.sidebar_link href={~p"/admin/feedback"} icon="hero-hand-thumb-up" label="Feedback" />
-          <.sidebar_link href={~p"/admin/metrics"} icon="hero-signal" label="Metrics" />
+        <nav class="flex-1 px-3 space-y-1" aria-label={gettext("Admin navigation")}>
+          <.sidebar_link href={~p"/admin"} icon="hero-chart-bar" label={gettext("Dashboard")} />
+          <.sidebar_link href={~p"/admin/users"} icon="hero-users" label={gettext("Users")} />
+          <.sidebar_link href={~p"/admin/jobs"} icon="hero-queue-list" label={gettext("Jobs")} />
+          <.sidebar_link href={~p"/admin/crawler"} icon="hero-arrow-path" label={gettext("Crawler")} />
+          <.sidebar_link
+            href={~p"/admin/feedback"}
+            icon="hero-hand-thumb-up"
+            label={gettext("Feedback")}
+          />
+          <.sidebar_link href={~p"/admin/metrics"} icon="hero-signal" label={gettext("Metrics")} />
           <div class="border-t border-zinc-200 my-3"></div>
-          <.sidebar_link href={~p"/"} icon="hero-arrow-left" label="Back to site" />
+          <.sidebar_link href={~p"/"} icon="hero-arrow-left" label={gettext("Back to site")} />
         </nav>
         <div class="flex-shrink-0 border-t border-zinc-200 p-4">
           <p class="text-sm font-medium text-zinc-700">{@current_user.username}</p>
@@ -205,7 +217,7 @@ defmodule ReccoWeb.Navigation do
           method="delete"
           class="rounded-base border-2 border-border bg-bw px-3 py-1.5 text-sm font-bold hover:bg-red-300 transition-colors"
         >
-          Sign out
+          {gettext("Sign out")}
         </.link>
       </div>
     <% else %>
@@ -214,16 +226,43 @@ defmodule ReccoWeb.Navigation do
           href={~p"/login"}
           class="rounded-base border-2 border-border bg-bw px-3 py-1.5 text-sm font-bold hover:bg-bg transition-colors"
         >
-          Sign in
+          {gettext("Sign in")}
         </a>
         <a
           href={~p"/register"}
           class="rounded-base border-2 border-border bg-main px-3 py-1.5 text-sm font-bold shadow-brutalist hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none transition-all"
         >
-          Create account
+          {gettext("Create account")}
         </a>
       </div>
     <% end %>
+    """
+  end
+
+  @locales %{"en" => "EN", "it" => "IT"}
+
+  @spec locale_switcher(map()) :: Phoenix.LiveView.Rendered.t()
+  def locale_switcher(assigns) do
+    current = Gettext.get_locale(ReccoWeb.Gettext)
+    assigns = assign(assigns, current: current, locales: @locales)
+
+    ~H"""
+    <div class="flex items-center gap-1">
+      <.link
+        :for={{code, label} <- @locales}
+        href={~p"/locale/#{code}"}
+        method="put"
+        class={[
+          "rounded-base border-2 border-border px-2 py-0.5 text-xs font-bold transition-all",
+          code == @current && "bg-main",
+          code != @current && "bg-bw hover:bg-bg"
+        ]}
+        aria-label={label}
+        aria-current={code == @current && "true"}
+      >
+        {label}
+      </.link>
+    </div>
     """
   end
 

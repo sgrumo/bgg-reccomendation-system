@@ -19,11 +19,11 @@ defmodule ReccoWeb.UserSessionController do
         conn
         |> renew_session()
         |> put_session(:user_token, token)
-        |> put_flash(:info, "Welcome back!")
+        |> put_flash(:info, gettext("Welcome back!"))
         |> redirect(to: ~p"/")
 
       {:error, :unauthorized} ->
-        render(conn, :new, error_message: "Invalid email or password")
+        render(conn, :new, error_message: gettext("Invalid email or password"))
     end
   end
 
@@ -34,7 +34,7 @@ defmodule ReccoWeb.UserSessionController do
 
     conn
     |> renew_session()
-    |> put_flash(:info, "Logged out successfully.")
+    |> put_flash(:info, gettext("Logged out successfully."))
     |> redirect(to: ~p"/")
   end
 

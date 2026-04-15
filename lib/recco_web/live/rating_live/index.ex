@@ -11,7 +11,7 @@ defmodule ReccoWeb.RatingLive.Index do
 
     {:ok,
      assign(socket,
-       page_title: "My Ratings",
+       page_title: gettext("My Ratings"),
        ratings: ratings
      )}
   end
@@ -30,18 +30,18 @@ defmodule ReccoWeb.RatingLive.Index do
   def render(assigns) do
     ~H"""
     <div>
-      <h1 class="text-2xl font-bold mb-6">My Ratings</h1>
+      <h1 class="text-2xl font-bold mb-6">{gettext("My Ratings")}</h1>
 
       <div
         :if={@ratings == []}
         class="text-center py-16 rounded-base border-2 border-border bg-bw shadow-brutalist"
       >
-        <p class="font-medium">You haven't rated any games yet.</p>
+        <p class="font-medium">{gettext("You haven't rated any games yet.")}</p>
         <a
           href={~p"/games"}
           class="mt-4 inline-block rounded-base border-2 border-border bg-main px-4 py-2 text-sm font-bold shadow-brutalist hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none transition-all"
         >
-          Browse games to get started
+          {gettext("Browse games to get started")}
         </a>
       </div>
 
@@ -74,9 +74,9 @@ defmodule ReccoWeb.RatingLive.Index do
             phx-click="delete_rating"
             phx-value-game-id={rating.board_game_id}
             class="rounded-base border-2 border-border bg-red-300 px-3 py-1 text-sm font-bold hover:translate-x-[2px] hover:translate-y-[2px] transition-all flex-shrink-0"
-            data-confirm="Remove this rating?"
+            data-confirm={gettext("Remove this rating?")}
           >
-            Remove
+            {gettext("Remove")}
           </button>
         </div>
       </div>

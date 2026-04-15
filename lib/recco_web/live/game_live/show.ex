@@ -38,7 +38,7 @@ defmodule ReccoWeb.GameLive.Show do
       {:error, :not_found} ->
         {:ok,
          socket
-         |> put_flash(:error, "Game not found")
+         |> put_flash(:error, gettext("Game not found"))
          |> redirect(to: ~p"/games")}
     end
   end
@@ -57,7 +57,7 @@ defmodule ReccoWeb.GameLive.Show do
           {:noreply, assign(socket, user_rating: rating, rating_form_score: rating.score)}
 
         {:error, _, _} ->
-          {:noreply, put_flash(socket, :error, "Could not save rating")}
+          {:noreply, put_flash(socket, :error, gettext("Could not save rating"))}
       end
     else
       {:noreply, redirect(socket, to: ~p"/login")}
@@ -84,7 +84,7 @@ defmodule ReccoWeb.GameLive.Show do
           {:noreply, assign(socket, wishlisted: true)}
 
         {:error, _, _} ->
-          {:noreply, put_flash(socket, :error, "Could not add to wishlist")}
+          {:noreply, put_flash(socket, :error, gettext("Could not add to wishlist"))}
       end
     else
       {:noreply, redirect(socket, to: ~p"/login")}
@@ -148,7 +148,7 @@ defmodule ReccoWeb.GameLive.Show do
         href={~p"/games"}
         class="text-sm font-bold underline decoration-2 underline-offset-2 hover:bg-main mb-4 inline-block"
       >
-        &larr; Back to browse
+        &larr; {gettext("Back to browse")}
       </a>
 
       <div class="flex flex-col md:flex-row gap-8">
@@ -170,10 +170,16 @@ defmodule ReccoWeb.GameLive.Show do
           </p>
 
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6">
-            <.stat label="Rating" value={format_rating(@game.average_rating)} />
-            <.stat label="Weight" value={format_rating(@game.average_weight)} />
-            <.stat label="Players" value={format_players(@game.min_players, @game.max_players)} />
-            <.stat label="Time" value={format_playtime(@game.min_playtime, @game.max_playtime)} />
+            <.stat label={gettext("Rating")} value={format_rating(@game.average_rating)} />
+            <.stat label={gettext("Weight")} value={format_rating(@game.average_weight)} />
+            <.stat
+              label={gettext("Players")}
+              value={format_players(@game.min_players, @game.max_players)}
+            />
+            <.stat
+              label={gettext("Time")}
+              value={format_playtime(@game.min_playtime, @game.max_playtime)}
+            />
           </div>
 
           <.rating_widget
@@ -185,12 +191,12 @@ defmodule ReccoWeb.GameLive.Show do
           <.wishlist_widget current_user={@current_user} wishlisted={@wishlisted} />
 
           <div :if={@game.description} class="mt-6 rounded-base border-2 border-border bg-bw p-4">
-            <h2 class="text-sm font-bold mb-2">Description</h2>
+            <h2 class="text-sm font-bold mb-2">{gettext("Description")}</h2>
             <p class="text-sm font-medium leading-relaxed">{@game.description}</p>
           </div>
 
           <div :if={@game.categories != []} class="mt-4">
-            <h2 class="text-sm font-bold mb-2">Categories</h2>
+            <h2 class="text-sm font-bold mb-2">{gettext("Categories")}</h2>
             <div class="flex flex-wrap gap-2">
               <span
                 :for={cat <- @game.categories}
@@ -202,7 +208,7 @@ defmodule ReccoWeb.GameLive.Show do
           </div>
 
           <div :if={@game.mechanics != []} class="mt-4">
-            <h2 class="text-sm font-bold mb-2">Mechanics</h2>
+            <h2 class="text-sm font-bold mb-2">{gettext("Mechanics")}</h2>
             <div class="flex flex-wrap gap-2">
               <span
                 :for={mech <- @game.mechanics}
@@ -214,7 +220,7 @@ defmodule ReccoWeb.GameLive.Show do
           </div>
 
           <div :if={@game.designers != []} class="mt-4">
-            <h2 class="text-sm font-bold mb-2">Designers</h2>
+            <h2 class="text-sm font-bold mb-2">{gettext("Designers")}</h2>
             <p class="text-sm font-medium">
               {Enum.map_join(@game.designers, ", ", & &1["value"])}
             </p>
@@ -223,7 +229,7 @@ defmodule ReccoWeb.GameLive.Show do
       </div>
 
       <div class="mt-10">
-        <h2 class="text-xl font-bold mb-4">Similar Games</h2>
+        <h2 class="text-xl font-bold mb-4">{gettext("Similar Games")}</h2>
 
         <div :if={@similar_loading} class="grid grid-cols-2 sm:grid-cols-3 gap-4">
           <div :for={_ <- 1..6} class="rounded-base border-2 border-border bg-bw p-4">
@@ -236,7 +242,7 @@ defmodule ReccoWeb.GameLive.Show do
           :if={!@similar_loading && (@similar_games == nil || @similar_games == [])}
           class="text-sm font-medium"
         >
-          No similar games found.
+          {gettext("No similar games found.")}
         </div>
 
         <div
@@ -266,7 +272,7 @@ defmodule ReccoWeb.GameLive.Show do
               </div>
             </a>
             <div :if={@current_user} class="flex items-center gap-1 px-2 pb-2">
-              <span class="text-xs font-medium mr-1">Useful?</span>
+              <span class="text-xs font-medium mr-1">{gettext("Useful?")}</span>
               <button
                 phx-click="feedback"
                 phx-value-game-id={rec.game.id}
@@ -276,7 +282,7 @@ defmodule ReccoWeb.GameLive.Show do
                   Map.get(@feedback_map, rec.game.id) == true && "bg-main",
                   Map.get(@feedback_map, rec.game.id) != true && "bg-bw hover:bg-bg"
                 ]}
-                aria-label="Good recommendation"
+                aria-label={gettext("Good recommendation")}
               >
                 &#x1F44D;
               </button>
@@ -289,7 +295,7 @@ defmodule ReccoWeb.GameLive.Show do
                   Map.get(@feedback_map, rec.game.id) == false && "bg-red-300",
                   Map.get(@feedback_map, rec.game.id) != false && "bg-bw hover:bg-bg"
                 ]}
-                aria-label="Bad recommendation"
+                aria-label={gettext("Bad recommendation")}
               >
                 &#x1F44E;
               </button>
@@ -308,7 +314,7 @@ defmodule ReccoWeb.GameLive.Show do
   defp rating_widget(assigns) do
     ~H"""
     <div class="mt-6 rounded-base border-2 border-border bg-bw p-4 shadow-brutalist">
-      <h2 class="text-sm font-bold mb-3">Your Rating</h2>
+      <h2 class="text-sm font-bold mb-3">{gettext("Your Rating")}</h2>
 
       <%= if @current_user do %>
         <div class="flex items-center gap-4">
@@ -333,12 +339,12 @@ defmodule ReccoWeb.GameLive.Show do
             phx-click="remove_rating"
             class="rounded-base border-2 border-border bg-red-300 px-3 py-1 text-sm font-bold hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
           >
-            Remove
+            {gettext("Remove")}
           </button>
         </div>
 
         <p :if={@user_rating} class="text-xs font-medium mt-2">
-          You rated this {Float.round(@user_rating.score, 1)}/10
+          {gettext("You rated this %{score}/10", score: Float.round(@user_rating.score, 1))}
         </p>
       <% else %>
         <p class="text-sm font-medium">
@@ -346,9 +352,9 @@ defmodule ReccoWeb.GameLive.Show do
             href={~p"/login"}
             class="font-bold underline decoration-2 underline-offset-2 hover:bg-main"
           >
-            Sign in
+            {gettext("Sign in")}
           </a>
-          to rate this game.
+          {gettext("to rate this game.")}
         </p>
       <% end %>
     </div>
@@ -370,14 +376,14 @@ defmodule ReccoWeb.GameLive.Show do
     """
   end
 
-  defp format_rating(nil), do: "N/A"
+  defp format_rating(nil), do: gettext("N/A")
   defp format_rating(val), do: :erlang.float_to_binary(val / 1, decimals: 1)
 
-  defp format_players(nil, nil), do: "N/A"
+  defp format_players(nil, nil), do: gettext("N/A")
   defp format_players(min, max) when min == max, do: "#{min}"
   defp format_players(min, max), do: "#{min}-#{max}"
 
-  defp format_playtime(nil, nil), do: "N/A"
+  defp format_playtime(nil, nil), do: gettext("N/A")
   defp format_playtime(min, max) when min == max, do: "#{min}m"
   defp format_playtime(min, max), do: "#{min}-#{max}m"
 
@@ -393,14 +399,14 @@ defmodule ReccoWeb.GameLive.Show do
             phx-click="remove_from_wishlist"
             class="rounded-base border-2 border-border bg-main px-4 py-2 text-sm font-bold shadow-brutalist hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none transition-all"
           >
-            Remove from wishlist
+            {gettext("Remove from wishlist")}
           </button>
         <% else %>
           <button
             phx-click="add_to_wishlist"
             class="rounded-base border-2 border-border bg-bw px-4 py-2 text-sm font-bold hover:bg-bg transition-colors"
           >
-            Add to wishlist
+            {gettext("Add to wishlist")}
           </button>
         <% end %>
       <% else %>
@@ -409,9 +415,9 @@ defmodule ReccoWeb.GameLive.Show do
             href={~p"/login"}
             class="font-bold underline decoration-2 underline-offset-2 hover:bg-main"
           >
-            Sign in
+            {gettext("Sign in")}
           </a>
-          to add to your wishlist.
+          {gettext("to add to your wishlist.")}
         </p>
       <% end %>
     </div>

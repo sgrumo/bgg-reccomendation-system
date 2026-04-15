@@ -11,7 +11,7 @@ defmodule ReccoWeb.WishlistLive.Index do
 
     {:ok,
      assign(socket,
-       page_title: "My Wishlist",
+       page_title: gettext("My Wishlist"),
        wishlists: wishlists
      )}
   end
@@ -30,18 +30,18 @@ defmodule ReccoWeb.WishlistLive.Index do
   def render(assigns) do
     ~H"""
     <div>
-      <h1 class="text-2xl font-bold mb-6">My Wishlist</h1>
+      <h1 class="text-2xl font-bold mb-6">{gettext("My Wishlist")}</h1>
 
       <div
         :if={@wishlists == []}
         class="text-center py-16 rounded-base border-2 border-border bg-bw shadow-brutalist"
       >
-        <p class="font-medium">Your wishlist is empty.</p>
+        <p class="font-medium">{gettext("Your wishlist is empty.")}</p>
         <a
           href={~p"/games"}
           class="mt-4 inline-block rounded-base border-2 border-border bg-main px-4 py-2 text-sm font-bold shadow-brutalist hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none transition-all"
         >
-          Browse games to find something you like
+          {gettext("Browse games to find something you like")}
         </a>
       </div>
 
@@ -73,9 +73,9 @@ defmodule ReccoWeb.WishlistLive.Index do
             phx-click="remove_from_wishlist"
             phx-value-game-id={wishlist.board_game_id}
             class="rounded-base border-2 border-border bg-red-300 px-3 py-1 text-sm font-bold hover:translate-x-[2px] hover:translate-y-[2px] transition-all flex-shrink-0"
-            data-confirm="Remove from wishlist?"
+            data-confirm={gettext("Remove from wishlist?")}
           >
-            Remove
+            {gettext("Remove")}
           </button>
         </div>
       </div>

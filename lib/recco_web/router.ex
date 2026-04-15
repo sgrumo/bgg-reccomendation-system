@@ -13,6 +13,7 @@ defmodule ReccoWeb.Router do
     plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug ReccoWeb.Plugs.FetchCurrentUser
+    plug ReccoWeb.Plugs.SetLocale
   end
 
   pipeline :authenticated do
@@ -44,6 +45,7 @@ defmodule ReccoWeb.Router do
     delete "/logout", UserSessionController, :delete
     get "/register", UserRegistrationController, :new
     post "/register", UserRegistrationController, :create
+    put "/locale/:locale", LocaleController, :update
   end
 
   # Public LiveView pages (browsing, landing)
@@ -51,7 +53,7 @@ defmodule ReccoWeb.Router do
     pipe_through :browser
 
     live_session :public,
-      on_mount: [{ReccoWeb.Live.UserAuth, :mount_current_user}],
+      on_mount: [ReccoWeb.Live.SetLocale, {ReccoWeb.Live.UserAuth, :mount_current_user}],
       layout: {ReccoWeb.Layouts, :app} do
       live "/", LandingLive
       live "/games", GameLive.Index
@@ -64,7 +66,7 @@ defmodule ReccoWeb.Router do
     pipe_through :browser
 
     live_session :authenticated,
-      on_mount: [{ReccoWeb.Live.UserAuth, :ensure_authenticated}],
+      on_mount: [ReccoWeb.Live.SetLocale, {ReccoWeb.Live.UserAuth, :ensure_authenticated}],
       layout: {ReccoWeb.Layouts, :app} do
       live "/ratings", RatingLive.Index
       live "/wishlist", WishlistLive.Index
@@ -78,7 +80,7 @@ defmodule ReccoWeb.Router do
     pipe_through :browser
 
     live_session :admin,
-      on_mount: [{ReccoWeb.Live.UserAuth, :ensure_superadmin}],
+      on_mount: [ReccoWeb.Live.SetLocale, {ReccoWeb.Live.UserAuth, :ensure_superadmin}],
       layout: {ReccoWeb.Layouts, :admin} do
       live "/", Admin.DashboardLive
       live "/users", Admin.UserLive.Index

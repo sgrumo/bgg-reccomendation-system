@@ -37,7 +37,7 @@ defmodule ReccoWeb.GameLive.Index do
 
     {:noreply,
      assign(socket,
-       page_title: "Browse Games",
+       page_title: gettext("Browse Games"),
        games: games,
        total: total,
        page: page,
@@ -82,7 +82,7 @@ defmodule ReccoWeb.GameLive.Index do
   def render(assigns) do
     ~H"""
     <div>
-      <h1 class="text-2xl font-heading mb-6">Browse Games</h1>
+      <h1 class="text-2xl font-heading mb-6">{gettext("Browse Games")}</h1>
 
       <div class="mb-6 flex flex-col sm:flex-row gap-4">
         <form phx-change="search" phx-submit="search" class="flex-1">
@@ -90,7 +90,7 @@ defmodule ReccoWeb.GameLive.Index do
             name="search"
             type="text"
             value={@search}
-            placeholder="Search games..."
+            placeholder={gettext("Search games...")}
             phx-debounce="300"
           />
         </form>
@@ -99,12 +99,12 @@ defmodule ReccoWeb.GameLive.Index do
           <select
             name="sort"
             class="w-full h-10 rounded-base border-2 border-border bg-bw px-3 py-2 text-sm font-base focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-            aria-label="Sort by"
+            aria-label={gettext("Sort by")}
           >
-            <option value="rating" selected={@sort == "rating"}>Top rated</option>
-            <option value="name" selected={@sort == "name"}>Name</option>
-            <option value="year" selected={@sort == "year"}>Newest</option>
-            <option value="weight" selected={@sort == "weight"}>Heaviest</option>
+            <option value="rating" selected={@sort == "rating"}>{gettext("Top rated")}</option>
+            <option value="name" selected={@sort == "name"}>{gettext("Name")}</option>
+            <option value="year" selected={@sort == "year"}>{gettext("Newest")}</option>
+            <option value="weight" selected={@sort == "weight"}>{gettext("Heaviest")}</option>
           </select>
         </form>
       </div>
@@ -112,19 +112,19 @@ defmodule ReccoWeb.GameLive.Index do
       <div class="mb-6 flex flex-col sm:flex-row gap-4">
         <.multi_select
           id="category-filter"
-          label="Categories"
+          label={gettext("Categories")}
           options={@all_categories}
           selected={@categories}
           event="filter_categories"
-          placeholder="All categories"
+          placeholder={gettext("All categories")}
         />
         <.multi_select
           id="mechanic-filter"
-          label="Mechanics"
+          label={gettext("Mechanics")}
           options={@all_mechanics}
           selected={@mechanics}
           event="filter_mechanics"
-          placeholder="All mechanics"
+          placeholder={gettext("All mechanics")}
         />
       </div>
 
@@ -133,18 +133,18 @@ defmodule ReccoWeb.GameLive.Index do
         phx-click="clear_filters"
         class="mb-4 rounded-base border-2 border-border bg-bw px-3 py-1.5 text-sm font-heading hover:bg-bg transition-colors"
       >
-        Clear all filters
+        {gettext("Clear all filters")}
       </button>
 
       <p class="text-sm font-base mb-4">
-        {@total} games found
+        {ngettext("%{count} game found", "%{count} games found", @total)}
       </p>
 
       <div
         :if={@games == []}
         class="text-center py-16 rounded-base border-2 border-border bg-bw shadow-brutalist"
       >
-        <p class="font-base">No games found. Try a different search.</p>
+        <p class="font-base">{gettext("No games found. Try a different search.")}</p>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
@@ -190,7 +190,7 @@ defmodule ReccoWeb.GameLive.Index do
           </span>
         </div>
         <div :if={@game.min_players && @game.max_players} class="text-xs font-base mt-1">
-          {@game.min_players}-{@game.max_players} players
+          {gettext("%{min}-%{max} players", min: @game.min_players, max: @game.max_players)}
         </div>
       </div>
     </a>
@@ -267,7 +267,7 @@ defmodule ReccoWeb.GameLive.Index do
   defp pagination(assigns) do
     ~H"""
     <nav class="mt-8 flex justify-center gap-2" aria-label="Pagination">
-      <.page_link :if={@page > 1} page={@page - 1} params={@params} label="Previous" />
+      <.page_link :if={@page > 1} page={@page - 1} params={@params} label={gettext("Previous")} />
 
       <.page_link
         :for={p <- page_range(@page, @total_pages)}
@@ -277,7 +277,12 @@ defmodule ReccoWeb.GameLive.Index do
         current={p == @page}
       />
 
-      <.page_link :if={@page < @total_pages} page={@page + 1} params={@params} label="Next" />
+      <.page_link
+        :if={@page < @total_pages}
+        page={@page + 1}
+        params={@params}
+        label={gettext("Next")}
+      />
     </nav>
     """
   end
