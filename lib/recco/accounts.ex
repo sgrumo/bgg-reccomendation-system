@@ -90,6 +90,19 @@ defmodule Recco.Accounts do
     end
   end
 
+  @spec change_user_password(User.t(), String.t(), map()) ::
+          {:ok, User.t()} | Errors.t() | Errors.t(map())
+  def change_user_password(%User{} = user, current_password, attrs) do
+    if User.valid_password?(user, current_password) do
+      user
+      |> User.password_changeset(attrs)
+      |> Repo.update()
+      |> Errors.handle_changeset_error()
+    else
+      {:error, :unauthorized}
+    end
+  end
+
   @spec superadmin?(User.t()) :: boolean()
   def superadmin?(user), do: User.superadmin?(user)
 

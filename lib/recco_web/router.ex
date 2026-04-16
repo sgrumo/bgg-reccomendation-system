@@ -80,6 +80,7 @@ defmodule ReccoWeb.Router do
     live_session :authenticated,
       on_mount: [ReccoWeb.Live.SetLocale, {ReccoWeb.Live.UserAuth, :ensure_authenticated}],
       layout: {ReccoWeb.Layouts, :app} do
+      live "/profile", ProfileLive
       live "/ratings", RatingLive.Index
       live "/wishlist", WishlistLive.Index
       live "/preferences", PreferenceLive.Edit

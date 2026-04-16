@@ -130,14 +130,12 @@ defmodule ReccoWeb.Navigation do
               {gettext("For You")}
             </a>
             <div class="border-t-2 border-border pt-4 mt-4">
-              <p class="px-3 text-sm font-bold mb-2">{@current_user.username}</p>
-              <.link
-                href={~p"/logout"}
-                method="delete"
-                class="block rounded-base border-2 border-border px-3 py-2 text-base font-bold hover:bg-red-300"
+              <a
+                href={~p"/profile"}
+                class="block rounded-base border-2 border-border px-3 py-2 text-base font-bold hover:bg-main"
               >
-                {gettext("Sign out")}
-              </.link>
+                {@current_user.username} — {gettext("Profile")}
+              </a>
             </div>
           <% else %>
             <div class="border-t-2 border-border pt-4 mt-4 space-y-2">
@@ -211,14 +209,12 @@ defmodule ReccoWeb.Navigation do
     ~H"""
     <%= if @current_user do %>
       <div class="flex items-center gap-3">
-        <span class="text-sm font-bold">{@current_user.username}</span>
-        <.link
-          href={~p"/logout"}
-          method="delete"
-          class="rounded-base border-2 border-border bg-bw px-3 py-1.5 text-sm font-bold hover:bg-red-300 transition-colors"
+        <a
+          href={~p"/profile"}
+          class="rounded-base border-2 border-border bg-bw px-3 py-1.5 text-sm font-bold hover:bg-main transition-colors"
         >
-          {gettext("Sign out")}
-        </.link>
+          {@current_user.username}
+        </a>
       </div>
     <% else %>
       <div class="flex items-center gap-3">
