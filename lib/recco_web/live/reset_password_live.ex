@@ -2,6 +2,7 @@ defmodule ReccoWeb.ResetPasswordLive do
   use ReccoWeb, :live_view
 
   alias Recco.Accounts
+  alias Recco.Accounts.User
 
   @impl true
   @spec mount(map(), map(), Phoenix.LiveView.Socket.t()) ::
@@ -17,8 +18,10 @@ defmodule ReccoWeb.ResetPasswordLive do
          |> redirect(to: ~p"/login")}
 
       user ->
-        changeset = Accounts.User.password_changeset(user, %{})
-        {:ok, assign(socket, user: user, form: to_form(changeset), token: token), temporary_assigns: [form: nil]}
+        changeset = User.password_changeset(user, %{})
+
+        {:ok, assign(socket, user: user, form: to_form(changeset), token: token),
+         temporary_assigns: [form: nil]}
     end
   end
 
@@ -28,7 +31,7 @@ defmodule ReccoWeb.ResetPasswordLive do
   def handle_event("validate", %{"user" => user_params}, socket) do
     changeset =
       socket.assigns.user
-      |> Accounts.User.password_changeset(user_params)
+      |> User.password_changeset(user_params)
       |> Map.put(:action, :validate)
 
     {:noreply, assign(socket, form: to_form(changeset))}
@@ -45,7 +48,7 @@ defmodule ReccoWeb.ResetPasswordLive do
       {:error, :unprocessable_entity, _errors} ->
         changeset =
           socket.assigns.user
-          |> Accounts.User.password_changeset(user_params)
+          |> User.password_changeset(user_params)
           |> Map.put(:action, :validate)
 
         {:noreply, assign(socket, form: to_form(changeset))}

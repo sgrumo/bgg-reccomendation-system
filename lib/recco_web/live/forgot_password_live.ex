@@ -7,7 +7,11 @@ defmodule ReccoWeb.ForgotPasswordLive do
   @spec mount(map(), map(), Phoenix.LiveView.Socket.t()) ::
           {:ok, Phoenix.LiveView.Socket.t()}
   def mount(_params, _session, socket) do
-    {:ok, assign(socket, form: to_form(%{"email" => ""}, as: :user), page_title: gettext("Forgot password"))}
+    {:ok,
+     assign(socket,
+       form: to_form(%{"email" => ""}, as: :user),
+       page_title: gettext("Forgot password")
+     )}
   end
 
   @impl true
@@ -22,7 +26,12 @@ defmodule ReccoWeb.ForgotPasswordLive do
 
     socket =
       socket
-      |> put_flash(:info, gettext("If your email is in our system, you will receive instructions to reset your password shortly."))
+      |> put_flash(
+        :info,
+        gettext(
+          "If your email is in our system, you will receive instructions to reset your password shortly."
+        )
+      )
       |> redirect(to: ~p"/login")
 
     {:noreply, socket}
@@ -35,7 +44,9 @@ defmodule ReccoWeb.ForgotPasswordLive do
     <div class="mx-auto max-w-sm mt-16 px-4">
       <div class="rounded-base border-2 border-border bg-bw p-8 shadow-brutalist">
         <h1 class="text-2xl font-bold text-center mb-2">{gettext("Forgot your password?")}</h1>
-        <p class="text-sm text-center mb-8">{gettext("We'll send a password reset link to your inbox.")}</p>
+        <p class="text-sm text-center mb-8">
+          {gettext("We'll send a password reset link to your inbox.")}
+        </p>
 
         <.form for={@form} phx-submit="submit">
           <div class="space-y-4">

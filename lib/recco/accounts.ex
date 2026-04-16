@@ -5,6 +5,7 @@ defmodule Recco.Accounts do
 
   import Ecto.Query
 
+  alias Ecto.Multi
   alias Recco.Accounts.{User, UserNotifier, UserToken}
   alias Recco.Errors
   alias Recco.Repo
@@ -80,9 +81,9 @@ defmodule Recco.Accounts do
 
   @spec reset_user_password(User.t(), map()) :: {:ok, User.t()} | Errors.t(map())
   def reset_user_password(%User{} = user, attrs) do
-    Ecto.Multi.new()
-    |> Ecto.Multi.update(:user, User.password_changeset(user, attrs))
-    |> Ecto.Multi.delete_all(:tokens, from(t in UserToken, where: t.user_id == ^user.id))
+    Multi.new()
+    |> Multi.update(:user, User.password_changeset(user, attrs))
+    |> Multi.delete_all(:tokens, from(t in UserToken, where: t.user_id == ^user.id))
     |> Repo.transaction()
     |> case do
       {:ok, %{user: user}} -> {:ok, user}

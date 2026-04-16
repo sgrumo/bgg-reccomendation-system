@@ -58,7 +58,10 @@ defmodule ReccoWeb.ProfileLive do
 
       socket = assign(socket, import_status: :loading)
 
-      {:noreply, start_async(socket, :import_ratings, fn -> Ratings.import_bgg_ratings(user_id, bgg_username) end)}
+      {:noreply,
+       start_async(socket, :import_ratings, fn ->
+         Ratings.import_bgg_ratings(user_id, bgg_username)
+       end)}
     else
       {:noreply, put_flash(socket, :error, gettext("Set your BGG username first."))}
     end
@@ -111,9 +114,14 @@ defmodule ReccoWeb.ProfileLive do
 
     message =
       case reason do
-        :timeout -> gettext("BGG is processing your collection. Please try again in a few seconds.")
-        :rate_limited -> gettext("BGG rate limit reached. Please try again later.")
-        _ -> gettext("Failed to import ratings from BGG.")
+        :timeout ->
+          gettext("BGG is processing your collection. Please try again in a few seconds.")
+
+        :rate_limited ->
+          gettext("BGG rate limit reached. Please try again later.")
+
+        _ ->
+          gettext("Failed to import ratings from BGG.")
       end
 
     {:noreply,
@@ -173,7 +181,9 @@ defmodule ReccoWeb.ProfileLive do
 
         <div :if={@current_user.bgg_username} class="mt-4 pt-4 border-t-2 border-border">
           <p class="text-sm mb-3">
-            {gettext("Import your rated games from BGG. Games you've already rated here will be skipped.")}
+            {gettext(
+              "Import your rated games from BGG. Games you've already rated here will be skipped."
+            )}
           </p>
           <button
             phx-click="import_bgg_ratings"
@@ -197,7 +207,12 @@ defmodule ReccoWeb.ProfileLive do
       <div class="rounded-base border-2 border-border bg-bw p-6 shadow-brutalist mb-6">
         <h2 class="text-lg font-bold mb-4">{gettext("Change password")}</h2>
 
-        <.form for={@password_form} phx-change="validate_password" phx-submit="change_password" class="space-y-4">
+        <.form
+          for={@password_form}
+          phx-change="validate_password"
+          phx-submit="change_password"
+          class="space-y-4"
+        >
           <div>
             <label for="password_current_password" class="block text-sm font-bold mb-1">
               {gettext("Current password")}

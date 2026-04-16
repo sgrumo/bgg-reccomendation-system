@@ -56,7 +56,9 @@ defmodule ReccoWeb.LandingLive do
       <div class="rounded-base border-2 border-border bg-bw p-6 shadow-brutalist text-center">
         <h2 class="text-lg font-bold mb-2">{gettext("Already rate games on BoardGameGeek?")}</h2>
         <p class="text-sm mb-4">
-          {gettext("Link your BGG account to import your ratings and get personalised recommendations right away.")}
+          {gettext(
+            "Link your BGG account to import your ratings and get personalised recommendations right away."
+          )}
         </p>
         <a
           href={~p"/profile"}
