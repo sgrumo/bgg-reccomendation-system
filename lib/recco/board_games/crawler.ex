@@ -134,6 +134,7 @@ defmodule Recco.BoardGames.Crawler do
           status: "running"
         })
 
+        schedule_next(state.delay_ms)
         {:noreply, %{state | current_id: batch_end + 1}}
 
       {:error, :rate_limited} ->
