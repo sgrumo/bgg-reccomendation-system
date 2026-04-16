@@ -105,6 +105,7 @@ defmodule ReccoWeb.Router do
 
       get "/metrics", TelemetryUI.Web, [], assigns: %{telemetry_ui_allowed: true}
       live "/crawler", ReccoWeb.CrawlerLive
+      forward "/mailbox", Plug.Swoosh.MailboxPreview
     end
   end
 end

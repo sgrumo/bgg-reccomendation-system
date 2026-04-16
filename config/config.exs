@@ -11,6 +11,8 @@ config :recco, ReccoWeb.Gettext,
   default_locale: "en",
   locales: ~w(en it)
 
+config :recco, Recco.Mailer, adapter: Swoosh.Adapters.Local
+
 config :recco, ReccoWeb.Endpoint,
   url: [host: "localhost"],
   adapter: Bandit.PhoenixAdapter,

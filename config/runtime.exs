@@ -33,6 +33,20 @@ if backup_path = System.get_env("BACKUP_PATH") do
 end
 
 if config_env() == :prod do
+  # Email - configure adapter via MAILER_ADAPTER env var
+  # Supported: "resend" or "brevo"
+  case System.get_env("MAILER_ADAPTER", "resend") do
+    "brevo" ->
+      config :recco, Recco.Mailer,
+        adapter: Swoosh.Adapters.Brevo,
+        api_key: System.get_env("MAILER_API_KEY") || raise("missing MAILER_API_KEY")
+
+    _resend ->
+      config :recco, Recco.Mailer,
+        adapter: Swoosh.Adapters.Resend,
+        api_key: System.get_env("MAILER_API_KEY") || raise("missing MAILER_API_KEY")
+  end
+
   config :recco, telemetry_ui_enabled: true
 
   database_url =

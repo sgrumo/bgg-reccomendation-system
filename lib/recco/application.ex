@@ -15,6 +15,7 @@ defmodule Recco.Application do
         {Phoenix.PubSub, name: Recco.PubSub},
         {Registry, keys: :unique, name: Recco.Registry},
         {DynamicSupervisor, name: Recco.DynamicSupervisor, strategy: :one_for_one},
+        {Finch, name: Swoosh.Finch},
         ReccoWeb.Endpoint
       ]
       |> Enum.reject(&is_nil/1)

@@ -76,6 +76,10 @@ defmodule Recco.MixProject do
       # Jobs
       {:oban, "~> 2.19"},
 
+      # Email
+      {:swoosh, "~> 1.17"},
+      {:finch, "~> 0.19"},
+
       # Utilities
       {:gettext, "~> 1.0"},
       {:jason, "~> 1.2"},
