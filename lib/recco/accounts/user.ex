@@ -15,6 +15,7 @@ defmodule Recco.Accounts.User do
     field :password, :string, virtual: true, redact: true
     field :hashed_password, :string, redact: true
     field :role, :string, default: "base"
+    field :bgg_username, :string
     field :confirmed_at, :utc_datetime
 
     timestamps(type: :utc_datetime)
@@ -41,6 +42,13 @@ defmodule Recco.Accounts.User do
     user
     |> cast(attrs, [:password])
     |> validate_password()
+  end
+
+  @spec bgg_username_changeset(t(), map()) :: Ecto.Changeset.t()
+  def bgg_username_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:bgg_username])
+    |> validate_length(:bgg_username, max: 100)
   end
 
   @spec valid_password?(t(), String.t()) :: boolean()

@@ -26,6 +26,51 @@ defmodule Recco.BoardGames.BggApi do
     end
   end
 
+  @spec fetch_collection(String.t()) :: {:ok, [map()]} | {:error, term()}
+  def fetch_collection(bgg_username) do
+    url =
+      "#{@base_url}/collection?username=#{URI.encode(bgg_username)}&subtype=boardgame&rated=1&stats=1"
+
+    fetch_collection_with_retry(url, 3)
+  end
+
+  defp fetch_collection_with_retry(_url, 0), do: {:error, :timeout}
+
+  defp fetch_collection_with_retry(url, retries) do
+    case http_get(url) do
+      {:ok, %{status: 200, body: body}} ->
+        {:ok, parse_collection(body)}
+
+      {:ok, %{status: 202}} ->
+        Process.sleep(2_000)
+        fetch_collection_with_retry(url, retries - 1)
+
+      {:ok, %{status: 429}} ->
+        {:error, :rate_limited}
+
+      {:ok, %{status: status}} ->
+        {:error, {:unexpected_status, status}}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  @spec parse_collection(binary()) :: [map()]
+  def parse_collection(xml) do
+    xml
+    |> xpath(~x"//item"l)
+    |> Enum.map(&parse_collection_item/1)
+  end
+
+  defp parse_collection_item(item) do
+    %{
+      bgg_id: xpath(item, ~x"./@objectid"i),
+      name: xpath(item, ~x"./name/text()"s),
+      score: xpath_optional_float(item, ~x"./stats/rating/@value"s)
+    }
+  end
+
   @spec parse_board_games(binary()) :: [map()]
   def parse_board_games(xml) do
     xml

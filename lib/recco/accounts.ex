@@ -90,6 +90,14 @@ defmodule Recco.Accounts do
     end
   end
 
+  @spec update_bgg_username(User.t(), map()) :: {:ok, User.t()} | Errors.t(map())
+  def update_bgg_username(%User{} = user, attrs) do
+    user
+    |> User.bgg_username_changeset(attrs)
+    |> Repo.update()
+    |> Errors.handle_changeset_error()
+  end
+
   @spec change_user_password(User.t(), String.t(), map()) ::
           {:ok, User.t()} | Errors.t() | Errors.t(map())
   def change_user_password(%User{} = user, current_password, attrs) do

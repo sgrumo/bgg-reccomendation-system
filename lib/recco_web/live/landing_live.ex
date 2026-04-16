@@ -49,6 +49,24 @@ defmodule ReccoWeb.LandingLive do
       </div>
     </div>
 
+    <div
+      :if={@current_user && !@current_user.bgg_username}
+      class="max-w-2xl mx-auto px-4 mt-12"
+    >
+      <div class="rounded-base border-2 border-border bg-bw p-6 shadow-brutalist text-center">
+        <h2 class="text-lg font-bold mb-2">{gettext("Already rate games on BoardGameGeek?")}</h2>
+        <p class="text-sm mb-4">
+          {gettext("Link your BGG account to import your ratings and get personalised recommendations right away.")}
+        </p>
+        <a
+          href={~p"/profile"}
+          class="inline-block rounded-base border-2 border-border bg-main px-5 py-2.5 text-sm font-bold shadow-brutalist hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none transition-all"
+        >
+          {gettext("Link BGG account")}
+        </a>
+      </div>
+    </div>
+
     <div class="max-w-5xl mx-auto px-4 py-16">
       <h2 class="text-2xl sm:text-3xl font-bold text-center mb-12">
         {gettext("How it works")}

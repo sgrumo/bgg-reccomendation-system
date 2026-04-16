@@ -5,7 +5,11 @@ defmodule Recco.Ratings do
 
   import Ecto.Query
 
+  require Logger
+
   alias Recco.Accounts.UserRating
+  alias Recco.BoardGames
+  alias Recco.BoardGames.BggApi
   alias Recco.Errors
   alias Recco.Repo
 
@@ -60,6 +64,48 @@ defmodule Recco.Ratings do
     )
     |> Repo.all()
     |> Map.new()
+  end
+
+  @spec import_bgg_ratings(String.t(), String.t()) ::
+          {:ok, non_neg_integer()} | {:error, term()}
+  def import_bgg_ratings(user_id, bgg_username) do
+    Logger.info("Starting BGG import for user #{user_id}, BGG username: #{bgg_username}")
+
+    with {:ok, collection} <- BggApi.fetch_collection(bgg_username) do
+      Logger.info("Fetched #{length(collection)} rated items from BGG")
+
+      valid_items = Enum.filter(collection, & &1.score)
+      bgg_ids = Enum.map(valid_items, & &1.bgg_id)
+      games_map = BoardGames.get_board_games_by_bgg_ids(bgg_ids)
+
+      Logger.info(
+        "Matched #{map_size(games_map)} of #{length(valid_items)} BGG games to local database"
+      )
+
+      existing_game_ids =
+        from(r in UserRating,
+          where: r.user_id == ^user_id,
+          select: r.board_game_id
+        )
+        |> Repo.all()
+        |> MapSet.new()
+
+      imported =
+        valid_items
+        |> Enum.filter(&Map.has_key?(games_map, &1.bgg_id))
+        |> Enum.reject(fn item ->
+          game = Map.fetch!(games_map, item.bgg_id)
+          MapSet.member?(existing_game_ids, game.id)
+        end)
+        |> Enum.reduce(0, fn item, count ->
+          game = Map.fetch!(games_map, item.bgg_id)
+          {:ok, _} = rate_game(user_id, game.id, %{score: item.score})
+          count + 1
+        end)
+
+      Logger.info("BGG import complete: #{imported} ratings imported")
+      {:ok, imported}
+    end
   end
 
   @spec count_user_ratings(String.t()) :: non_neg_integer()
