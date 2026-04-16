@@ -48,6 +48,18 @@ defmodule ReccoWeb.Router do
     put "/locale/:locale", LocaleController, :update
   end
 
+  # Password reset (LiveView, redirects if already logged in)
+  scope "/", ReccoWeb do
+    pipe_through :browser
+
+    live_session :password_reset,
+      on_mount: [ReccoWeb.Live.SetLocale, {ReccoWeb.Live.UserAuth, :redirect_if_authenticated}],
+      layout: {ReccoWeb.Layouts, :public} do
+      live "/forgot-password", ForgotPasswordLive
+      live "/reset-password/:token", ResetPasswordLive
+    end
+  end
+
   # Public LiveView pages (browsing, landing)
   scope "/", ReccoWeb do
     pipe_through :browser

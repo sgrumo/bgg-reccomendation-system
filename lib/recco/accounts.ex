@@ -5,7 +5,7 @@ defmodule Recco.Accounts do
 
   import Ecto.Query
 
-  alias Recco.Accounts.{User, UserToken}
+  alias Recco.Accounts.{User, UserNotifier, UserToken}
   alias Recco.Errors
   alias Recco.Repo
 
@@ -61,6 +61,33 @@ defmodule Recco.Accounts do
     end
 
     :ok
+  end
+
+  @spec deliver_reset_password_instructions(User.t(), (String.t() -> String.t())) ::
+          {:ok, Swoosh.Email.t()} | {:error, term()}
+  def deliver_reset_password_instructions(%User{} = user, reset_url_fn)
+      when is_function(reset_url_fn, 1) do
+    {encoded_token, user_token} = UserToken.build_reset_password_token(user)
+    Repo.insert!(user_token)
+    UserNotifier.deliver_reset_password_instructions(user, reset_url_fn.(encoded_token))
+  end
+
+  @spec get_user_by_reset_password_token(String.t()) :: User.t() | nil
+  def get_user_by_reset_password_token(token) do
+    UserToken.verify_reset_password_token_query(token)
+    |> Repo.one()
+  end
+
+  @spec reset_user_password(User.t(), map()) :: {:ok, User.t()} | Errors.t(map())
+  def reset_user_password(%User{} = user, attrs) do
+    Ecto.Multi.new()
+    |> Ecto.Multi.update(:user, User.password_changeset(user, attrs))
+    |> Ecto.Multi.delete_all(:tokens, from(t in UserToken, where: t.user_id == ^user.id))
+    |> Repo.transaction()
+    |> case do
+      {:ok, %{user: user}} -> {:ok, user}
+      {:error, :user, changeset, _} -> Errors.handle_changeset_error({:error, changeset})
+    end
   end
 
   @spec superadmin?(User.t()) :: boolean()

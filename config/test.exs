@@ -22,6 +22,8 @@ config :recco, recommender_client: Recco.Recommender.Mock
 
 config :recco, Recco.Mailer, adapter: Swoosh.Adapters.Test
 
+config :swoosh, :api_client, false
+
 config :recco, Oban, testing: :inline
 
 config :logger, level: :none

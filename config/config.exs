@@ -13,6 +13,8 @@ config :recco, ReccoWeb.Gettext,
 
 config :recco, Recco.Mailer, adapter: Swoosh.Adapters.Local
 
+config :swoosh, :api_client, Swoosh.ApiClient.Finch
+
 config :recco, ReccoWeb.Endpoint,
   url: [host: "localhost"],
   adapter: Bandit.PhoenixAdapter,

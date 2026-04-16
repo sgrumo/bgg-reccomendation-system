@@ -36,6 +36,13 @@ defmodule Recco.Accounts.User do
     |> validate_inclusion(:role, @roles)
   end
 
+  @spec password_changeset(t(), map()) :: Ecto.Changeset.t()
+  def password_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:password])
+    |> validate_password()
+  end
+
   @spec valid_password?(t(), String.t()) :: boolean()
   def valid_password?(%__MODULE__{hashed_password: hashed_password}, password)
       when is_binary(hashed_password) and byte_size(password) > 0 do
