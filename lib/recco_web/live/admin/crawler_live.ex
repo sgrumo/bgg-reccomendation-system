@@ -12,7 +12,12 @@ defmodule ReccoWeb.Admin.CrawlerLive do
   def mount(_params, _session, socket) do
     if connected?(socket), do: schedule_tick()
 
-    {:ok, assign_crawler_state(socket)}
+    socket =
+      socket
+      |> assign_crawler_state()
+      |> assign(fetch_bgg_id: "", fetch_result: nil)
+
+    {:ok, socket}
   end
 
   @impl true
@@ -29,6 +34,25 @@ defmodule ReccoWeb.Admin.CrawlerLive do
   def handle_event("start", _params, socket) do
     Crawler.start()
     {:noreply, assign_crawler_state(socket)}
+  end
+
+  def handle_event("fetch_game", %{"bgg_id" => bgg_id_str}, socket) do
+    case Integer.parse(String.trim(bgg_id_str)) do
+      {bgg_id, _} when bgg_id > 0 ->
+        result =
+          case BoardGames.fetch_game_by_bgg_id(bgg_id) do
+            {:ok, game} -> {:ok, game.name}
+            {:error, :not_found} -> {:error, "No board game found with BGG ID #{bgg_id}"}
+            {:error, :rate_limited} -> {:error, "BGG API rate limited, try again later"}
+            {:error, :queued} -> {:error, "BGG API is processing, try again in a few seconds"}
+            {:error, _reason} -> {:error, "Failed to fetch game from BGG"}
+          end
+
+        {:noreply, assign(socket, fetch_result: result, fetch_bgg_id: "")}
+
+      _ ->
+        {:noreply, assign(socket, fetch_result: {:error, "Please enter a valid BGG ID"})}
+    end
   end
 
   def handle_event("stop", _params, socket) do
@@ -96,6 +120,50 @@ defmodule ReccoWeb.Admin.CrawlerLive do
       </div>
 
       <p class="text-xs text-zinc-400 mt-4">Auto-refreshes every 2 seconds.</p>
+
+      <hr class="my-8 border-zinc-200" />
+
+      <h2 class="text-xl font-bold text-zinc-900 mb-4">Fetch Game by BGG ID</h2>
+      <p class="text-sm text-zinc-500 mb-4">
+        Enter a BoardGameGeek ID to fetch and add a specific game to the database.
+      </p>
+
+      <form phx-submit="fetch_game" class="flex items-end gap-3">
+        <div>
+          <label for="bgg_id" class="block text-sm font-medium text-zinc-700 mb-1">BGG ID</label>
+          <input
+            type="number"
+            name="bgg_id"
+            id="bgg_id"
+            value={@fetch_bgg_id}
+            min="1"
+            placeholder="e.g. 174430"
+            class="rounded-lg border border-zinc-300 px-3 py-2 text-sm w-40 focus:border-brand-500 focus:ring-brand-500"
+            required
+          />
+        </div>
+        <button
+          type="submit"
+          class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-500"
+        >
+          Fetch Game
+        </button>
+      </form>
+
+      <div :if={@fetch_result} class="mt-4">
+        <div
+          :if={match?({:ok, _}, @fetch_result)}
+          class="rounded-lg border border-green-300 bg-green-50 p-3 text-sm text-green-800"
+        >
+          Game "<strong>{elem(@fetch_result, 1)}</strong>" fetched and saved successfully.
+        </div>
+        <div
+          :if={match?({:error, _}, @fetch_result)}
+          class="rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-800"
+        >
+          {elem(@fetch_result, 1)}
+        </div>
+      </div>
     </div>
     """
   end

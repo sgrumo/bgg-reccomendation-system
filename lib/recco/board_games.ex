@@ -20,6 +20,22 @@ defmodule Recco.BoardGames do
     |> Errors.handle_changeset_error()
   end
 
+  @spec fetch_game_by_bgg_id(integer()) :: {:ok, BoardGame.t()} | Errors.t()
+  def fetch_game_by_bgg_id(bgg_id) do
+    alias Recco.BoardGames.BggApi
+
+    case BggApi.fetch_board_games([bgg_id]) do
+      {:ok, [game_data | _]} ->
+        upsert_board_game(game_data)
+
+      {:ok, []} ->
+        {:error, :not_found}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
   @spec get_board_game_by_bgg_id(integer()) :: {:ok, BoardGame.t()} | Errors.t()
   def get_board_game_by_bgg_id(bgg_id) do
     case Repo.one(from bg in BoardGame, where: bg.bgg_id == ^bgg_id) do
