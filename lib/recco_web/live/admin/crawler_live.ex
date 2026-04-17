@@ -106,14 +106,14 @@ defmodule ReccoWeb.Admin.CrawlerLive do
         <button
           :if={@status != "running"}
           phx-click="start"
-          class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-500"
+          class="rounded-base border-2 border-border bg-main px-4 py-2.5 text-sm font-bold shadow-brutalist hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none transition-all"
         >
           Start Crawler
         </button>
         <button
           :if={@status == "running"}
           phx-click="stop"
-          class="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-500"
+          class="rounded-base border-2 border-border bg-red-500 px-4 py-2.5 text-sm font-bold shadow-brutalist hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none transition-all"
         >
           Stop Crawler
         </button>
@@ -138,13 +138,13 @@ defmodule ReccoWeb.Admin.CrawlerLive do
             value={@fetch_bgg_id}
             min="1"
             placeholder="e.g. 174430"
-            class="rounded-lg border border-zinc-300 px-3 py-2 text-sm w-40 focus:border-brand-500 focus:ring-brand-500"
+            class="rounded-base border-2 border-border bg-bw px-3 py-2.5 text-sm font-medium w-40 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
             required
           />
         </div>
         <button
           type="submit"
-          class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-500"
+          class="rounded-base border-2 border-border bg-main px-4 py-2.5 text-sm font-bold shadow-brutalist hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none transition-all"
         >
           Fetch Game
         </button>
