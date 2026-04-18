@@ -8,22 +8,28 @@ defmodule Recco.BoardGames.BggApi do
     ids_param = Enum.join(ids, ",")
     url = "#{@base_url}/thing?id=#{ids_param}&type=boardgame&stats=1"
 
-    case http_get(url) do
-      {:ok, %{status: 200, body: body}} ->
-        {:ok, parse_board_games(body)}
+    :telemetry.span(
+      [:recco, :bgg, :request],
+      %{endpoint: :thing, id_count: length(ids)},
+      fn ->
+        case http_get(url) do
+          {:ok, %{status: 200, body: body}} ->
+            {{:ok, parse_board_games(body)}, %{endpoint: :thing, status: 200}}
 
-      {:ok, %{status: 202}} ->
-        {:error, :queued}
+          {:ok, %{status: 202}} ->
+            {{:error, :queued}, %{endpoint: :thing, status: 202}}
 
-      {:ok, %{status: 429}} ->
-        {:error, :rate_limited}
+          {:ok, %{status: 429}} ->
+            {{:error, :rate_limited}, %{endpoint: :thing, status: 429}}
 
-      {:ok, %{status: status}} ->
-        {:error, {:unexpected_status, status}}
+          {:ok, %{status: status}} ->
+            {{:error, {:unexpected_status, status}}, %{endpoint: :thing, status: status}}
 
-      {:error, reason} ->
-        {:error, reason}
-    end
+          {:error, reason} ->
+            {{:error, reason}, %{endpoint: :thing, status: :error, reason: inspect(reason)}}
+        end
+      end
+    )
   end
 
   @spec fetch_collection(String.t()) :: {:ok, [map()]} | {:error, term()}
@@ -37,22 +43,33 @@ defmodule Recco.BoardGames.BggApi do
   defp fetch_collection_with_retry(_url, 0), do: {:error, :timeout}
 
   defp fetch_collection_with_retry(url, retries) do
+    :telemetry.span(
+      [:recco, :bgg, :request],
+      %{endpoint: :collection},
+      fn ->
+        do_fetch_collection(url, retries)
+      end
+    )
+  end
+
+  defp do_fetch_collection(url, retries) do
     case http_get(url) do
       {:ok, %{status: 200, body: body}} ->
-        {:ok, parse_collection(body)}
+        {{:ok, parse_collection(body)}, %{endpoint: :collection, status: 200}}
 
       {:ok, %{status: 202}} ->
         Process.sleep(2_000)
-        fetch_collection_with_retry(url, retries - 1)
+        result = fetch_collection_with_retry(url, retries - 1)
+        {result, %{endpoint: :collection, status: 202}}
 
       {:ok, %{status: 429}} ->
-        {:error, :rate_limited}
+        {{:error, :rate_limited}, %{endpoint: :collection, status: 429}}
 
       {:ok, %{status: status}} ->
-        {:error, {:unexpected_status, status}}
+        {{:error, {:unexpected_status, status}}, %{endpoint: :collection, status: status}}
 
       {:error, reason} ->
-        {:error, reason}
+        {{:error, reason}, %{endpoint: :collection, status: :error, reason: inspect(reason)}}
     end
   end
 

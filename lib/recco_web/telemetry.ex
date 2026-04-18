@@ -72,7 +72,62 @@ defmodule ReccoWeb.Telemetry do
       summary("vm.memory.total", unit: {:byte, :kilobyte}),
       summary("vm.total_run_queue_lengths.total"),
       summary("vm.total_run_queue_lengths.cpu"),
-      summary("vm.total_run_queue_lengths.io")
+      summary("vm.total_run_queue_lengths.io"),
+
+      # Crawler
+      summary("recco.crawler.batch.stop.duration",
+        tags: [:status],
+        unit: {:native, :millisecond}
+      ),
+      counter("recco.crawler.batch.stop.duration",
+        tags: [:status],
+        unit: {:native, :millisecond}
+      ),
+      counter("recco.crawler.batch.exception.duration",
+        unit: {:native, :millisecond}
+      ),
+
+      # BGG API
+      summary("recco.bgg.request.stop.duration",
+        tags: [:endpoint, :status],
+        unit: {:native, :millisecond}
+      ),
+      counter("recco.bgg.request.stop.duration",
+        tags: [:endpoint, :status],
+        unit: {:native, :millisecond}
+      ),
+
+      # Auth
+      summary("recco.auth.login.stop.duration",
+        tags: [:result],
+        unit: {:native, :millisecond}
+      ),
+      counter("recco.auth.login.stop.duration",
+        tags: [:result],
+        unit: {:native, :millisecond}
+      ),
+      summary("recco.auth.bcrypt.stop.duration",
+        tags: [:path],
+        unit: {:native, :millisecond}
+      ),
+      summary("recco.auth.register.stop.duration",
+        tags: [:result],
+        unit: {:native, :millisecond}
+      ),
+      counter("recco.auth.token.stop.duration",
+        tags: [:result],
+        unit: {:native, :millisecond}
+      ),
+
+      # Oban
+      summary("oban.job.stop.duration",
+        tags: [:worker, :state],
+        unit: {:native, :millisecond}
+      ),
+      counter("oban.job.exception.duration",
+        tags: [:worker],
+        unit: {:native, :millisecond}
+      )
     ]
   end
 
@@ -110,6 +165,44 @@ defmodule ReccoWeb.Telemetry do
       ),
       TelemetryUI.Metrics.last_value("vm.total_run_queue_lengths.total",
         description: "Run queue length"
+      ),
+      TelemetryUI.Metrics.title("Crawler"),
+      TelemetryUI.Metrics.count_over_time("recco.crawler.batch.stop.duration",
+        tags: [:status],
+        description: "Crawler batches by outcome"
+      ),
+      TelemetryUI.Metrics.average_over_time("recco.crawler.batch.stop.duration",
+        unit: {:native, :millisecond},
+        description: "Crawler batch duration"
+      ),
+      TelemetryUI.Metrics.title("BGG API"),
+      TelemetryUI.Metrics.count_over_time("recco.bgg.request.stop.duration",
+        tags: [:status],
+        description: "BGG requests by status"
+      ),
+      TelemetryUI.Metrics.average_over_time("recco.bgg.request.stop.duration",
+        tags: [:endpoint],
+        unit: {:native, :millisecond},
+        description: "BGG request duration by endpoint"
+      ),
+      TelemetryUI.Metrics.title("Auth"),
+      TelemetryUI.Metrics.count_over_time("recco.auth.login.stop.duration",
+        tags: [:result],
+        description: "Login attempts by result"
+      ),
+      TelemetryUI.Metrics.average_over_time("recco.auth.bcrypt.stop.duration",
+        unit: {:native, :millisecond},
+        description: "Bcrypt duration (watch for drift)"
+      ),
+      TelemetryUI.Metrics.title("Oban"),
+      TelemetryUI.Metrics.count_over_time("oban.job.exception.duration",
+        tags: [:worker],
+        description: "Oban job exceptions"
+      ),
+      TelemetryUI.Metrics.average_over_time("oban.job.stop.duration",
+        tags: [:worker],
+        unit: {:native, :millisecond},
+        description: "Oban job duration"
       )
     ]
   end

@@ -125,6 +125,14 @@ defmodule Recco.BoardGames.Crawler do
     batch_end = min(state.current_id + @batch_size - 1, state.max_id)
     ids = Enum.to_list(state.current_id..batch_end)
 
+    :telemetry.span(
+      [:recco, :crawler, :batch],
+      %{start_id: state.current_id, end_id: batch_end},
+      fn -> run_batch(state, ids, batch_end) end
+    )
+  end
+
+  defp run_batch(state, ids, batch_end) do
     case BggApi.fetch_board_games(ids) do
       {:ok, games} ->
         Enum.each(games, &BoardGames.upsert_board_game/1)
@@ -135,22 +143,43 @@ defmodule Recco.BoardGames.Crawler do
         })
 
         schedule_next(state.delay_ms)
-        {:noreply, %{state | current_id: batch_end + 1}}
+
+        {
+          {:noreply, %{state | current_id: batch_end + 1}},
+          %{status: :ok, count: length(games), start_id: state.current_id, end_id: batch_end}
+        }
 
       {:error, :rate_limited} ->
         Logger.warning("Rate limited, retrying in #{@rate_limit_delay_ms}ms")
         schedule_next(@rate_limit_delay_ms)
-        {:noreply, state}
+
+        {
+          {:noreply, state},
+          %{status: :rate_limited, start_id: state.current_id, end_id: batch_end}
+        }
 
       {:error, :queued} ->
         Logger.info("Request queued by BGG, retrying in #{@queued_retry_delay_ms}ms")
         schedule_next(@queued_retry_delay_ms)
-        {:noreply, state}
+
+        {
+          {:noreply, state},
+          %{status: :queued, start_id: state.current_id, end_id: batch_end}
+        }
 
       {:error, reason} ->
         Logger.error("Crawler error at ID #{state.current_id}: #{inspect(reason)}")
         schedule_next(state.delay_ms)
-        {:noreply, %{state | current_id: batch_end + 1}}
+
+        {
+          {:noreply, %{state | current_id: batch_end + 1}},
+          %{
+            status: :error,
+            reason: inspect(reason),
+            start_id: state.current_id,
+            end_id: batch_end
+          }
+        }
     end
   end
 

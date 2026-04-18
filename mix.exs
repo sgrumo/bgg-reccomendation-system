@@ -71,6 +71,7 @@ defmodule Recco.MixProject do
       {:telemetry_metrics, "~> 1.0"},
       {:telemetry_poller, "~> 1.0"},
       {:telemetry_ui, "~> 5.3"},
+      {:logger_json, "~> 7.0"},
 
       # Assets
       {:esbuild, "~> 0.8", runtime: Mix.env() == :dev},

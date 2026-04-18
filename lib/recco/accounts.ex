@@ -12,15 +12,30 @@ defmodule Recco.Accounts do
 
   @spec register_user(map()) :: {:ok, User.t()} | Errors.t(map())
   def register_user(attrs) do
-    %User{}
-    |> User.registration_changeset(attrs)
-    |> Repo.insert()
-    |> Errors.handle_changeset_error()
+    :telemetry.span([:recco, :auth, :register], %{}, fn ->
+      result =
+        %User{}
+        |> User.registration_changeset(attrs)
+        |> Repo.insert()
+        |> Errors.handle_changeset_error()
+
+      {result, %{result: register_result_tag(result)}}
+    end)
   end
+
+  defp register_result_tag({:ok, _}), do: :ok
+  defp register_result_tag({:error, _, _}), do: :invalid
 
   @spec authenticate_user_by_email(String.t(), String.t()) ::
           {:ok, User.t()} | {:error, :unauthorized} | {:error, :locked_out, non_neg_integer()}
   def authenticate_user_by_email(email, password) do
+    :telemetry.span([:recco, :auth, :login], %{}, fn ->
+      result = do_authenticate_user_by_email(email, password)
+      {result, %{result: login_result_tag(result), email_hash: hash_email(email)}}
+    end)
+  end
+
+  defp do_authenticate_user_by_email(email, password) do
     key = normalize_email(email)
 
     case RateLimit.peek(:login_account, key) do
@@ -30,7 +45,13 @@ defmodule Recco.Accounts do
       :allow ->
         user = Repo.get_by(User, email: email)
 
-        if User.valid_password?(user, password) do
+        valid? =
+          :telemetry.span([:recco, :auth, :bcrypt], %{path: bcrypt_path(user)}, fn ->
+            result = User.valid_password?(user, password)
+            {result, %{path: bcrypt_path(user)}}
+          end)
+
+        if valid? do
           RateLimit.clear(:login_account, key)
           {:ok, user}
         else
@@ -39,6 +60,21 @@ defmodule Recco.Accounts do
         end
     end
   end
+
+  defp bcrypt_path(nil), do: :no_user_verify
+  defp bcrypt_path(%User{}), do: :verify
+
+  defp login_result_tag({:ok, _}), do: :ok
+  defp login_result_tag({:error, :unauthorized}), do: :invalid_credentials
+  defp login_result_tag({:error, :locked_out, _}), do: :locked_out
+
+  defp hash_email(email) when is_binary(email) do
+    :crypto.hash(:sha256, String.downcase(String.trim(email)))
+    |> Base.encode16(case: :lower)
+    |> binary_part(0, 12)
+  end
+
+  defp hash_email(_), do: ""
 
   defp normalize_email(email) when is_binary(email),
     do: email |> String.trim() |> String.downcase()

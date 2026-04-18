@@ -10,15 +10,32 @@ defmodule ReccoWeb.Plugs.Auth do
   def call(conn, _opts) do
     token_verifier = Application.fetch_env!(:recco, :token_verifier)
 
-    with ["Bearer " <> token] <- get_req_header(conn, "authorization"),
-         {:ok, claims} <- token_verifier.verify_token(token) do
-      assign(conn, :current_user_claims, claims)
-    else
+    :telemetry.span([:recco, :auth, :token], %{}, fn ->
+      case authorize(conn, token_verifier) do
+        {:ok, updated_conn} -> {updated_conn, %{result: :ok}}
+        {:missing, updated_conn} -> {updated_conn, %{result: :missing}}
+        {:invalid, updated_conn} -> {updated_conn, %{result: :invalid}}
+      end
+    end)
+  end
+
+  defp authorize(conn, token_verifier) do
+    case get_req_header(conn, "authorization") do
+      ["Bearer " <> token] ->
+        case token_verifier.verify_token(token) do
+          {:ok, claims} -> {:ok, assign(conn, :current_user_claims, claims)}
+          _ -> {:invalid, deny(conn)}
+        end
+
       _ ->
-        conn
-        |> put_status(:unauthorized)
-        |> Phoenix.Controller.json(%{errors: %{detail: "Unauthorized"}})
-        |> halt()
+        {:missing, deny(conn)}
     end
+  end
+
+  defp deny(conn) do
+    conn
+    |> put_status(:unauthorized)
+    |> Phoenix.Controller.json(%{errors: %{detail: "Unauthorized"}})
+    |> halt()
   end
 end

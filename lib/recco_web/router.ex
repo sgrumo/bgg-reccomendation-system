@@ -53,7 +53,11 @@ defmodule ReccoWeb.Router do
     pipe_through :browser
 
     live_session :password_reset,
-      on_mount: [ReccoWeb.Live.SetLocale, {ReccoWeb.Live.UserAuth, :redirect_if_authenticated}],
+      on_mount: [
+        ReccoWeb.Live.RequestIdHook,
+        ReccoWeb.Live.SetLocale,
+        {ReccoWeb.Live.UserAuth, :redirect_if_authenticated}
+      ],
       layout: {ReccoWeb.Layouts, :public} do
       live "/forgot-password", ForgotPasswordLive
       live "/reset-password/:token", ResetPasswordLive
@@ -65,7 +69,11 @@ defmodule ReccoWeb.Router do
     pipe_through :browser
 
     live_session :public,
-      on_mount: [ReccoWeb.Live.SetLocale, {ReccoWeb.Live.UserAuth, :mount_current_user}],
+      on_mount: [
+        ReccoWeb.Live.RequestIdHook,
+        ReccoWeb.Live.SetLocale,
+        {ReccoWeb.Live.UserAuth, :mount_current_user}
+      ],
       layout: {ReccoWeb.Layouts, :app} do
       live "/", LandingLive
       live "/games", GameLive.Index
@@ -78,7 +86,11 @@ defmodule ReccoWeb.Router do
     pipe_through :browser
 
     live_session :authenticated,
-      on_mount: [ReccoWeb.Live.SetLocale, {ReccoWeb.Live.UserAuth, :ensure_authenticated}],
+      on_mount: [
+        ReccoWeb.Live.RequestIdHook,
+        ReccoWeb.Live.SetLocale,
+        {ReccoWeb.Live.UserAuth, :ensure_authenticated}
+      ],
       layout: {ReccoWeb.Layouts, :app} do
       live "/profile", ProfileLive
       live "/ratings", RatingLive.Index
@@ -93,7 +105,11 @@ defmodule ReccoWeb.Router do
     pipe_through :browser
 
     live_session :admin,
-      on_mount: [ReccoWeb.Live.SetLocale, {ReccoWeb.Live.UserAuth, :ensure_superadmin}],
+      on_mount: [
+        ReccoWeb.Live.RequestIdHook,
+        ReccoWeb.Live.SetLocale,
+        {ReccoWeb.Live.UserAuth, :ensure_superadmin}
+      ],
       layout: {ReccoWeb.Layouts, :admin} do
       live "/", Admin.DashboardLive
       live "/users", Admin.UserLive.Index

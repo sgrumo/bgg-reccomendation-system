@@ -41,13 +41,14 @@ config :recco, Oban,
      crontab: [
        {"0 3 * * 1", Recco.Workers.NewGameScanner},
        {"0 4 * * *", Recco.Workers.SyncTaxonomy},
-       {"0 2 * * 0", Recco.Workers.DatabaseBackup}
+       {"0 2 * * 0", Recco.Workers.DatabaseBackup},
+       {"*/5 * * * *", Recco.Workers.AlertDispatcher}
      ]}
   ]
 
 config :logger, :default_formatter,
   format: "$time $metadata[$level] $message\n",
-  metadata: [:request_id]
+  metadata: :all
 
 config :phoenix, :json_library, Jason
 

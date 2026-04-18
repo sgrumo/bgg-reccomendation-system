@@ -32,7 +32,13 @@ if backup_path = System.get_env("BACKUP_PATH") do
   config :recco, backup_path: backup_path
 end
 
+if alert_recipients = System.get_env("ALERT_RECIPIENTS") do
+  config :recco, alert_recipients: alert_recipients
+end
+
 if config_env() == :prod do
+  :logger.update_handler_config(:default, :formatter, LoggerJSON.Formatters.Basic.new([]))
+
   # Email - configure adapter via MAILER_ADAPTER env var
   # Supported: "resend" or "brevo"
   case System.get_env("MAILER_ADAPTER", "resend") do
