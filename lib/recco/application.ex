@@ -8,20 +8,21 @@ defmodule Recco.Application do
     Recco.Observability.attach_handlers()
 
     children =
-      [
-        ReccoWeb.Telemetry,
-        Recco.Repo,
-        telemetry_ui_child(),
-        {Oban, Application.fetch_env!(:recco, Oban)},
-        {DNSCluster, query: Application.get_env(:recco, :dns_cluster_query) || :ignore},
-        {Phoenix.PubSub, name: Recco.PubSub},
-        {Registry, keys: :unique, name: Recco.Registry},
-        {DynamicSupervisor, name: Recco.DynamicSupervisor, strategy: :one_for_one},
-        {Finch, name: Swoosh.Finch},
-        {Recco.RateLimit, [clean_period: :timer.minutes(10)]},
-        Recco.Observability.Counters,
-        ReccoWeb.Endpoint
-      ]
+      ([
+         ReccoWeb.Telemetry,
+         Recco.Repo,
+         telemetry_ui_child(),
+         {Oban, Application.fetch_env!(:recco, Oban)},
+         {DNSCluster, query: Application.get_env(:recco, :dns_cluster_query) || :ignore},
+         {Phoenix.PubSub, name: Recco.PubSub},
+         {Registry, keys: :unique, name: Recco.Registry},
+         {DynamicSupervisor, name: Recco.DynamicSupervisor, strategy: :one_for_one},
+         {Finch, name: Swoosh.Finch},
+         {Recco.RateLimit, [clean_period: :timer.minutes(10)]},
+         Recco.Observability.Counters
+       ] ++
+         Recco.BoardGames.Cache.child_specs() ++
+         [ReccoWeb.Endpoint])
       |> Enum.reject(&is_nil/1)
 
     opts = [strategy: :one_for_one, name: Recco.Supervisor]

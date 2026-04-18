@@ -35,6 +35,8 @@ config :swoosh, :api_client, false
 
 config :recco, Oban, testing: :inline
 
+config :recco, cache_enabled: false
+
 config :logger, level: :none
 
 config :phoenix, :plug_init_mode, :runtime

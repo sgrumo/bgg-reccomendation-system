@@ -5,6 +5,7 @@ defmodule ReccoWeb.Admin.DashboardLive do
 
   alias Recco.Accounts
   alias Recco.BoardGames
+  alias Recco.BoardGames.Cache
   alias Recco.Observability.Counters
   alias Recco.Ratings
   alias Recco.Repo
@@ -37,7 +38,8 @@ defmodule ReccoWeb.Admin.DashboardLive do
       oban_health: oban_health(),
       auth_failed: Map.get(counters, :auth_failed, 0),
       auth_locked_out: Map.get(counters, :auth_locked_out, 0),
-      bgg_429: Map.get(counters, :bgg_429, 0)
+      bgg_429: Map.get(counters, :bgg_429, 0),
+      cache_stats: Cache.stats()
     )
   end
 
@@ -111,9 +113,27 @@ defmodule ReccoWeb.Admin.DashboardLive do
           <p class="text-sm text-zinc-700">Locked-out hits: {@auth_locked_out}</p>
           <p class="text-sm text-zinc-700">BGG 429s: {@bgg_429}</p>
         </.info_card>
+
+        <.info_card :if={@cache_stats != %{}} title="Cache">
+          <p :for={{cache, stats} <- @cache_stats} class="text-sm text-zinc-700">
+            <span class="font-semibold">{cache}</span>: {cache_hit_rate(stats)} hit rate ({Map.get(
+              stats,
+              :hits,
+              0
+            )} / {Map.get(stats, :hits, 0) + Map.get(stats, :misses, 0)})
+          </p>
+        </.info_card>
       </div>
     </div>
     """
+  end
+
+  defp cache_hit_rate(stats) do
+    hits = Map.get(stats, :hits, 0)
+    misses = Map.get(stats, :misses, 0)
+    total = hits + misses
+
+    if total == 0, do: "—", else: "#{trunc(hits / total * 100)}%"
   end
 
   attr :title, :string, required: true

@@ -2,6 +2,7 @@ defmodule Recco.BoardGames do
   import Ecto.Query
 
   alias Recco.BoardGames.BoardGame
+  alias Recco.BoardGames.Cache
   alias Recco.BoardGames.Category
   alias Recco.BoardGames.CrawlState
   alias Recco.BoardGames.Mechanic
@@ -10,14 +11,18 @@ defmodule Recco.BoardGames do
 
   @spec upsert_board_game(map()) :: {:ok, BoardGame.t()} | Errors.t(map())
   def upsert_board_game(attrs) do
-    %BoardGame{}
-    |> BoardGame.changeset(attrs)
-    |> Repo.insert(
-      on_conflict: {:replace_all_except, [:id, :bgg_id, :inserted_at]},
-      conflict_target: :bgg_id,
-      returning: true
-    )
-    |> Errors.handle_changeset_error()
+    result =
+      %BoardGame{}
+      |> BoardGame.changeset(attrs)
+      |> Repo.insert(
+        on_conflict: {:replace_all_except, [:id, :bgg_id, :inserted_at]},
+        conflict_target: :bgg_id,
+        returning: true
+      )
+      |> Errors.handle_changeset_error()
+
+    Cache.invalidate_on_upsert()
+    result
   end
 
   @spec fetch_game_by_bgg_id(integer()) :: {:ok, BoardGame.t()} | Errors.t()
@@ -54,12 +59,14 @@ defmodule Recco.BoardGames do
 
   @spec board_game_count() :: non_neg_integer()
   def board_game_count do
-    Repo.aggregate(BoardGame, :count)
+    Cache.fetch(:counters, :board_game_count, fn -> Repo.aggregate(BoardGame, :count) end)
   end
 
   @spec max_bgg_id() :: non_neg_integer()
   def max_bgg_id do
-    Repo.aggregate(BoardGame, :max, :bgg_id) || 0
+    Cache.fetch(:counters, :max_bgg_id, fn ->
+      Repo.aggregate(BoardGame, :max, :bgg_id) || 0
+    end)
   end
 
   @type list_opts :: %{
@@ -76,6 +83,14 @@ defmodule Recco.BoardGames do
 
   @spec list_board_games(list_opts()) :: %{games: [BoardGame.t()], total: non_neg_integer()}
   def list_board_games(opts \\ %{}) do
+    if canonical_default?(opts) do
+      Cache.fetch(:popular, :default_page_1, fn -> do_list_board_games(opts) end)
+    else
+      do_list_board_games(opts)
+    end
+  end
+
+  defp do_list_board_games(opts) do
     page = Map.get(opts, :page, 1)
     per_page = Map.get(opts, :per_page, 24)
 
@@ -99,6 +114,26 @@ defmodule Recco.BoardGames do
 
     %{games: games, total: total}
   end
+
+  defp canonical_default?(opts) do
+    Map.get(opts, :page, 1) == 1 and
+      Map.get(opts, :per_page, 24) == 24 and
+      Map.get(opts, :sort, "rating") == "rating" and
+      is_nil(Map.get(opts, :sort_dir)) and
+      blank?(Map.get(opts, :search)) and
+      empty_list?(Map.get(opts, :categories)) and
+      empty_list?(Map.get(opts, :mechanics)) and
+      is_nil(Map.get(opts, :min_players)) and
+      is_nil(Map.get(opts, :max_players))
+  end
+
+  defp blank?(nil), do: true
+  defp blank?(""), do: true
+  defp blank?(_), do: false
+
+  defp empty_list?(nil), do: true
+  defp empty_list?([]), do: true
+  defp empty_list?(_), do: false
 
   @spec get_board_game(String.t()) :: {:ok, BoardGame.t()} | Errors.t()
   def get_board_game(id) do
@@ -185,18 +220,23 @@ defmodule Recco.BoardGames do
 
   @spec list_categories() :: [Category.t()]
   def list_categories do
-    from(c in Category, order_by: [asc: c.name]) |> Repo.all()
+    Cache.fetch(:taxonomy, :categories, fn ->
+      from(c in Category, order_by: [asc: c.name]) |> Repo.all()
+    end)
   end
 
   @spec list_mechanics() :: [Mechanic.t()]
   def list_mechanics do
-    from(m in Mechanic, order_by: [asc: m.name]) |> Repo.all()
+    Cache.fetch(:taxonomy, :mechanics, fn ->
+      from(m in Mechanic, order_by: [asc: m.name]) |> Repo.all()
+    end)
   end
 
   @spec sync_taxonomy() :: {non_neg_integer(), non_neg_integer()}
   def sync_taxonomy do
     cat_count = sync_table(Category, "categories")
     mech_count = sync_table(Mechanic, "mechanics")
+    Cache.invalidate(:taxonomy)
     {cat_count, mech_count}
   end
 

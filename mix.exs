@@ -63,6 +63,9 @@ defmodule Recco.MixProject do
       # Rate limiting
       {:hammer, "~> 7.3"},
 
+      # Caching
+      {:cachex, "~> 4.0"},
+
       # CORS
       {:corsica, "~> 2.1"},
 
