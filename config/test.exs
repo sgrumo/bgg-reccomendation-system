@@ -17,6 +17,15 @@ config :recco, ReccoWeb.Endpoint,
 config :recco, token_verifier: Recco.Auth.TokenMock
 
 config :bcrypt_elixir, log_rounds: 1
+
+config :recco, Recco.Accounts.RateLimit,
+  login_ip_limit: 100,
+  login_ip_scale_ms: 60_000,
+  register_ip_limit: 100,
+  register_ip_scale_ms: 60_000,
+  login_account_limit: 100,
+  login_account_scale_ms: 60_000
+
 config :recco, bgg_http_client: Recco.BoardGames.BggApi.MockClient
 config :recco, recommender_client: Recco.Recommender.Mock
 

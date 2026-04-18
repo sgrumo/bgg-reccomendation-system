@@ -16,6 +16,7 @@ defmodule Recco.Application do
         {Registry, keys: :unique, name: Recco.Registry},
         {DynamicSupervisor, name: Recco.DynamicSupervisor, strategy: :one_for_one},
         {Finch, name: Swoosh.Finch},
+        {Recco.RateLimit, [clean_period: :timer.minutes(10)]},
         ReccoWeb.Endpoint
       ]
       |> Enum.reject(&is_nil/1)

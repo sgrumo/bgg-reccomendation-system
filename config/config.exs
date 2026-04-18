@@ -7,6 +7,14 @@ config :recco,
   recommender_url: "http://localhost:8000",
   recommender_client: Recco.Recommender.HttpClient
 
+config :recco, Recco.Accounts.RateLimit,
+  login_ip_limit: 5,
+  login_ip_scale_ms: 60_000,
+  register_ip_limit: 5,
+  register_ip_scale_ms: 60_000,
+  login_account_limit: 5,
+  login_account_scale_ms: 300_000
+
 config :recco, ReccoWeb.Gettext,
   default_locale: "en",
   locales: ~w(en it)

@@ -4,6 +4,7 @@ defmodule ReccoWeb.UserSessionController do
   alias Recco.Accounts
 
   plug :put_layout, html: {ReccoWeb.Layouts, :public}
+  plug ReccoWeb.Plugs.RateLimit, [scope: :login_ip] when action == :create
 
   @spec new(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def new(conn, _params) do
@@ -24,6 +25,17 @@ defmodule ReccoWeb.UserSessionController do
 
       {:error, :unauthorized} ->
         render(conn, :new, error_message: gettext("Invalid email or password"))
+
+      {:error, :locked_out, retry_seconds} ->
+        conn
+        |> put_status(:too_many_requests)
+        |> put_resp_header("retry-after", Integer.to_string(retry_seconds))
+        |> render(:new,
+          error_message:
+            gettext("Too many failed attempts. Please try again in %{seconds}s.",
+              seconds: retry_seconds
+            )
+        )
     end
   end
 

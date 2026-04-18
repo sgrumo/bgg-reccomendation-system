@@ -60,6 +60,9 @@ defmodule Recco.MixProject do
       {:bcrypt_elixir, "~> 3.0"},
       {:joken, "~> 2.6"},
 
+      # Rate limiting
+      {:hammer, "~> 7.3"},
+
       # CORS
       {:corsica, "~> 2.1"},
 

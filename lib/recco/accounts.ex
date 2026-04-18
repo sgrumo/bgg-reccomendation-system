@@ -6,7 +6,7 @@ defmodule Recco.Accounts do
   import Ecto.Query
 
   alias Ecto.Multi
-  alias Recco.Accounts.{User, UserNotifier, UserToken}
+  alias Recco.Accounts.{RateLimit, User, UserNotifier, UserToken}
   alias Recco.Errors
   alias Recco.Repo
 
@@ -18,16 +18,32 @@ defmodule Recco.Accounts do
     |> Errors.handle_changeset_error()
   end
 
-  @spec authenticate_user_by_email(String.t(), String.t()) :: {:ok, User.t()} | Errors.t()
+  @spec authenticate_user_by_email(String.t(), String.t()) ::
+          {:ok, User.t()} | {:error, :unauthorized} | {:error, :locked_out, non_neg_integer()}
   def authenticate_user_by_email(email, password) do
-    user = Repo.get_by(User, email: email)
+    key = normalize_email(email)
 
-    if User.valid_password?(user, password) do
-      {:ok, user}
-    else
-      {:error, :unauthorized}
+    case RateLimit.peek(:login_account, key) do
+      {:deny, retry_ms} ->
+        {:error, :locked_out, div(retry_ms, 1000) + 1}
+
+      :allow ->
+        user = Repo.get_by(User, email: email)
+
+        if User.valid_password?(user, password) do
+          RateLimit.clear(:login_account, key)
+          {:ok, user}
+        else
+          RateLimit.record_failure(:login_account, key)
+          {:error, :unauthorized}
+        end
     end
   end
+
+  defp normalize_email(email) when is_binary(email),
+    do: email |> String.trim() |> String.downcase()
+
+  defp normalize_email(_), do: ""
 
   @spec get_user_by_email(String.t()) :: User.t() | nil
   def get_user_by_email(email) when is_binary(email) do

@@ -26,6 +26,21 @@ defmodule ReccoWeb.ConnCase do
   end
 
   @doc """
+  Clears the shared Hammer ETS table. Useful for rate-limit-focused tests
+  that want to start from a clean slate. Not invoked automatically — calling
+  it from async tests would race with concurrent tests' counters.
+  """
+  @spec reset_rate_limit() :: :ok
+  def reset_rate_limit do
+    case :ets.whereis(Recco.RateLimit) do
+      :undefined -> :ok
+      _ref -> :ets.delete_all_objects(Recco.RateLimit)
+    end
+
+    :ok
+  end
+
+  @doc """
   Adds a valid Bearer token to the connection for authenticated API tests.
   """
   @spec authenticate(Plug.Conn.t()) :: Plug.Conn.t()

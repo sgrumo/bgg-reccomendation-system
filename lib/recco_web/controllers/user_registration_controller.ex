@@ -5,6 +5,7 @@ defmodule ReccoWeb.UserRegistrationController do
   alias Recco.Accounts.User
 
   plug :put_layout, html: {ReccoWeb.Layouts, :public}
+  plug ReccoWeb.Plugs.RateLimit, [scope: :register_ip] when action == :create
 
   @spec new(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def new(conn, _params) do
