@@ -39,6 +39,7 @@ defmodule Recco.Accounts.UserToken do
       where: token_record.token == ^token,
       where: token_record.context == "session",
       where: token_record.inserted_at > ago(@session_validity_in_days, "day"),
+      where: is_nil(user.deleted_at),
       select: user
   end
 
@@ -63,6 +64,7 @@ defmodule Recco.Accounts.UserToken do
           where: token_record.token == ^token,
           where: token_record.context == "reset_password",
           where: token_record.inserted_at > ago(@reset_password_validity_in_hours, "hour"),
+          where: is_nil(user.deleted_at),
           select: user
 
       :error ->

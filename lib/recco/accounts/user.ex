@@ -17,6 +17,7 @@ defmodule Recco.Accounts.User do
     field :role, :string, default: "base"
     field :bgg_username, :string
     field :confirmed_at, :utc_datetime
+    field :deleted_at, :utc_datetime
 
     timestamps(type: :utc_datetime)
   end

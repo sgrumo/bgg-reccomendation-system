@@ -110,7 +110,8 @@ defmodule ReccoWeb.Router do
       on_mount: [
         ReccoWeb.Live.RequestIdHook,
         ReccoWeb.Live.SetLocale,
-        {ReccoWeb.Live.UserAuth, :ensure_superadmin}
+        {ReccoWeb.Live.UserAuth, :ensure_superadmin},
+        ReccoWeb.Live.AdminPresenceHook
       ],
       layout: {ReccoWeb.Layouts, :admin} do
       live "/", Admin.DashboardLive

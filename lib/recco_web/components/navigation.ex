@@ -202,6 +202,33 @@ defmodule ReccoWeb.Navigation do
     """
   end
 
+  attr :present_admins, :map, default: %{}
+
+  @spec admin_presence_indicator(map()) :: Phoenix.LiveView.Rendered.t()
+  def admin_presence_indicator(assigns) do
+    grouped =
+      assigns.present_admins
+      |> Enum.flat_map(fn {_key, %{metas: metas}} -> metas end)
+      |> Enum.uniq_by(& &1.user_id)
+
+    assigns = assign(assigns, :admins, grouped)
+
+    ~H"""
+    <div :if={@admins != []} class="mb-4 rounded-lg border border-zinc-200 bg-white p-3">
+      <p class="text-xs font-medium text-zinc-500 mb-2">
+        Admins online ({length(@admins)})
+      </p>
+      <ul class="space-y-1">
+        <li :for={admin <- @admins} class="flex items-center gap-2 text-xs">
+          <span class="inline-block h-2 w-2 rounded-full bg-emerald-500" aria-hidden="true"></span>
+          <span class="font-medium text-zinc-900">{admin.username}</span>
+          <span class="text-zinc-500">on {admin.section}</span>
+        </li>
+      </ul>
+    </div>
+    """
+  end
+
   attr :current_user, :any, required: true
 
   @spec user_menu(map()) :: Phoenix.LiveView.Rendered.t()

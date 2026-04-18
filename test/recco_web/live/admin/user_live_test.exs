@@ -66,13 +66,27 @@ defmodule ReccoWeb.Admin.UserLiveTest do
       assert html =~ "Highest"
     end
 
-    test "deletes a base user", %{conn: conn} do
+    test "soft-deletes a base user", %{conn: conn} do
+      user = insert(:user, role: "base")
+
+      {:ok, view, _html} = live(conn, ~p"/admin/users/#{user.id}")
+
+      html =
+        view
+        |> element("button", "Soft delete")
+        |> render_click()
+
+      assert html =~ "(deleted"
+      assert html =~ "Restore"
+    end
+
+    test "hard-deletes a base user", %{conn: conn} do
       user = insert(:user, role: "base")
 
       {:ok, view, _html} = live(conn, ~p"/admin/users/#{user.id}")
 
       view
-      |> element("button", "Delete user")
+      |> element("button", "Hard delete")
       |> render_click()
 
       assert_redirect(view, ~p"/admin/users")
@@ -83,7 +97,8 @@ defmodule ReccoWeb.Admin.UserLiveTest do
 
       {:ok, _view, html} = live(conn, ~p"/admin/users/#{admin.id}")
 
-      refute html =~ "Delete user"
+      refute html =~ "Soft delete"
+      refute html =~ "Hard delete"
     end
 
     test "redirects for unknown user", %{conn: conn} do

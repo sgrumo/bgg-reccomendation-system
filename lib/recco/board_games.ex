@@ -96,13 +96,19 @@ defmodule Recco.BoardGames do
 
     base = from(bg in BoardGame, where: not is_nil(bg.name) and bg.name != "")
 
-    query =
+    filtered =
       base
       |> apply_search(opts)
       |> apply_category(opts)
       |> apply_mechanic(opts)
       |> apply_player_count(opts)
-      |> apply_sort(opts)
+
+    query =
+      if searching_with_fts?(opts) do
+        apply_search_sort(filtered, opts.search)
+      else
+        apply_sort(filtered, opts)
+      end
 
     total = Repo.aggregate(query, :count)
 
@@ -114,6 +120,11 @@ defmodule Recco.BoardGames do
 
     %{games: games, total: total}
   end
+
+  defp searching_with_fts?(%{search: search}) when is_binary(search) and search != "",
+    do: search_strategy() == :fts
+
+  defp searching_with_fts?(_opts), do: false
 
   defp canonical_default?(opts) do
     Map.get(opts, :page, 1) == 1 and
@@ -153,11 +164,56 @@ defmodule Recco.BoardGames do
   end
 
   defp apply_search(query, %{search: search}) when is_binary(search) and search != "" do
-    term = "%#{search}%"
-    from bg in query, where: ilike(bg.name, ^term)
+    case search_strategy() do
+      :fts -> apply_fts_search(query, search)
+      :ilike -> apply_ilike_search(query, search)
+    end
   end
 
   defp apply_search(query, _opts), do: query
+
+  defp apply_fts_search(query, search) do
+    term = String.trim(search)
+
+    from bg in query,
+      where:
+        fragment(
+          "search_vector @@ websearch_to_tsquery('simple'::regconfig, recco_immutable_unaccent(?))",
+          ^term
+        ) or
+          fragment(
+            "similarity(?, recco_immutable_unaccent(?)) > 0.25",
+            bg.name,
+            ^term
+          )
+  end
+
+  defp apply_ilike_search(query, search) do
+    pattern = "%#{search}%"
+    from bg in query, where: ilike(bg.name, ^pattern)
+  end
+
+  defp search_strategy, do: Application.get_env(:recco, :search_strategy, :fts)
+
+  # Orders FTS results by relevance: ts_rank_cd honors the A/B/C weights
+  # baked into `search_vector` (A=name, B=alternate_names, C=description),
+  # so a hit on the title dominates a hit in the description. Trigram
+  # similarity is a tiebreaker so typo-fallback rows still sort among
+  # themselves. Bayes rating is the final tiebreaker for visual stability.
+  defp apply_search_sort(query, search) do
+    term = String.trim(search)
+
+    from bg in query,
+      order_by: [
+        desc:
+          fragment(
+            "ts_rank_cd(search_vector, websearch_to_tsquery('simple'::regconfig, recco_immutable_unaccent(?)), 32)",
+            ^term
+          ),
+        desc: fragment("similarity(?, recco_immutable_unaccent(?))", bg.name, ^term),
+        desc_nulls_last: bg.bayes_average_rating
+      ]
+  end
 
   defp apply_category(query, %{categories: categories})
        when is_list(categories) and categories != [] do

@@ -8,7 +8,7 @@ defmodule ReccoWeb.Admin.UserLive.Show do
   @spec mount(map(), map(), Phoenix.LiveView.Socket.t()) ::
           {:ok, Phoenix.LiveView.Socket.t()}
   def mount(%{"id" => id}, _session, socket) do
-    case Accounts.get_user_by_id(id) do
+    case Accounts.admin_get_user_by_id(id) do
       nil ->
         {:ok,
          socket
@@ -32,16 +32,51 @@ defmodule ReccoWeb.Admin.UserLive.Show do
   @impl true
   @spec handle_event(String.t(), map(), Phoenix.LiveView.Socket.t()) ::
           {:noreply, Phoenix.LiveView.Socket.t()}
-  def handle_event("delete_user", _params, socket) do
-    case Accounts.delete_user(socket.assigns.user) do
-      {:ok, _user} ->
+  def handle_event("soft_delete_user", _params, socket) do
+    case Accounts.soft_delete_user(socket.assigns.user) do
+      {:ok, user} ->
         {:noreply,
          socket
-         |> put_flash(:info, "User deleted.")
-         |> redirect(to: ~p"/admin/users")}
+         |> put_flash(:info, "User anonymized — restorable for 30 days.")
+         |> assign(user: user)}
 
       {:error, :forbidden} ->
         {:noreply, put_flash(socket, :error, "Cannot delete a superadmin.")}
+
+      {:error, :already_deleted} ->
+        {:noreply, put_flash(socket, :error, "User is already deleted.")}
+
+      {:error, _, _} ->
+        {:noreply, put_flash(socket, :error, "Could not delete user.")}
+    end
+  end
+
+  def handle_event("restore_user", _params, socket) do
+    case Accounts.restore_user(socket.assigns.user) do
+      {:ok, user} ->
+        {:noreply,
+         socket
+         |> put_flash(:info, "User restored. PII was already scrubbed and cannot be recovered.")
+         |> assign(user: user)}
+
+      {:error, :not_deleted} ->
+        {:noreply, put_flash(socket, :error, "User is not deleted.")}
+
+      {:error, :window_expired} ->
+        {:noreply, put_flash(socket, :error, "Restore window has expired.")}
+    end
+  end
+
+  def handle_event("hard_delete_user", _params, socket) do
+    case Accounts.hard_delete_user(socket.assigns.user) do
+      {:ok, _user} ->
+        {:noreply,
+         socket
+         |> put_flash(:info, "User hard-deleted.")
+         |> redirect(to: ~p"/admin/users")}
+
+      {:error, :forbidden} ->
+        {:noreply, put_flash(socket, :error, "Cannot hard-delete a superadmin.")}
 
       {:error, _, _} ->
         {:noreply, put_flash(socket, :error, "Could not delete user.")}
@@ -57,16 +92,40 @@ defmodule ReccoWeb.Admin.UserLive.Show do
         &larr; Back to users
       </a>
 
-      <div class="flex items-center justify-between mb-6">
-        <h1 class="text-2xl font-bold text-zinc-900">{@user.username}</h1>
-        <button
-          :if={@user.role != "superadmin"}
-          phx-click="delete_user"
-          data-confirm={"Delete #{@user.username}? This cannot be undone."}
-          class="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-500"
-        >
-          Delete user
-        </button>
+      <div class="flex items-center justify-between mb-6 gap-4 flex-wrap">
+        <h1 class="text-2xl font-bold text-zinc-900">
+          {@user.username}
+          <span :if={@user.deleted_at} class="ml-2 text-sm font-medium text-red-700">
+            (deleted {Calendar.strftime(@user.deleted_at, "%Y-%m-%d")})
+          </span>
+        </h1>
+
+        <div :if={@user.role != "superadmin"} class="flex gap-2">
+          <button
+            :if={is_nil(@user.deleted_at)}
+            phx-click="soft_delete_user"
+            data-confirm={"Soft-delete #{@user.username}? PII will be scrubbed. Restorable for 30 days."}
+            class="rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-500"
+          >
+            Soft delete
+          </button>
+
+          <button
+            :if={@user.deleted_at}
+            phx-click="restore_user"
+            class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500"
+          >
+            Restore
+          </button>
+
+          <button
+            phx-click="hard_delete_user"
+            data-confirm={"HARD-delete #{@user.username}? Removes all data (ratings, feedback) irreversibly."}
+            class="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-500"
+          >
+            Hard delete
+          </button>
+        </div>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">

@@ -33,6 +33,11 @@ defmodule Recco.BoardGames.BoardGame do
     field :families, {:array, :map}, default: []
     field :ranks, {:array, :map}, default: []
 
+    # `search_vector` is a generated tsvector column in Postgres (see
+    # AddBoardGamesSearchVector migration). Intentionally NOT declared as
+    # a schema field — queries reference it via `fragment(...)` so we
+    # never load the payload for listings.
+
     timestamps(type: :utc_datetime)
   end
 

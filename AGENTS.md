@@ -1,9 +1,19 @@
-This is a web application written using the Phoenix web framework.
+This is a web application written using the Phoenix web framework. See `CLAUDE.md` at the repo root for the full architecture overview.
 
 ## Project guidelines
 
 - Use `mix precommit` alias when you are done with all changes and fix any pending issues
 - Use the already included and available `:req` (`Req`) library for HTTP requests, **avoid** `:httpoison`, `:tesla`, and `:httpc`. Req is included by default and is the preferred HTTP client for Phoenix apps
+
+## Project-specific modules (before adding new deps or helpers)
+
+- **Rate limiting**: `Recco.RateLimit` (Hammer/ETS) and `Recco.Accounts.RateLimit` — don't add another rate-limit library
+- **Caching**: `Recco.BoardGames.Cache` — three Cachex instances for taxonomy/counters/popular. Use `Cache.fetch/3` and `Cache.invalidate/1`; test env bypasses the cache via `config :recco, cache_enabled: false`
+- **Observability**: `Recco.Observability` attaches telemetry handlers; `Recco.Observability.Counters` holds ETS rolling counts drained by `Recco.Workers.AlertDispatcher`; `Recco.Observability.Alert` delivers via Swoosh (not webhooks)
+- **Security headers / CSP**: `ReccoWeb.Plugs.SecurityHeaders` is in the `:browser` pipeline; reports land at `POST /api/csp-report`. Config flag `:csp_mode` toggles enforce/report-only
+- **Search**: `board_games.search_vector` is a GENERATED tsvector column (weighted A/B/C). Use `fragment("search_vector @@ websearch_to_tsquery(...)")` — there is no schema field. Trigram fallback via `pg_trgm similarity`. Feature-flagged by `config :recco, :search_strategy, :fts | :ilike`
+- **Soft-delete**: `Accounts.delete_user/1` is soft by default (anonymize + keep ratings). Use `Accounts.hard_delete_user/1` for full removal, `Accounts.admin_get_user_by_id/1` when an admin view needs to see tombstones. All read paths must scope to `is_nil(deleted_at)` — if you add a new user lookup, use the `active_users/0` query helper
+- **Admin presence**: `ReccoWeb.Live.AdminPresenceHook` is attached in the `:admin` live_session AFTER `:ensure_superadmin`
 
 ### Phoenix v1.8 guidelines
 

@@ -5,8 +5,9 @@ defmodule Recco.Accounts do
 
   import Ecto.Query
 
+  alias Ecto.Changeset
   alias Ecto.Multi
-  alias Recco.Accounts.{RateLimit, User, UserNotifier, UserToken}
+  alias Recco.Accounts.{RateLimit, User, UserNotifier, UserPreference, UserToken, UserWishlist}
   alias Recco.Errors
   alias Recco.Repo
 
@@ -43,7 +44,7 @@ defmodule Recco.Accounts do
         {:error, :locked_out, div(retry_ms, 1000) + 1}
 
       :allow ->
-        user = Repo.get_by(User, email: email)
+        user = Repo.one(from u in active_users(), where: u.email == ^email)
 
         valid? =
           :telemetry.span([:recco, :auth, :bcrypt], %{path: bcrypt_path(user)}, fn ->
@@ -83,13 +84,23 @@ defmodule Recco.Accounts do
 
   @spec get_user_by_email(String.t()) :: User.t() | nil
   def get_user_by_email(email) when is_binary(email) do
-    Repo.get_by(User, email: email)
+    Repo.one(from u in active_users(), where: u.email == ^email)
   end
 
   @spec get_user_by_id(String.t()) :: User.t() | nil
   def get_user_by_id(id) when is_binary(id) do
-    Repo.get(User, id)
+    Repo.one(from u in active_users(), where: u.id == ^id)
   end
+
+  @doc """
+  Admin-only lookup that includes soft-deleted users, so the admin UI
+  can render their tombstone row and offer a restore action within the
+  undelete window.
+  """
+  @spec admin_get_user_by_id(String.t()) :: User.t() | nil
+  def admin_get_user_by_id(id) when is_binary(id), do: Repo.get(User, id)
+
+  defp active_users, do: from(u in User, where: is_nil(u.deleted_at))
 
   @spec generate_user_session_token(User.t()) :: binary()
   def generate_user_session_token(user) do
@@ -167,23 +178,98 @@ defmodule Recco.Accounts do
   @spec superadmin?(User.t()) :: boolean()
   def superadmin?(user), do: User.superadmin?(user)
 
+  @doc """
+  Default delete is the soft path — it anonymizes PII, wipes tokens +
+  preferences + wishlists, and keeps ratings/feedback for their
+  statistical value. Use `hard_delete_user/1` for full removal.
+  """
   @spec delete_user(User.t()) :: {:ok, User.t()} | Errors.t()
-  def delete_user(%User{role: "superadmin"}), do: {:error, :forbidden}
+  def delete_user(user), do: soft_delete_user(user)
 
-  def delete_user(%User{} = user) do
-    Repo.delete(user)
-    |> Errors.handle_changeset_error()
+  @undelete_window_seconds 30 * 24 * 60 * 60
+  @deleted_email_host "invalid.local"
+
+  @spec soft_delete_user(User.t()) :: {:ok, User.t()} | Errors.t()
+  def soft_delete_user(%User{role: "superadmin"}), do: {:error, :forbidden}
+
+  def soft_delete_user(%User{deleted_at: %DateTime{}}), do: {:error, :already_deleted}
+
+  def soft_delete_user(%User{} = user) do
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+    tombstone_attrs = %{
+      deleted_at: now,
+      email: "deleted-#{Ecto.UUID.generate()}@#{@deleted_email_host}",
+      username: "deleted_#{short_id()}",
+      hashed_password: random_unverifiable_hash(),
+      bgg_username: nil
+    }
+
+    changeset =
+      user
+      |> Changeset.change(tombstone_attrs)
+      |> Changeset.unique_constraint(:email)
+      |> Changeset.unique_constraint(:username)
+
+    Multi.new()
+    |> Multi.update(:user, changeset)
+    |> Multi.delete_all(:tokens, from(t in UserToken, where: t.user_id == ^user.id))
+    |> Multi.delete_all(:prefs, from(p in UserPreference, where: p.user_id == ^user.id))
+    |> Multi.delete_all(:wishlists, from(w in UserWishlist, where: w.user_id == ^user.id))
+    |> Repo.transaction()
+    |> case do
+      {:ok, %{user: user}} -> {:ok, user}
+      {:error, :user, changeset, _} -> Errors.handle_changeset_error({:error, changeset})
+    end
+  end
+
+  @spec restore_user(User.t()) :: {:ok, User.t()} | {:error, :not_deleted | :window_expired}
+  def restore_user(%User{deleted_at: nil}), do: {:error, :not_deleted}
+
+  def restore_user(%User{deleted_at: deleted_at} = user) do
+    seconds_since = DateTime.diff(DateTime.utc_now(), deleted_at)
+
+    if seconds_since > @undelete_window_seconds do
+      {:error, :window_expired}
+    else
+      user
+      |> Changeset.change(deleted_at: nil)
+      |> Repo.update()
+      |> case do
+        {:ok, user} -> {:ok, user}
+        {:error, _} -> {:error, :window_expired}
+      end
+    end
+  end
+
+  @spec hard_delete_user(User.t()) :: {:ok, User.t()} | Errors.t()
+  def hard_delete_user(%User{role: "superadmin"}), do: {:error, :forbidden}
+
+  def hard_delete_user(%User{} = user) do
+    Repo.delete(user) |> Errors.handle_changeset_error()
+  end
+
+  defp short_id do
+    :crypto.strong_rand_bytes(6) |> Base.encode16(case: :lower)
+  end
+
+  defp random_unverifiable_hash do
+    # Long random string that can't match any real bcrypt output; prevents
+    # any accidental future login attempt with an old password from
+    # succeeding in a way the original owner could exploit.
+    "$2b$04$" <> Base.encode16(:crypto.strong_rand_bytes(22), case: :lower)
   end
 
   @spec count_users() :: non_neg_integer()
   def count_users do
-    Repo.aggregate(User, :count)
+    Repo.aggregate(active_users(), :count)
   end
 
   @type list_users_opts :: %{
           optional(:search) => String.t(),
           optional(:page) => pos_integer(),
-          optional(:per_page) => pos_integer()
+          optional(:per_page) => pos_integer(),
+          optional(:include_deleted) => boolean()
         }
 
   @spec list_users(list_users_opts()) :: %{users: [map()], total: non_neg_integer()}
@@ -191,7 +277,12 @@ defmodule Recco.Accounts do
     page = Map.get(opts, :page, 1)
     per_page = Map.get(opts, :per_page, 20)
 
-    base_query = from(u in User, order_by: [desc: u.inserted_at])
+    base_query =
+      if Map.get(opts, :include_deleted, false) do
+        from(u in User, order_by: [desc: u.inserted_at])
+      else
+        from(u in active_users(), order_by: [desc: u.inserted_at])
+      end
 
     base_query =
       case opts do

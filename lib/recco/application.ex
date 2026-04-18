@@ -15,6 +15,7 @@ defmodule Recco.Application do
          {Oban, Application.fetch_env!(:recco, Oban)},
          {DNSCluster, query: Application.get_env(:recco, :dns_cluster_query) || :ignore},
          {Phoenix.PubSub, name: Recco.PubSub},
+         ReccoWeb.Presence,
          {Registry, keys: :unique, name: Recco.Registry},
          {DynamicSupervisor, name: Recco.DynamicSupervisor, strategy: :one_for_one},
          {Finch, name: Swoosh.Finch},

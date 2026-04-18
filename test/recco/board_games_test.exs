@@ -129,6 +129,80 @@ defmodule Recco.BoardGamesTest do
     end
   end
 
+  describe "list_board_games/1 search (FTS)" do
+    test "multi-word search matches name tokens" do
+      insert(:board_game, name: "Terraforming Mars")
+      insert(:board_game, name: "Mars Attacks")
+
+      %{games: games} = BoardGames.list_board_games(%{search: "terraforming mars"})
+
+      assert Enum.map(games, & &1.name) == ["Terraforming Mars"]
+    end
+
+    test "searches alternate names" do
+      insert(:board_game, name: "Catan", alternate_names: ["Die Siedler von Catan"])
+
+      %{games: games} = BoardGames.list_board_games(%{search: "siedler"})
+
+      assert Enum.map(games, & &1.name) == ["Catan"]
+    end
+
+    test "is accent-insensitive" do
+      insert(:board_game, name: "Noé")
+
+      %{games: games} = BoardGames.list_board_games(%{search: "noe"})
+
+      assert Enum.map(games, & &1.name) == ["Noé"]
+    end
+
+    test "trigram fallback handles a one-character typo" do
+      insert(:board_game, name: "Pandemic")
+
+      %{games: games} = BoardGames.list_board_games(%{search: "pandmeic"})
+
+      assert Enum.map(games, & &1.name) == ["Pandemic"]
+    end
+
+    test "returns nothing for an unrelated term" do
+      insert(:board_game, name: "Catan")
+
+      %{games: games, total: total} =
+        BoardGames.list_board_games(%{search: "zzzzzzz-unrelated"})
+
+      assert games == []
+      assert total == 0
+    end
+
+    test "name hits rank above description hits, regardless of bayes rating" do
+      # Higher-rated game that only matches via description
+      insert(:board_game,
+        name: "Brandywine",
+        description: "A crack list of Revolutionary War battles.",
+        bayes_average_rating: 7.3
+      )
+
+      # Lower-rated game that matches in the name directly
+      insert(:board_game,
+        name: "Crack List",
+        description: "Le petit bac dans un jeu de cartes!",
+        bayes_average_rating: 6.5
+      )
+
+      %{games: games} = BoardGames.list_board_games(%{search: "crack list"})
+
+      assert Enum.map(games, & &1.name) |> hd() == "Crack List"
+    end
+
+    test "exact name matches outrank alternate-name matches" do
+      insert(:board_game, name: "Catan Helper", alternate_names: [])
+      insert(:board_game, name: "The Settlers", alternate_names: ["Catan"])
+
+      %{games: games} = BoardGames.list_board_games(%{search: "catan"})
+
+      assert Enum.map(games, & &1.name) |> hd() == "Catan Helper"
+    end
+  end
+
   describe "get_board_game/1" do
     test "returns game by id" do
       game = insert(:board_game)

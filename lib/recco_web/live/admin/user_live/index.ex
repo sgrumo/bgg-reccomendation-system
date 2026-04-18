@@ -18,9 +18,10 @@ defmodule ReccoWeb.Admin.UserLive.Index do
   def handle_params(params, _uri, socket) do
     page = parse_int(params["page"], 1)
     search = params["search"] || ""
+    include_deleted = params["deleted"] == "1"
 
     opts =
-      %{page: page, per_page: @per_page}
+      %{page: page, per_page: @per_page, include_deleted: include_deleted}
       |> maybe_put(:search, search)
 
     %{users: users, total: total} = Accounts.list_users(opts)
@@ -33,7 +34,8 @@ defmodule ReccoWeb.Admin.UserLive.Index do
        total: total,
        page: page,
        total_pages: total_pages,
-       search: search
+       search: search,
+       include_deleted: include_deleted
      )}
   end
 
@@ -62,7 +64,15 @@ defmodule ReccoWeb.Admin.UserLive.Index do
         />
       </form>
 
-      <p class="text-sm text-zinc-500 mb-4">{@total} users</p>
+      <div class="flex items-center justify-between mb-4">
+        <p class="text-sm text-zinc-500">{@total} users</p>
+        <a
+          href={~p"/admin/users?#{deleted_toggle_params(@include_deleted, @search)}"}
+          class="text-sm text-brand-600 hover:underline"
+        >
+          {if @include_deleted, do: "Hide deleted", else: "Show deleted"}
+        </a>
+      </div>
 
       <div class="overflow-x-auto">
         <table class="w-full text-sm">
@@ -76,7 +86,10 @@ defmodule ReccoWeb.Admin.UserLive.Index do
             </tr>
           </thead>
           <tbody>
-            <tr :for={row <- @users} class="border-b border-zinc-100">
+            <tr
+              :for={row <- @users}
+              class={["border-b border-zinc-100", row.user.deleted_at && "opacity-60"]}
+            >
               <td class="py-3 pr-4">
                 <a
                   href={~p"/admin/users/#{row.user.id}"}
@@ -84,6 +97,7 @@ defmodule ReccoWeb.Admin.UserLive.Index do
                 >
                   {row.user.username}
                 </a>
+                <span :if={row.user.deleted_at} class="ml-2 text-xs text-red-700">(deleted)</span>
               </td>
               <td class="py-3 pr-4 text-zinc-600">{row.user.email}</td>
               <td class="py-3 pr-4">
@@ -172,4 +186,10 @@ defmodule ReccoWeb.Admin.UserLive.Index do
 
   defp maybe_put_str(map, _key, ""), do: map
   defp maybe_put_str(map, key, value), do: Map.put(map, key, value)
+
+  defp deleted_toggle_params(include_deleted, search) do
+    %{}
+    |> (fn p -> if include_deleted, do: p, else: Map.put(p, "deleted", "1") end).()
+    |> maybe_put_str("search", search)
+  end
 end
