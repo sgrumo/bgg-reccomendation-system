@@ -12,6 +12,7 @@ defmodule ReccoWeb.Router do
     plug :put_root_layout, html: {ReccoWeb.Layouts, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
+    plug ReccoWeb.Plugs.SecurityHeaders
     plug ReccoWeb.Plugs.FetchCurrentUser
     plug ReccoWeb.Plugs.SetLocale
   end
@@ -29,6 +30,7 @@ defmodule ReccoWeb.Router do
 
     get "/categories", TaxonomyController, :categories
     get "/mechanics", TaxonomyController, :mechanics
+    post "/csp-report", CspReportController, :create
   end
 
   # Authenticated API

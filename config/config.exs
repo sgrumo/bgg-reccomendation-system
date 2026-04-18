@@ -5,7 +5,9 @@ config :recco,
   generators: [timestamp_type: :utc_datetime, binary_id: true],
   token_verifier: Recco.Auth.Token,
   recommender_url: "http://localhost:8000",
-  recommender_client: Recco.Recommender.HttpClient
+  recommender_client: Recco.Recommender.HttpClient,
+  csp_mode: :enforce,
+  env: config_env()
 
 config :recco, Recco.Accounts.RateLimit,
   login_ip_limit: 5,

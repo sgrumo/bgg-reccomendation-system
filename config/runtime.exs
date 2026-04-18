@@ -39,6 +39,11 @@ end
 if config_env() == :prod do
   :logger.update_handler_config(:default, :formatter, LoggerJSON.Formatters.Basic.new([]))
 
+  # Start CSP in Report-Only so violations are logged but not blocked.
+  # Flip to :enforce via `CSP_MODE=enforce` once reports have been reviewed.
+  config :recco,
+    csp_mode: if(System.get_env("CSP_MODE") == "enforce", do: :enforce, else: :report_only)
+
   # Email - configure adapter via MAILER_ADAPTER env var
   # Supported: "resend" or "brevo"
   case System.get_env("MAILER_ADAPTER", "resend") do
