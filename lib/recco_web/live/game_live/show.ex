@@ -51,29 +51,28 @@ defmodule ReccoWeb.GameLive.Show do
   @impl true
   @spec handle_event(String.t(), map(), Phoenix.LiveView.Socket.t()) ::
           {:noreply, Phoenix.LiveView.Socket.t()}
+  def handle_event("rate", _params, %{assigns: %{current_user: nil}} = socket) do
+    {:noreply, redirect(socket, to: ~p"/login")}
+  end
+
   def handle_event("rate", %{"score" => score_str}, socket) do
+    {score, _} = Float.parse(score_str)
     user = socket.assigns.current_user
+    was_rated? = socket.assigns.user_rating != nil
 
-    if user do
-      {score, _} = Float.parse(score_str)
-      was_rated? = socket.assigns.user_rating != nil
+    case Ratings.rate_game(user.id, socket.assigns.game.id, %{score: score}) do
+      {:ok, rating} ->
+        delta = if was_rated?, do: 0, else: 1
 
-      case Ratings.rate_game(user.id, socket.assigns.game.id, %{score: score}) do
-        {:ok, rating} ->
-          rating_count = socket.assigns.rating_count + if was_rated?, do: 0, else: 1
+        {:noreply,
+         assign(socket,
+           user_rating: rating,
+           rating_form_score: rating.score,
+           rating_count: socket.assigns.rating_count + delta
+         )}
 
-          {:noreply,
-           assign(socket,
-             user_rating: rating,
-             rating_form_score: rating.score,
-             rating_count: rating_count
-           )}
-
-        {:error, _, _} ->
-          {:noreply, put_flash(socket, :error, gettext("Could not save rating"))}
-      end
-    else
-      {:noreply, redirect(socket, to: ~p"/login")}
+      {:error, _, _} ->
+        {:noreply, put_flash(socket, :error, gettext("Could not save rating"))}
     end
   end
 
