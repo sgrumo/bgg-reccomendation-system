@@ -10,7 +10,7 @@ defmodule ReccoWeb.UserRegistrationControllerTest do
   end
 
   describe "POST /register" do
-    test "creates user and logs in", %{conn: conn} do
+    test "creates user, logs in, and redirects to onboarding", %{conn: conn} do
       conn =
         post(conn, ~p"/register", %{
           "user" => %{
@@ -20,7 +20,7 @@ defmodule ReccoWeb.UserRegistrationControllerTest do
           }
         })
 
-      assert redirected_to(conn) == ~p"/"
+      assert redirected_to(conn) == ~p"/onboarding"
       assert get_session(conn, :user_token)
     end
 

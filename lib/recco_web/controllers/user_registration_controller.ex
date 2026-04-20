@@ -22,7 +22,7 @@ defmodule ReccoWeb.UserRegistrationController do
         conn
         |> put_session(:user_token, token)
         |> put_flash(:info, gettext("Account created successfully!"))
-        |> redirect(to: ~p"/")
+        |> redirect(to: ~p"/onboarding")
 
       {:error, :unprocessable_entity, _errors} ->
         changeset =

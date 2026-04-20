@@ -87,4 +87,21 @@ defmodule Recco.AccountsTest do
       assert is_nil(Accounts.get_user_by_id(Ecto.UUID.generate()))
     end
   end
+
+  describe "mark_onboarded/1" do
+    test "sets onboarded_at for a new user" do
+      user = insert(:user, onboarded_at: nil)
+      assert {:ok, updated} = Accounts.mark_onboarded(user)
+      assert %DateTime{} = updated.onboarded_at
+    end
+
+    test "is idempotent for already-onboarded users" do
+      original_at =
+        DateTime.utc_now() |> DateTime.truncate(:second) |> DateTime.add(-3600, :second)
+
+      user = insert(:user, onboarded_at: original_at)
+      assert {:ok, updated} = Accounts.mark_onboarded(user)
+      assert DateTime.compare(updated.onboarded_at, original_at) == :eq
+    end
+  end
 end

@@ -5,7 +5,7 @@ defmodule ReccoWeb.RecommendationLive.Index do
   alias Recco.Ratings
   alias Recco.Recommender
 
-  @ratings_threshold 10
+  @ratings_threshold 5
 
   @impl true
   @spec mount(map(), map(), Phoenix.LiveView.Socket.t()) ::
@@ -116,15 +116,23 @@ defmodule ReccoWeb.RecommendationLive.Index do
         </p>
         <p class="text-sm font-medium mt-2 max-w-md mx-auto">
           {gettext(
-            "Rate a handful of games you've played — even 3-5 is enough to get started. The more you rate, the sharper your picks."
+            "Rate a handful of games you've played — even 5 is enough to get started. The more you rate, the sharper your picks."
           )}
         </p>
-        <a
-          href={~p"/games"}
-          class="mt-5 inline-block rounded-base border-2 border-border bg-main px-4 py-2 text-sm font-bold shadow-brutalist hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none transition-all"
-        >
-          {gettext("Browse games to rate")}
-        </a>
+        <div class="mt-5 flex items-center justify-center gap-3 flex-wrap">
+          <a
+            href={~p"/games"}
+            class="inline-block rounded-base border-2 border-border bg-main px-4 py-2 text-sm font-bold shadow-brutalist hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none transition-all"
+          >
+            {gettext("Browse games to rate")}
+          </a>
+          <a
+            href={~p"/profile"}
+            class="inline-block rounded-base border-2 border-border bg-bw px-4 py-2 text-sm font-bold hover:bg-main transition-colors"
+          >
+            {gettext("Or import from BGG")}
+          </a>
+        </div>
       </div>
 
       <div
@@ -231,21 +239,33 @@ defmodule ReccoWeb.RecommendationLive.Index do
   defp progress_banner(%{rating_count: count, ratings_threshold: threshold} = assigns)
        when count >= threshold do
     ~H"""
-    <div class="mb-6 rounded-base border-2 border-border bg-main/30 p-4 shadow-brutalist flex items-center justify-between gap-3 flex-wrap">
-      <div>
-        <p class="text-sm font-bold">
-          {gettext("%{count} ratings — nice work!", count: @rating_count)}
-        </p>
-        <p class="text-xs font-medium mt-0.5">
-          {gettext("Keep rating to keep your picks fresh.")}
-        </p>
+    <div class="mb-6 rounded-base border-2 border-border bg-main/30 p-4 shadow-brutalist">
+      <div class="flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <p class="text-sm font-bold">
+            {gettext("%{count} ratings — picks are live.", count: @rating_count)}
+          </p>
+          <p class="text-xs font-medium mt-0.5">
+            {gettext(
+              "Want sharper recommendations? Rate more games, or import your ratings from BoardGameGeek."
+            )}
+          </p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <a
+            href={~p"/games"}
+            class="rounded-base border-2 border-border bg-bw px-3 py-1.5 text-xs font-bold hover:bg-main transition-colors"
+          >
+            {gettext("Rate more")} &rarr;
+          </a>
+          <a
+            href={~p"/profile"}
+            class="rounded-base border-2 border-border bg-bw px-3 py-1.5 text-xs font-bold hover:bg-main transition-colors"
+          >
+            {gettext("Import from BGG")} &rarr;
+          </a>
+        </div>
       </div>
-      <a
-        href={~p"/games"}
-        class="rounded-base border-2 border-border bg-bw px-3 py-1.5 text-xs font-bold hover:bg-main transition-colors"
-      >
-        {gettext("Rate more games")} &rarr;
-      </a>
     </div>
     """
   end

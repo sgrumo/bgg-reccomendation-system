@@ -7,7 +7,7 @@ defmodule ReccoWeb.GameLive.Show do
   alias Recco.Recommender
   alias Recco.Wishlists
 
-  @ratings_threshold 10
+  @ratings_threshold 5
 
   @impl true
   @spec mount(map(), map(), Phoenix.LiveView.Socket.t()) ::
@@ -408,7 +408,7 @@ defmodule ReccoWeb.GameLive.Show do
   end
 
   defp rating_nudge(_user, _rating, count, threshold) when count >= threshold do
-    gettext("You've unlocked personalised picks — keep rating to sharpen them.")
+    gettext("Picks are live — rate more or import from BGG for sharper recommendations.")
   end
 
   defp rating_nudge(_user, _rating, count, threshold) do

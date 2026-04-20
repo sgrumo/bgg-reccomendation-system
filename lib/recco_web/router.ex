@@ -99,6 +99,7 @@ defmodule ReccoWeb.Router do
       live "/wishlist", WishlistLive.Index
       live "/preferences", PreferenceLive.Edit
       live "/recommendations", RecommendationLive.Index
+      live "/onboarding", OnboardingLive
     end
   end
 
