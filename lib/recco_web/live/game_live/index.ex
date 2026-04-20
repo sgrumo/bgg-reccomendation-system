@@ -2,6 +2,7 @@ defmodule ReccoWeb.GameLive.Index do
   use ReccoWeb, :live_view
 
   alias Recco.BoardGames
+  alias Recco.Ratings
 
   @per_page 24
 
@@ -36,6 +37,7 @@ defmodule ReccoWeb.GameLive.Index do
 
     %{games: games, total: total} = BoardGames.list_board_games(opts)
     total_pages = max(ceil(total / @per_page), 1)
+    user_scores = load_user_scores(socket.assigns[:current_user], games)
 
     {:noreply,
      assign(socket,
@@ -48,8 +50,15 @@ defmodule ReccoWeb.GameLive.Index do
        categories: categories,
        mechanics: mechanics,
        sort: sort,
-       sort_dir: sort_dir || default_dir(sort)
+       sort_dir: sort_dir || default_dir(sort),
+       user_scores: user_scores
      )}
+  end
+
+  defp load_user_scores(nil, _games), do: %{}
+
+  defp load_user_scores(user, games) do
+    Ratings.user_scores_map(user.id, Enum.map(games, & &1.id))
   end
 
   @impl true
@@ -84,6 +93,38 @@ defmodule ReccoWeb.GameLive.Index do
     new_dir = if socket.assigns.sort_dir == "asc", do: "desc", else: "asc"
     params = build_params(socket.assigns, sort_dir: new_dir, page: 1)
     {:noreply, push_patch(socket, to: ~p"/games?#{params}")}
+  end
+
+  def handle_event("rate", %{"game-id" => game_id, "score" => score_str}, socket) do
+    user = socket.assigns[:current_user]
+
+    if user do
+      {score, _} = Float.parse(score_str)
+
+      case Ratings.rate_game(user.id, game_id, %{score: score}) do
+        {:ok, rating} ->
+          {:noreply,
+           assign(socket,
+             user_scores: Map.put(socket.assigns.user_scores, game_id, rating.score)
+           )}
+
+        {:error, _, _} ->
+          {:noreply, put_flash(socket, :error, gettext("Could not save rating"))}
+      end
+    else
+      {:noreply, redirect(socket, to: ~p"/login")}
+    end
+  end
+
+  def handle_event("clear_rating", %{"game-id" => game_id}, socket) do
+    user = socket.assigns[:current_user]
+
+    if user do
+      _ = Ratings.delete_rating(user.id, game_id)
+      {:noreply, assign(socket, user_scores: Map.delete(socket.assigns.user_scores, game_id))}
+    else
+      {:noreply, socket}
+    end
   end
 
   @impl true
@@ -196,7 +237,12 @@ defmodule ReccoWeb.GameLive.Index do
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-        <.game_card :for={game <- @games} game={game} />
+        <.game_card
+          :for={game <- @games}
+          game={game}
+          current_user={@current_user}
+          user_score={Map.get(@user_scores, game.id)}
+        />
       </div>
 
       <.pagination
@@ -210,45 +256,110 @@ defmodule ReccoWeb.GameLive.Index do
   end
 
   attr :game, :map, required: true
+  attr :current_user, :any, required: true
+  attr :user_score, :any, required: true
 
   defp game_card(assigns) do
     ~H"""
-    <a
-      href={~p"/games/#{@game.id}"}
-      class="block rounded-base border-2 border-border bg-bw shadow-brutalist hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none transition-all overflow-hidden"
-    >
-      <div class="aspect-square bg-bg flex items-center justify-center border-b-2 border-border">
-        <img
-          :if={@game.image_url}
-          src={@game.image_url}
-          alt={@game.name}
-          class="max-w-full max-h-full object-contain"
-          loading="lazy"
-        />
-      </div>
-      <div class="p-3">
-        <h2 class="font-heading text-sm truncate">{@game.name}</h2>
-        <div class="flex items-center justify-between mt-1 text-xs font-base">
-          <span :if={@game.year_published}>{@game.year_published}</span>
-          <span
-            :if={@game.average_rating}
-            class="inline-flex items-center rounded-base border-2 border-border bg-main px-1.5 py-0.5 text-xs font-heading"
-          >
-            {Float.round(@game.average_rating, 1)}
-          </span>
+    <div class="group relative rounded-base border-2 border-border bg-bw shadow-brutalist overflow-hidden hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none focus-within:translate-x-shadow-x focus-within:translate-y-shadow-y focus-within:shadow-none transition-all">
+      <a href={~p"/games/#{@game.id}"} class="block">
+        <div class="aspect-square bg-bg flex items-center justify-center border-b-2 border-border">
+          <img
+            :if={@game.image_url}
+            src={@game.image_url}
+            alt={@game.name}
+            class="max-w-full max-h-full object-contain"
+            loading="lazy"
+          />
         </div>
-        <div class="flex items-center justify-between mt-1 text-xs font-base">
-          <span :if={@game.min_players && @game.max_players}>
-            {gettext("%{min}-%{max} players", min: @game.min_players, max: @game.max_players)}
-          </span>
-          <span :if={@game.users_rated}>
-            {ngettext("%{count} vote", "%{count} votes", @game.users_rated)}
-          </span>
+        <div class="p-3">
+          <h2 class="font-heading text-sm truncate">{@game.name}</h2>
+          <div class="flex items-center justify-between mt-1 text-xs font-base">
+            <span :if={@game.year_published}>{@game.year_published}</span>
+            <span
+              :if={@game.average_rating}
+              class="inline-flex items-center rounded-base border-2 border-border bg-main px-1.5 py-0.5 text-xs font-heading"
+            >
+              {Float.round(@game.average_rating, 1)}
+            </span>
+          </div>
+          <div class="flex items-center justify-between mt-1 text-xs font-base">
+            <span :if={@game.min_players && @game.max_players}>
+              {gettext("%{min}-%{max} players", min: @game.min_players, max: @game.max_players)}
+            </span>
+            <span :if={@game.users_rated}>
+              {ngettext("%{count} vote", "%{count} votes", @game.users_rated)}
+            </span>
+          </div>
         </div>
+      </a>
+      <div class="absolute inset-x-0 bottom-0 bg-bw opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto group-focus-within:opacity-100 group-focus-within:pointer-events-auto transition-opacity">
+        <.quick_rate game={@game} current_user={@current_user} score={@user_score} />
       </div>
-    </a>
+    </div>
     """
   end
+
+  attr :game, :map, required: true
+  attr :current_user, :any, required: true
+  attr :score, :any, required: true
+
+  defp quick_rate(%{current_user: nil} = assigns) do
+    ~H"""
+    <div class="px-3 py-2 border-t-2 border-border bg-bg/40 text-center">
+      <a
+        href={~p"/login"}
+        class="text-xs font-heading underline decoration-2 underline-offset-2 hover:bg-main"
+      >
+        {gettext("Sign in to rate")}
+      </a>
+    </div>
+    """
+  end
+
+  defp quick_rate(assigns) do
+    ~H"""
+    <div class="px-2 py-2 border-t-2 border-border">
+      <div class="flex items-center justify-between mb-1 px-1">
+        <span class="text-[10px] font-heading uppercase tracking-wide">
+          {if @score, do: gettext("Your rating"), else: gettext("Rate this")}
+        </span>
+        <div class="flex items-center gap-1">
+          <span :if={@score} class="text-xs font-heading">{trunc(@score)}/10</span>
+          <button
+            :if={@score}
+            phx-click="clear_rating"
+            phx-value-game-id={@game.id}
+            class="rounded-sm border border-border bg-bw px-1 text-[10px] font-heading leading-none hover:bg-red-300 transition-colors"
+            aria-label={gettext("Clear rating")}
+            title={gettext("Clear rating")}
+          >
+            &times;
+          </button>
+        </div>
+      </div>
+      <div class="grid grid-cols-10 gap-0.5">
+        <button
+          :for={n <- 1..10}
+          phx-click="rate"
+          phx-value-game-id={@game.id}
+          phx-value-score={n}
+          class={[
+            "h-6 rounded-sm border border-border text-[10px] font-heading transition-colors",
+            rate_active?(n, @score) && "bg-main",
+            !rate_active?(n, @score) && "bg-bw hover:bg-main/50"
+          ]}
+          aria-label={gettext("Rate %{score} out of 10", score: n)}
+        >
+          {n}
+        </button>
+      </div>
+    </div>
+    """
+  end
+
+  defp rate_active?(_n, nil), do: false
+  defp rate_active?(n, score) when is_number(score), do: n <= trunc(score)
 
   attr :id, :string, required: true
   attr :label, :string, required: true

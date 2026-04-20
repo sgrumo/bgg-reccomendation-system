@@ -7,6 +7,8 @@ defmodule ReccoWeb.GameLive.Show do
   alias Recco.Recommender
   alias Recco.Wishlists
 
+  @ratings_threshold 10
+
   @impl true
   @spec mount(map(), map(), Phoenix.LiveView.Socket.t()) ::
           {:ok, Phoenix.LiveView.Socket.t()}
@@ -16,6 +18,7 @@ defmodule ReccoWeb.GameLive.Show do
         user_rating = load_user_rating(socket.assigns[:current_user], game.id)
         wishlisted = load_wishlisted(socket.assigns[:current_user], game.id)
         feedback_map = load_feedback_map(socket.assigns[:current_user])
+        rating_count = load_rating_count(socket.assigns[:current_user])
 
         socket =
           socket
@@ -26,6 +29,8 @@ defmodule ReccoWeb.GameLive.Show do
             rating_form_score: user_rating && user_rating.score,
             wishlisted: wishlisted,
             feedback_map: feedback_map,
+            rating_count: rating_count,
+            ratings_threshold: @ratings_threshold,
             similar_games: nil,
             similar_loading: true
           )
@@ -51,10 +56,18 @@ defmodule ReccoWeb.GameLive.Show do
 
     if user do
       {score, _} = Float.parse(score_str)
+      was_rated? = socket.assigns.user_rating != nil
 
       case Ratings.rate_game(user.id, socket.assigns.game.id, %{score: score}) do
         {:ok, rating} ->
-          {:noreply, assign(socket, user_rating: rating, rating_form_score: rating.score)}
+          rating_count = socket.assigns.rating_count + if was_rated?, do: 0, else: 1
+
+          {:noreply,
+           assign(socket,
+             user_rating: rating,
+             rating_form_score: rating.score,
+             rating_count: rating_count
+           )}
 
         {:error, _, _} ->
           {:noreply, put_flash(socket, :error, gettext("Could not save rating"))}
@@ -69,7 +82,13 @@ defmodule ReccoWeb.GameLive.Show do
 
     if user && socket.assigns.user_rating do
       :ok = Ratings.delete_rating(user.id, socket.assigns.game.id)
-      {:noreply, assign(socket, user_rating: nil, rating_form_score: nil)}
+
+      {:noreply,
+       assign(socket,
+         user_rating: nil,
+         rating_form_score: nil,
+         rating_count: max(socket.assigns.rating_count - 1, 0)
+       )}
     else
       {:noreply, socket}
     end
@@ -187,6 +206,8 @@ defmodule ReccoWeb.GameLive.Show do
             current_user={@current_user}
             user_rating={@user_rating}
             rating_form_score={@rating_form_score}
+            rating_count={@rating_count}
+            ratings_threshold={@ratings_threshold}
           />
 
           <.wishlist_widget current_user={@current_user} wishlisted={@wishlisted} />
@@ -311,21 +332,39 @@ defmodule ReccoWeb.GameLive.Show do
   attr :current_user, :any, required: true
   attr :user_rating, :any, required: true
   attr :rating_form_score, :any, required: true
+  attr :rating_count, :integer, required: true
+  attr :ratings_threshold, :integer, required: true
 
   defp rating_widget(assigns) do
     ~H"""
-    <div class="mt-6 rounded-base border-2 border-border bg-bw p-4 shadow-brutalist">
-      <h2 class="text-sm font-bold mb-3">{gettext("Your Rating")}</h2>
+    <div class="mt-6 rounded-base border-2 border-border bg-main/30 p-5 shadow-brutalist">
+      <div class="flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <h2 class="text-lg font-bold">
+            {if @user_rating, do: gettext("Your rating"), else: gettext("Rate this game")}
+          </h2>
+          <p class="text-xs font-medium mt-1">
+            {rating_nudge(@current_user, @user_rating, @rating_count, @ratings_threshold)}
+          </p>
+        </div>
+        <a
+          :if={@current_user && @rating_count >= @ratings_threshold}
+          href={~p"/recommendations"}
+          class="rounded-base border-2 border-border bg-bw px-3 py-1.5 text-xs font-bold hover:bg-main transition-colors"
+        >
+          {gettext("See your picks")} &rarr;
+        </a>
+      </div>
 
       <%= if @current_user do %>
-        <div class="flex items-center gap-4">
+        <div class="mt-4 flex items-center gap-3 flex-wrap">
           <div class="flex gap-1">
             <button
               :for={score <- 1..10}
               phx-click="rate"
               phx-value-score={score}
               class={[
-                "w-8 h-8 rounded-base border-2 border-border text-sm font-bold transition-all",
+                "w-9 h-9 rounded-base border-2 border-border text-sm font-bold transition-all",
                 score_active?(score, @rating_form_score) && "bg-main",
                 !score_active?(score, @rating_form_score) && "bg-bw hover:bg-bg"
               ]}
@@ -338,28 +377,48 @@ defmodule ReccoWeb.GameLive.Show do
           <button
             :if={@user_rating}
             phx-click="remove_rating"
-            class="rounded-base border-2 border-border bg-red-300 px-3 py-1 text-sm font-bold hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
+            class="rounded-base border-2 border-border bg-bw px-3 py-1.5 text-sm font-bold hover:bg-red-300 transition-colors"
           >
-            {gettext("Remove")}
+            {gettext("Clear")}
           </button>
         </div>
 
-        <p :if={@user_rating} class="text-xs font-medium mt-2">
-          {gettext("You rated this %{score}/10", score: Float.round(@user_rating.score, 1))}
+        <p :if={@user_rating} class="text-xs font-bold mt-3">
+          &check; {gettext("Saved — you rated this %{score}/10",
+            score: Float.round(@user_rating.score, 1)
+          )}
         </p>
       <% else %>
-        <p class="text-sm font-medium">
+        <p class="text-sm font-medium mt-3">
           <a
             href={~p"/login"}
             class="font-bold underline decoration-2 underline-offset-2 hover:bg-main"
           >
             {gettext("Sign in")}
           </a>
-          {gettext("to rate this game.")}
+          {gettext("to rate this game and unlock personalised picks.")}
         </p>
       <% end %>
     </div>
     """
+  end
+
+  defp rating_nudge(nil, _rating, _count, _threshold) do
+    gettext("Rate games to unlock personalised recommendations.")
+  end
+
+  defp rating_nudge(_user, _rating, count, threshold) when count >= threshold do
+    gettext("You've unlocked personalised picks — keep rating to sharpen them.")
+  end
+
+  defp rating_nudge(_user, _rating, count, threshold) do
+    remaining = threshold - count
+
+    ngettext(
+      "Rate %{count} more game to unlock personalised picks.",
+      "Rate %{count} more games to unlock personalised picks.",
+      remaining
+    )
   end
 
   defp score_active?(_score, nil), do: false
@@ -437,4 +496,7 @@ defmodule ReccoWeb.GameLive.Show do
 
   defp load_feedback_map(nil), do: %{}
   defp load_feedback_map(user), do: Feedback.user_feedback_map(user.id)
+
+  defp load_rating_count(nil), do: 0
+  defp load_rating_count(user), do: Ratings.count_user_ratings(user.id)
 end

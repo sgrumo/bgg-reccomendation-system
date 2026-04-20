@@ -2,7 +2,10 @@ defmodule ReccoWeb.RecommendationLive.Index do
   use ReccoWeb, :live_view
 
   alias Recco.Feedback
+  alias Recco.Ratings
   alias Recco.Recommender
+
+  @ratings_threshold 10
 
   @impl true
   @spec mount(map(), map(), Phoenix.LiveView.Socket.t()) ::
@@ -11,6 +14,7 @@ defmodule ReccoWeb.RecommendationLive.Index do
     user_id = socket.assigns.current_user.id
 
     feedback_map = Feedback.user_feedback_map(user_id)
+    rating_count = Ratings.count_user_ratings(user_id)
 
     socket =
       socket
@@ -19,7 +23,9 @@ defmodule ReccoWeb.RecommendationLive.Index do
         recommendations: nil,
         loading: true,
         error: nil,
-        feedback_map: feedback_map
+        feedback_map: feedback_map,
+        rating_count: rating_count,
+        ratings_threshold: @ratings_threshold
       )
       |> start_async(:fetch_recommendations, fn ->
         Recommender.user_recommendations(user_id)
@@ -72,10 +78,12 @@ defmodule ReccoWeb.RecommendationLive.Index do
   def render(assigns) do
     ~H"""
     <div>
-      <h1 class="text-2xl font-bold mb-6">{gettext("Recommendations")}</h1>
+      <h1 class="text-2xl font-bold mb-2">{gettext("Recommendations")}</h1>
       <p class="text-sm font-medium mb-6">
         {gettext("Personalised picks based on your ratings.")}
       </p>
+
+      <.progress_banner rating_count={@rating_count} ratings_threshold={@ratings_threshold} />
 
       <div :if={@loading} class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <div :for={_ <- 1..6} class="rounded-base border-2 border-border bg-bw p-4">
@@ -103,14 +111,19 @@ defmodule ReccoWeb.RecommendationLive.Index do
         :if={@recommendations == []}
         class="text-center py-16 rounded-base border-2 border-border bg-bw shadow-brutalist"
       >
-        <p class="font-medium">
-          {gettext("Rate some games first to get personalised recommendations.")}
+        <p class="text-lg font-bold">
+          {gettext("No recommendations yet")}
+        </p>
+        <p class="text-sm font-medium mt-2 max-w-md mx-auto">
+          {gettext(
+            "Rate a handful of games you've played — even 3-5 is enough to get started. The more you rate, the sharper your picks."
+          )}
         </p>
         <a
           href={~p"/games"}
-          class="mt-4 inline-block rounded-base border-2 border-border bg-main px-4 py-2 text-sm font-bold shadow-brutalist hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none transition-all"
+          class="mt-5 inline-block rounded-base border-2 border-border bg-main px-4 py-2 text-sm font-bold shadow-brutalist hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none transition-all"
         >
-          {gettext("Browse games")}
+          {gettext("Browse games to rate")}
         </a>
       </div>
 
@@ -208,6 +221,68 @@ defmodule ReccoWeb.RecommendationLive.Index do
           <p class="text-xs font-medium mt-1">{@match_label}</p>
         </div>
       <% end %>
+    </div>
+    """
+  end
+
+  attr :rating_count, :integer, required: true
+  attr :ratings_threshold, :integer, required: true
+
+  defp progress_banner(%{rating_count: count, ratings_threshold: threshold} = assigns)
+       when count >= threshold do
+    ~H"""
+    <div class="mb-6 rounded-base border-2 border-border bg-main/30 p-4 shadow-brutalist flex items-center justify-between gap-3 flex-wrap">
+      <div>
+        <p class="text-sm font-bold">
+          {gettext("%{count} ratings — nice work!", count: @rating_count)}
+        </p>
+        <p class="text-xs font-medium mt-0.5">
+          {gettext("Keep rating to keep your picks fresh.")}
+        </p>
+      </div>
+      <a
+        href={~p"/games"}
+        class="rounded-base border-2 border-border bg-bw px-3 py-1.5 text-xs font-bold hover:bg-main transition-colors"
+      >
+        {gettext("Rate more games")} &rarr;
+      </a>
+    </div>
+    """
+  end
+
+  defp progress_banner(assigns) do
+    remaining = assigns.ratings_threshold - assigns.rating_count
+    pct = min(round(assigns.rating_count / assigns.ratings_threshold * 100), 100)
+    assigns = assign(assigns, remaining: remaining, pct: pct)
+
+    ~H"""
+    <div class="mb-6 rounded-base border-2 border-border bg-main/30 p-4 shadow-brutalist">
+      <div class="flex items-center justify-between gap-3 flex-wrap">
+        <div>
+          <p class="text-sm font-bold">
+            {gettext("%{count} of %{total} ratings",
+              count: @rating_count,
+              total: @ratings_threshold
+            )}
+          </p>
+          <p class="text-xs font-medium mt-0.5">
+            {ngettext(
+              "Rate %{count} more game to unlock sharper recommendations.",
+              "Rate %{count} more games to unlock sharper recommendations.",
+              @remaining
+            )}
+          </p>
+        </div>
+        <a
+          href={~p"/games"}
+          class="rounded-base border-2 border-border bg-bw px-3 py-1.5 text-xs font-bold hover:bg-main transition-colors"
+        >
+          {gettext("Rate more games")} &rarr;
+        </a>
+      </div>
+      <div class="mt-3 h-4 w-full rounded-base border-2 border-border bg-bw overflow-hidden">
+        <div class="h-full bg-main" style={"width: #{@pct}%"}></div>
+      </div>
     </div>
     """
   end

@@ -90,6 +90,22 @@ defmodule Recco.BoardGames do
     end
   end
 
+  @onboarding_min_bayes_rating 6.5
+  @onboarding_min_users_rated 2_000
+
+  @spec list_onboarding_picks(pos_integer()) :: [BoardGame.t()]
+  def list_onboarding_picks(limit \\ 12) do
+    from(bg in BoardGame,
+      where:
+        not is_nil(bg.name) and bg.name != "" and
+          bg.bayes_average_rating >= ^@onboarding_min_bayes_rating and
+          bg.users_rated >= ^@onboarding_min_users_rated,
+      order_by: [desc: bg.users_rated],
+      limit: ^limit
+    )
+    |> Repo.all()
+  end
+
   defp do_list_board_games(opts) do
     page = Map.get(opts, :page, 1)
     per_page = Map.get(opts, :per_page, 24)

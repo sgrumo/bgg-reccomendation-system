@@ -249,6 +249,18 @@ defmodule Recco.Accounts do
     Repo.delete(user) |> Errors.handle_changeset_error()
   end
 
+  @spec mark_onboarded(User.t()) :: {:ok, User.t()} | Errors.t()
+  def mark_onboarded(%User{onboarded_at: %DateTime{}} = user), do: {:ok, user}
+
+  def mark_onboarded(%User{} = user) do
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+    user
+    |> Changeset.change(onboarded_at: now)
+    |> Repo.update()
+    |> Errors.handle_changeset_error()
+  end
+
   defp short_id do
     :crypto.strong_rand_bytes(6) |> Base.encode16(case: :lower)
   end

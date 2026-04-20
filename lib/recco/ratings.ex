@@ -66,6 +66,19 @@ defmodule Recco.Ratings do
     |> Map.new()
   end
 
+  @spec user_scores_map(String.t() | nil, [String.t()]) :: %{String.t() => float()}
+  def user_scores_map(nil, _game_ids), do: %{}
+  def user_scores_map(_user_id, []), do: %{}
+
+  def user_scores_map(user_id, game_ids) do
+    from(r in UserRating,
+      where: r.user_id == ^user_id and r.board_game_id in ^game_ids,
+      select: {r.board_game_id, r.score}
+    )
+    |> Repo.all()
+    |> Map.new()
+  end
+
   @spec import_bgg_ratings(String.t(), String.t()) ::
           {:ok, non_neg_integer()} | {:error, term()}
   def import_bgg_ratings(user_id, bgg_username) do
