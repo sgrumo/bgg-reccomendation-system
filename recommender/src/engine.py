@@ -2,13 +2,14 @@
 
 import numpy as np
 import pandas as pd
+from scipy.sparse import csr_matrix
 from sklearn.metrics.pairwise import cosine_similarity as cosine_sim
 from sqlalchemy.engine import Engine
 
 from src.db import load_board_games
 from src.features import build_feature_matrix
 from src.preprocess import preprocess
-from src.similarity import compute_similarity_matrix, find_similar, _base_name, _game_families
+from src.similarity import find_similar, _base_name, _game_families
 
 
 class RecommendationEngine:
@@ -17,17 +18,15 @@ class RecommendationEngine:
     def __init__(self, db_engine: Engine) -> None:
         self._db_engine = db_engine
         self._df: pd.DataFrame | None = None
-        self._features: pd.DataFrame | None = None
-        self._similarity_matrix: np.ndarray | None = None
+        self._features: csr_matrix | None = None
 
     def load(self, min_ratings: int = 30) -> None:
-        """Load data from the database, preprocess, and build similarity matrix."""
+        """Load data from the database, preprocess, and build the feature matrix."""
         raw = load_board_games(self._db_engine)
 
         if raw.empty:
             self._df = raw
             self._features = None
-            self._similarity_matrix = None
             return
 
         processed = preprocess(raw, min_ratings=min_ratings)
@@ -35,12 +34,10 @@ class RecommendationEngine:
         if processed.empty:
             self._df = processed
             self._features = None
-            self._similarity_matrix = None
             return
 
         self._df = processed
         self._features = build_feature_matrix(self._df)
-        self._similarity_matrix = compute_similarity_matrix(self._features)
 
     @property
     def is_loaded(self) -> bool:
@@ -62,10 +59,16 @@ class RecommendationEngine:
         self, bgg_id: int, top_n: int = 10
     ) -> list[dict[str, float | int | str]]:
         """Get top N similar games for a given BGG ID."""
-        if self._df is None or self._similarity_matrix is None:
+        if self._df is None or self._features is None:
             raise RuntimeError("Engine not loaded. Call load() first.")
 
-        return find_similar(bgg_id, self._similarity_matrix, self._df, top_n)
+        idx = self._df.index[self._df["bgg_id"] == bgg_id]
+        if len(idx) == 0:
+            return []
+
+        row_idx = int(idx[0])
+        scores = cosine_sim(self._features[row_idx], self._features).ravel()
+        return find_similar(bgg_id, scores, self._df, top_n)
 
     def recommend_for_user(
         self,
@@ -92,23 +95,23 @@ class RecommendationEngine:
         for bgg_id, rating in ratings.items():
             idx = self._df.index[self._df["bgg_id"] == bgg_id]
             if len(idx) > 0:
-                rated_indices.append(idx[0])
+                rated_indices.append(int(idx[0]))
                 weights.append(rating)
                 rated_bgg_ids.add(bgg_id)
 
         if not rated_indices:
             return []
 
-        # Build user profile: weighted average of feature vectors
-        weight_array = np.array(weights)
+        # Build user profile: weighted average of (densified) rated feature rows
+        weight_array = np.array(weights, dtype=np.float32)
         weight_array = weight_array / weight_array.sum()
 
-        feature_vectors = self._features.iloc[rated_indices].values
-        user_profile = np.average(feature_vectors, axis=0, weights=weight_array)
+        rated_features = self._features[rated_indices].toarray()
+        user_profile = np.average(rated_features, axis=0, weights=weight_array)
         user_profile = user_profile.reshape(1, -1)
 
         # Compute similarity between user profile and all games
-        scores = cosine_sim(user_profile, self._features.values).flatten()
+        scores = cosine_sim(user_profile, self._features).ravel()
 
         # Collect families and base names from rated games to exclude editions
         seen_families: set[str] = set()

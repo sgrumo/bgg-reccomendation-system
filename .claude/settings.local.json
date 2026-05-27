@@ -31,7 +31,11 @@
       "WebFetch(domain:raw.githubusercontent.com)",
       "Bash(docker compose:*)",
       "Bash(git remote:*)",
-      "WebFetch(domain:hexdocs.pm)"
+      "WebFetch(domain:hexdocs.pm)",
+      "Bash(python -c \"import ast; [ast.parse\\(open\\(f\\).read\\(\\)\\) for f in ['src/engine.py','src/features.py','src/similarity.py','main.py','api.py']]; print\\('all parse OK'\\)\")",
+      "Bash(ruff check *)",
+      "Bash(python -c \"import scipy, sklearn, pandas, numpy; print\\('scipy', scipy.__version__\\); print\\('sklearn', sklearn.__version__\\)\")",
+      "Bash(PYTHONPATH=. uv run --with pandas --with scikit-learn --with scipy --with numpy python /tmp/smoke_recco.py)"
     ]
   }
 }

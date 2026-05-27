@@ -2,7 +2,9 @@
 
 import json
 
+import numpy as np
 import pandas as pd
+from scipy.sparse import csr_matrix, hstack
 from sklearn.preprocessing import MultiLabelBinarizer, MinMaxScaler
 
 
@@ -15,44 +17,37 @@ def extract_names_from_json(raw: list[dict] | str | None) -> list[str]:
     return [item.get("value") or item.get("name") for item in raw if item.get("value") or item.get("name")]
 
 
-def encode_multi_label(
-    series: pd.Series, prefix: str
-) -> tuple[pd.DataFrame, MultiLabelBinarizer]:
-    """One-hot encode a series of string lists into a binary DataFrame."""
-    mlb = MultiLabelBinarizer()
-    encoded = mlb.fit_transform(series)
-    columns = [f"{prefix}_{name}" for name in mlb.classes_]
-    return pd.DataFrame(encoded, columns=columns, index=series.index), mlb
+def encode_multi_label_sparse(series: pd.Series) -> csr_matrix:
+    """One-hot encode a series of string lists into a sparse matrix."""
+    mlb = MultiLabelBinarizer(sparse_output=True)
+    return mlb.fit_transform(series).tocsr()
 
 
-def build_feature_matrix(df: pd.DataFrame) -> pd.DataFrame:
-    """Build a feature matrix from raw board game data.
+def build_feature_matrix(df: pd.DataFrame) -> csr_matrix:
+    """Build a sparse feature matrix from raw board game data.
 
-    Combines numeric features (scaled) with one-hot encoded
-    categories, mechanics, and families.
+    Combines scaled numeric features with one-hot encoded
+    categories, mechanics, and families. Returns a CSR matrix
+    so row slicing in recommendation calls is fast.
     """
     numeric_cols = [
         "min_players", "max_players", "min_playtime", "max_playtime",
         "min_age", "average_weight",
     ]
 
-    numeric = df[numeric_cols].fillna(0)
+    numeric = df[numeric_cols].fillna(0).to_numpy(dtype=np.float32)
     scaler = MinMaxScaler()
-    numeric_scaled = pd.DataFrame(
-        scaler.fit_transform(numeric),
-        columns=numeric_cols,
-        index=df.index,
-    )
+    numeric_scaled = csr_matrix(scaler.fit_transform(numeric))
 
     categories = df["categories"].apply(extract_names_from_json)
     mechanics = df["mechanics"].apply(extract_names_from_json)
     families = df["families"].apply(extract_names_from_json)
 
-    cat_encoded, _ = encode_multi_label(categories, "cat")
-    mech_encoded, _ = encode_multi_label(mechanics, "mech")
-    fam_encoded, _ = encode_multi_label(families, "fam")
+    cat_encoded = encode_multi_label_sparse(categories)
+    mech_encoded = encode_multi_label_sparse(mechanics)
+    fam_encoded = encode_multi_label_sparse(families)
 
-    return pd.concat(
+    return hstack(
         [numeric_scaled, cat_encoded, mech_encoded, fam_encoded],
-        axis=1,
+        format="csr",
     )

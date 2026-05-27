@@ -2,26 +2,21 @@
 
 import numpy as np
 import pandas as pd
-from sklearn.metrics.pairwise import cosine_similarity
 
 from src.preprocess import extract_label_list
 
 
-def compute_similarity_matrix(feature_matrix: pd.DataFrame) -> np.ndarray:
-    """Compute pairwise cosine similarity between all games."""
-    return cosine_similarity(feature_matrix)
-
-
 def find_similar(
     bgg_id: int,
-    similarity_matrix: np.ndarray,
+    scores: np.ndarray,
     df: pd.DataFrame,
     top_n: int = 10,
 ) -> list[dict[str, float | int | str]]:
     """Find the most similar games to a given game.
 
-    Filters out other editions/versions of the same game
-    using the BGG "Game: X" family tag and name similarity.
+    Takes a 1-D vector of similarity scores (one per row in df) and
+    filters out other editions/versions of the same game using the
+    BGG "Game: X" family tag and name similarity.
 
     Returns a list of dicts with bgg_id, name, and similarity score.
     """
@@ -31,7 +26,6 @@ def find_similar(
 
     idx = idx[0]
     source_families = _game_families(df.iloc[idx]["families"])
-    scores = similarity_matrix[idx]
     ranked_indices = np.argsort(scores)[::-1]
 
     results: list[dict[str, float | int | str]] = []
