@@ -2,16 +2,66 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─────────────────────────────────────────────────────────────────────────
+   BGRecco design tokens — Sticker Shop (direction A)
+   Warm, playful neobrutalism: cream paper, terracotta orange, teal accent,
+   tall heavy display type, dotted texture, hard offset shadows.
+   ───────────────────────────────────────────────────────────────────────── */
 :root {
-  --background: #f2e8d9;
-  --secondary-background: #ffffff;
-  --foreground: #000000;
-  --main-foreground: #000000;
-  --main: #e8945a;
-  --border: #000000;
-  --ring: #000000;
+  /* surfaces */
+  --bg: #F1E7D2;
+  --bg2: #E9DABF;
+  --card: #FFFEFB;
+  --card2: #F6EEDD;
+
+  /* ink */
+  --ink: #1C1813;
+  --ink-soft: #736755;
+  --line: #1C1813;
+
+  /* accents */
+  --accent: #EE7B3C;
+  --accent-ink: #1C1813;
+  --accent2: #1F9E8F;
+
+  /* signal */
+  --good: #1F9E8F;
+  --warn: #F5B642;
+  --danger: #E8634E;
+
+  /* structure */
+  --bw: 2.5px;
+  --radius: 16px;
+  --radius-sm: 10px;
+
+  /* shadows — hard, no blur, offset onto --line */
+  --shadow: 6px 6px 0 var(--line);
+  --shadow-lg: 10px 10px 0 var(--line);
+  --shadow-sm: 3px 3px 0 var(--line);
+  --shadow-hover: 9px 9px 0 var(--accent);
+
+  /* dotted paper texture */
+  --dot: rgba(28, 24, 19, 0.10);
+  --tex: radial-gradient(var(--dot) 1.4px, transparent 1.5px);
+  --tex-size: 20px 20px;
+
+  /* typography */
+  --font-head: "Darker Grotesque", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Rubik", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Space Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --head-weight: 900;
+  --head-tracking: -0.01em;
+  --head-lineh: 0.92;
+
+  /* legacy aliases — keep existing Tailwind utilities working during migration */
+  --background: var(--bg);
+  --secondary-background: var(--card);
+  --foreground: var(--ink);
+  --main-foreground: var(--accent-ink);
+  --main: var(--accent);
+  --border: var(--line);
+  --ring: var(--line);
   --overlay: rgba(0, 0, 0, 0.8);
-  --shadow: 4px 4px 0px 0px var(--border);
   --chart-1: #FF7A05;
   --chart-2: #0099FF;
   --chart-3: #FFBF00;
@@ -20,23 +70,413 @@
 }
 
 .dark {
-  --background: #3d3228;
-  --secondary-background: #2e2e2e;
-  --foreground: #e5e5e5;
-  --main-foreground: #000000;
-  --main: #d4803f;
-  --border: #000000;
-  --ring: #ffffff;
-  --shadow: 4px 4px 0px 0px var(--border);
-  --chart-1: #EB6D00;
-  --chart-2: #008AE5;
-  --chart-3: #E5AC00;
-  --chart-4: #00BD84;
-  --chart-5: #7A83FF;
+  /* surfaces — cozy warm charcoal */
+  --bg: #1B1611;
+  --bg2: #231C15;
+  --card: #271F18;
+  --card2: #2F261D;
+
+  /* ink — warm cream */
+  --ink: #F3E7CF;
+  --ink-soft: #A99A82;
+  --line: #F3E7CF;
+
+  /* accents */
+  --accent: #F4894A;
+  --accent-ink: #1B1611;
+  --accent2: #36BBAA;
+
+  --good: #36BBAA;
+  --warn: #F5C04F;
+  --danger: #F07A66;
+
+  /* in dark, shadows fall on near-black so cards still cast a hard outline */
+  --shadow: 6px 6px 0 #0C0906;
+  --shadow-lg: 10px 10px 0 #0C0906;
+  --shadow-sm: 3px 3px 0 #0C0906;
+  --shadow-hover: 9px 9px 0 var(--accent);
+
+  --dot: rgba(243, 231, 207, 0.07);
 }
 
+/* ─────────────────────────────────────────────────────────────────────────
+   Base styles — body sets paper texture + body font; headings use display.
+   ───────────────────────────────────────────────────────────────────────── */
 @layer base {
+  html, body {
+    margin: 0;
+    padding: 0;
+  }
+
   body {
+    background-color: var(--bg);
+    background-image: var(--tex);
+    background-size: var(--tex-size);
+    color: var(--ink);
+    font-family: var(--font-body);
     font-weight: 500;
+    font-size: 16px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    transition: background-color .25s ease, color .25s ease;
+  }
+
+  h1 {
+    font-family: var(--font-head);
+    font-weight: var(--head-weight);
+    letter-spacing: var(--head-tracking);
+    line-height: 1.02;
+    margin: 0;
+  }
+
+  h2, h3, h4 {
+    font-family: var(--font-head);
+    font-weight: var(--head-weight);
+    letter-spacing: var(--head-tracking);
+    line-height: 1.08;
+    margin: 0;
+  }
+
+  ::selection {
+    background: var(--accent);
+    color: var(--accent-ink);
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--accent);
+    outline-offset: 2px;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Component primitives — neobrutalist building blocks.
+   All values flow from the design tokens above so a single token swap
+   (or .dark toggle) restyles everything.
+
+   These are authored as plain CSS (not @layer components) so Tailwind's
+   content-based purging doesn't drop them when a class is referenced only
+   from a HEEx template not yet migrated.
+   ───────────────────────────────────────────────────────────────────────── */
+  /* ── panels (cards) ─────────────────────────────────────────────────── */
+  .panel {
+    background: var(--card);
+    border: var(--bw) solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+  }
+  .panel-sm { box-shadow: var(--shadow-sm); }
+  .panel-lg { box-shadow: var(--shadow-lg); }
+
+  /* clickable card lift */
+  .lift {
+    transition: transform .1s ease, box-shadow .1s ease;
+  }
+  .lift:hover {
+    transform: translate(-3px, -3px);
+    box-shadow: var(--shadow-hover);
+  }
+
+  /* ── eyebrow / label text ───────────────────────────────────────────── */
+  .label {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .label-ink { color: var(--ink); }
+
+  /* ── buttons ────────────────────────────────────────────────────────── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 15px;
+    padding: 13px 22px;
+    border: var(--bw) solid var(--line);
+    border-radius: var(--radius-sm);
+    background: var(--card);
+    color: var(--ink);
+    box-shadow: var(--shadow-sm);
+    cursor: pointer;
+    transition: transform .08s ease, box-shadow .08s ease, background .15s ease;
+  }
+  .btn:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: var(--shadow);
+  }
+  .btn:active {
+    transform: translate(2px, 2px);
+    box-shadow: 0 0 0 var(--line);
+  }
+  .btn:disabled,
+  .btn[aria-disabled="true"] {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: var(--shadow-sm);
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: var(--accent-ink);
+  }
+  .btn-ghost {
+    background: transparent;
+    box-shadow: none;
+  }
+  .btn-ghost:hover {
+    background: var(--card2);
+    transform: none;
+    box-shadow: none;
+  }
+  .btn-sm { padding: 8px 14px; font-size: 13px; }
+  .btn-lg { padding: 17px 30px; font-size: 18px; }
+
+  /* ── chips / tags ───────────────────────────────────────────────────── */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 12px;
+    border: 2px solid var(--line);
+    border-radius: 999px;
+    background: var(--card);
+    color: var(--ink);
+  }
+  .chip-accent {
+    background: var(--accent);
+    color: var(--accent-ink);
+  }
+
+  /* ── rules ──────────────────────────────────────────────────────────── */
+  .rule { border-top: var(--bw) solid var(--line); }
+  .hairline {
+    border-top: 1.5px solid color-mix(in srgb, var(--ink) 28%, transparent);
+  }
+
+  /* ── big outline numeral (How-it-works step numbers) ────────────────── */
+  .bignum {
+    font-family: var(--font-head);
+    font-weight: var(--head-weight);
+    line-height: 0.8;
+  }
+
+  /* ── rating squares ─────────────────────────────────────────────────── */
+  .rate-grid {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .rate-sq {
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    font-weight: 700;
+    font-size: 15px;
+    border: var(--bw) solid var(--line);
+    border-radius: var(--radius-sm);
+    background: var(--card);
+    color: var(--ink);
+    cursor: pointer;
+    transition: transform .06s ease, background .1s ease;
+  }
+  .rate-sq:hover { transform: translateY(-2px); }
+  .rate-sq.on {
+    background: var(--accent);
+    color: var(--accent-ink);
+  }
+
+  /* compact single-row variant for browse cards — squares flex-fill the width */
+  .rate-row {
+    display: flex;
+    gap: 4px;
+    width: 100%;
+  }
+  .rate-row .rate-sq {
+    flex: 1 1 0;
+    min-width: 0;
+    width: auto;
+    height: 30px;
+    font-size: 12px;
+    border-width: 2px;
+  }
+
+  /* ── rating slider (browse cards) ───────────────────────────────────── */
+  /* Native range input restyled to fit the neobrutalist system. Track is
+     a chunky bordered bar; thumb is an accent-filled square with the
+     same offset shadow as a button. */
+  .rate-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 28px;
+    background: transparent;
+    cursor: pointer;
+    padding: 0;
+    margin: 0;
+  }
+  .rate-slider:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+  .rate-slider::-webkit-slider-runnable-track {
+    height: 12px;
+    background: var(--card2);
+    border: 2px solid var(--line);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-sm);
+  }
+  .rate-slider::-moz-range-track {
+    height: 12px;
+    background: var(--card2);
+    border: 2px solid var(--line);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-sm);
+  }
+  .rate-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 24px;
+    height: 24px;
+    background: var(--accent);
+    border: 2px solid var(--line);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    margin-top: -8px;
+    transition: transform .06s ease;
+  }
+  .rate-slider::-moz-range-thumb {
+    width: 24px;
+    height: 24px;
+    background: var(--accent);
+    border: 2px solid var(--line);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    transition: transform .06s ease;
+  }
+  .rate-slider:active::-webkit-slider-thumb { transform: scale(1.08); }
+  .rate-slider:active::-moz-range-thumb { transform: scale(1.08); }
+  .rate-slider[data-unrated="true"]::-webkit-slider-thumb { background: var(--card); }
+  .rate-slider[data-unrated="true"]::-moz-range-thumb { background: var(--card); }
+  .rate-slider:focus { outline: none; }
+  .rate-slider:focus-visible::-webkit-slider-thumb {
+    outline: 3px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .rate-slider:focus-visible::-moz-range-thumb {
+    outline: 3px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  /* ── text input / search field ──────────────────────────────────────── */
+  .field {
+    width: 100%;
+    background: var(--card);
+    color: var(--ink);
+    border: var(--bw) solid var(--line);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-sm);
+    padding: 13px 16px;
+    font-family: var(--font-body);
+    font-size: 16px;
+    font-weight: 500;
+  }
+  .field::placeholder { color: var(--ink-soft); }
+  .field:focus {
+    outline: none;
+    box-shadow: var(--shadow);
+    transform: translate(-1px, -1px);
+  }
+
+  /* ── multiselect dropdown ───────────────────────────────────────────── */
+  .ms { position: relative; }
+  .ms-trigger {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    background: var(--card);
+    color: var(--ink);
+    border: 2px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 11px 14px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .ms-trigger:hover { background: var(--card2); }
+  .ms-pop {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    z-index: 30;
+    background: var(--card);
+    border: var(--bw) solid var(--line);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow);
+    max-height: 320px;
+    overflow-y: auto;
+    padding: 6px;
+  }
+  .ms-opt {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 10px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .ms-opt:hover { background: var(--card2); }
+  .ms-check {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    border: 2px solid var(--line);
+    border-radius: 5px;
+    background: var(--card);
+    font-size: 13px;
+    font-weight: 800;
+  }
+  .ms-opt[data-on="1"] .ms-check,
+  .ms-opt[aria-selected="true"] .ms-check {
+    background: var(--accent);
+    color: var(--accent-ink);
+  }
+
+  /* ── numbered trending chart rows ───────────────────────────────────── */
+  .chart-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 0;
+    cursor: pointer;
+  }
+  .chart-rank {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 17px;
+    width: 28px;
+    text-align: right;
+    flex-shrink: 0;
+    color: var(--ink-soft);
+  }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition: none !important;
+    animation: none !important;
   }
 }

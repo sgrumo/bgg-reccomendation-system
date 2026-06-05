@@ -81,24 +81,24 @@ defmodule ReccoWeb.Admin.CrawlerLive do
   def render(assigns) do
     ~H"""
     <div>
-      <h1 class="text-2xl font-bold text-zinc-900 mb-6">BGG Crawler</h1>
+      <h1 class="text-2xl font-bold text-ink mb-6">BGG Crawler</h1>
 
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-        <div class="rounded-lg border border-zinc-200 p-4">
-          <p class="text-xs text-zinc-500">Status</p>
+        <div class="rounded-lg border border-line p-4">
+          <p class="text-xs text-ink-soft">Status</p>
           <p class={["text-lg font-bold", status_color(@status)]}>{@status}</p>
         </div>
-        <div class="rounded-lg border border-zinc-200 p-4">
-          <p class="text-xs text-zinc-500">Games Crawled</p>
-          <p class="text-lg font-bold text-zinc-900">{@game_count}</p>
+        <div class="rounded-lg border border-line p-4">
+          <p class="text-xs text-ink-soft">Games Crawled</p>
+          <p class="text-lg font-bold text-ink">{@game_count}</p>
         </div>
-        <div class="rounded-lg border border-zinc-200 p-4">
-          <p class="text-xs text-zinc-500">Last Fetched ID</p>
-          <p class="text-lg font-bold text-zinc-900">{@last_fetched_id}</p>
+        <div class="rounded-lg border border-line p-4">
+          <p class="text-xs text-ink-soft">Last Fetched ID</p>
+          <p class="text-lg font-bold text-ink">{@last_fetched_id}</p>
         </div>
-        <div class="rounded-lg border border-zinc-200 p-4">
-          <p class="text-xs text-zinc-500">Max BGG ID</p>
-          <p class="text-lg font-bold text-zinc-900">{@max_bgg_id}</p>
+        <div class="rounded-lg border border-line p-4">
+          <p class="text-xs text-ink-soft">Max BGG ID</p>
+          <p class="text-lg font-bold text-ink">{@max_bgg_id}</p>
         </div>
       </div>
 
@@ -113,24 +113,24 @@ defmodule ReccoWeb.Admin.CrawlerLive do
         <button
           :if={@status == "running"}
           phx-click="stop"
-          class="rounded-base border-2 border-border bg-red-500 px-4 py-2.5 text-sm font-bold shadow-brutalist hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none transition-all"
+          class="rounded-base border-2 border-border bg-danger px-4 py-2.5 text-sm font-bold shadow-brutalist hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none transition-all"
         >
           Stop Crawler
         </button>
       </div>
 
-      <p class="text-xs text-zinc-400 mt-4">Auto-refreshes every 2 seconds.</p>
+      <p class="text-xs text-ink-soft mt-4">Auto-refreshes every 2 seconds.</p>
 
-      <hr class="my-8 border-zinc-200" />
+      <hr class="my-8 border-line" />
 
-      <h2 class="text-xl font-bold text-zinc-900 mb-4">Fetch Game by BGG ID</h2>
-      <p class="text-sm text-zinc-500 mb-4">
+      <h2 class="text-xl font-bold text-ink mb-4">Fetch Game by BGG ID</h2>
+      <p class="text-sm text-ink-soft mb-4">
         Enter a BoardGameGeek ID to fetch and add a specific game to the database.
       </p>
 
       <form phx-submit="fetch_game" class="flex items-end gap-3">
         <div>
-          <label for="bgg_id" class="block text-sm font-medium text-zinc-700 mb-1">BGG ID</label>
+          <label for="bgg_id" class="block text-sm font-medium text-ink mb-1">BGG ID</label>
           <input
             type="number"
             name="bgg_id"
@@ -153,13 +153,13 @@ defmodule ReccoWeb.Admin.CrawlerLive do
       <div :if={@fetch_result} class="mt-4">
         <div
           :if={match?({:ok, _}, @fetch_result)}
-          class="rounded-lg border border-green-300 bg-green-50 p-3 text-sm text-green-800"
+          class="panel panel-sm bg-good/20 p-3 text-sm text-good"
         >
           Game "<strong>{elem(@fetch_result, 1)}</strong>" fetched and saved successfully.
         </div>
         <div
           :if={match?({:error, _}, @fetch_result)}
-          class="rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-800"
+          class="rounded-lg border border-danger bg-red-50 p-3 text-sm text-danger"
         >
           {elem(@fetch_result, 1)}
         </div>
@@ -186,7 +186,7 @@ defmodule ReccoWeb.Admin.CrawlerLive do
 
   defp schedule_tick, do: Process.send_after(self(), :tick, @tick_interval)
 
-  defp status_color("running"), do: "text-green-600"
-  defp status_color("paused"), do: "text-yellow-600"
-  defp status_color(_), do: "text-zinc-600"
+  defp status_color("running"), do: "text-good"
+  defp status_color("paused"), do: "text-warn"
+  defp status_color(_), do: "text-ink"
 end

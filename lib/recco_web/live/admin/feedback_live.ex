@@ -29,40 +29,40 @@ defmodule ReccoWeb.Admin.FeedbackLive do
   def render(assigns) do
     ~H"""
     <div>
-      <h1 class="text-2xl font-bold text-zinc-900 mb-8">Recommendation Feedback</h1>
+      <h1 class="text-2xl font-bold text-ink mb-8">Recommendation Feedback</h1>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
         <.stat_card title="Total Feedback" value={@stats.total} />
-        <.stat_card title="Positive" value={@stats.positive} accent="text-green-600" />
-        <.stat_card title="Negative" value={@stats.negative} accent="text-red-600" />
+        <.stat_card title="Positive" value={@stats.positive} accent="text-good" />
+        <.stat_card title="Negative" value={@stats.negative} accent="text-danger" />
         <.stat_card title="Positive Rate" value={"#{@stats.positive_rate}%"} />
       </div>
 
       <div :if={@by_source != %{}} class="mb-10">
-        <h2 class="text-lg font-bold text-zinc-900 mb-4">By Source</h2>
+        <h2 class="text-lg font-bold text-ink mb-4">By Source</h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div
             :for={{source, counts} <- @by_source}
-            class="rounded-lg border border-zinc-200 bg-white p-6"
+            class="rounded-lg border border-line bg-card p-6"
           >
-            <p class="text-sm font-medium text-zinc-500 mb-3">{format_source(source)}</p>
+            <p class="text-sm font-medium text-ink-soft mb-3">{format_source(source)}</p>
             <div class="flex items-center gap-6">
               <div>
-                <p class="text-2xl font-bold text-green-600">{counts.positive}</p>
-                <p class="text-xs text-zinc-500">positive</p>
+                <p class="text-2xl font-bold text-good">{counts.positive}</p>
+                <p class="text-xs text-ink-soft">positive</p>
               </div>
               <div>
-                <p class="text-2xl font-bold text-red-600">{counts.negative}</p>
-                <p class="text-xs text-zinc-500">negative</p>
+                <p class="text-2xl font-bold text-danger">{counts.negative}</p>
+                <p class="text-xs text-ink-soft">negative</p>
               </div>
               <div>
-                <p class="text-2xl font-bold text-zinc-900">{counts.positive + counts.negative}</p>
-                <p class="text-xs text-zinc-500">total</p>
+                <p class="text-2xl font-bold text-ink">{counts.positive + counts.negative}</p>
+                <p class="text-xs text-ink-soft">total</p>
               </div>
             </div>
-            <div class="mt-3 h-2 rounded-full bg-zinc-100 overflow-hidden">
+            <div class="mt-3 h-2 rounded-full bg-card2 overflow-hidden">
               <div
-                class="h-full bg-green-500 rounded-full"
+                class="h-full bg-good rounded-full"
                 style={"width: #{source_positive_rate(counts)}%"}
               >
               </div>
@@ -73,17 +73,17 @@ defmodule ReccoWeb.Admin.FeedbackLive do
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 mb-10">
         <div>
-          <h2 class="text-lg font-bold text-zinc-900 mb-4">Most Liked Recommendations</h2>
+          <h2 class="text-lg font-bold text-ink mb-4">Most Liked Recommendations</h2>
           <.game_list games={@top_liked} empty_text="No positive feedback yet." />
         </div>
         <div>
-          <h2 class="text-lg font-bold text-zinc-900 mb-4">Most Disliked Recommendations</h2>
+          <h2 class="text-lg font-bold text-ink mb-4">Most Disliked Recommendations</h2>
           <.game_list games={@top_disliked} empty_text="No negative feedback yet." />
         </div>
       </div>
 
       <div>
-        <h2 class="text-lg font-bold text-zinc-900 mb-4">Recent Feedback</h2>
+        <h2 class="text-lg font-bold text-ink mb-4">Recent Feedback</h2>
         <.recent_table recent={@recent} />
       </div>
     </div>
@@ -92,12 +92,12 @@ defmodule ReccoWeb.Admin.FeedbackLive do
 
   attr :title, :string, required: true
   attr :value, :any, required: true
-  attr :accent, :string, default: "text-zinc-900"
+  attr :accent, :string, default: "text-ink"
 
   defp stat_card(assigns) do
     ~H"""
-    <div class="rounded-lg border border-zinc-200 bg-white p-6">
-      <p class="text-sm font-medium text-zinc-500">{@title}</p>
+    <div class="rounded-lg border border-line bg-card p-6">
+      <p class="text-sm font-medium text-ink-soft">{@title}</p>
       <p class={["mt-2 text-3xl font-bold", @accent]}>{@value}</p>
     </div>
     """
@@ -108,14 +108,14 @@ defmodule ReccoWeb.Admin.FeedbackLive do
 
   defp game_list(assigns) do
     ~H"""
-    <div :if={@games == []} class="text-sm text-zinc-500">{@empty_text}</div>
+    <div :if={@games == []} class="text-sm text-ink-soft">{@empty_text}</div>
     <div class="space-y-2">
       <div
         :for={{game, idx} <- Enum.with_index(@games, 1)}
-        class="flex items-center gap-3 rounded-lg border border-zinc-200 bg-white px-4 py-3"
+        class="flex items-center gap-3 rounded-lg border border-line bg-card px-4 py-3"
       >
-        <span class="text-sm font-bold text-zinc-400 w-6">{idx}</span>
-        <div class="w-8 h-8 flex-shrink-0 rounded bg-zinc-100 overflow-hidden">
+        <span class="text-sm font-bold text-ink-soft w-6">{idx}</span>
+        <div class="w-8 h-8 flex-shrink-0 rounded bg-card2 overflow-hidden">
           <img
             :if={game.thumbnail_url}
             src={game.thumbnail_url}
@@ -125,11 +125,11 @@ defmodule ReccoWeb.Admin.FeedbackLive do
         </div>
         <a
           href={~p"/games/#{game.board_game_id}"}
-          class="flex-1 text-sm font-medium text-zinc-900 hover:underline truncate"
+          class="flex-1 text-sm font-medium text-ink hover:underline truncate"
         >
           {game.name}
         </a>
-        <span class="text-sm font-bold text-zinc-700">{game.count}</span>
+        <span class="text-sm font-bold text-ink">{game.count}</span>
       </div>
     </div>
     """
@@ -139,22 +139,22 @@ defmodule ReccoWeb.Admin.FeedbackLive do
 
   defp recent_table(assigns) do
     ~H"""
-    <div :if={@recent == []} class="text-sm text-zinc-500">No feedback yet.</div>
-    <div :if={@recent != []} class="rounded-lg border border-zinc-200 bg-white overflow-hidden">
+    <div :if={@recent == []} class="text-sm text-ink-soft">No feedback yet.</div>
+    <div :if={@recent != []} class="rounded-lg border border-line bg-card overflow-hidden">
       <table class="w-full">
         <thead>
-          <tr class="border-b border-zinc-100 bg-zinc-50">
-            <th class="px-4 py-3 text-left text-xs font-medium text-zinc-500">User</th>
-            <th class="px-4 py-3 text-left text-xs font-medium text-zinc-500">Game</th>
-            <th class="px-4 py-3 text-left text-xs font-medium text-zinc-500">Feedback</th>
-            <th class="px-4 py-3 text-left text-xs font-medium text-zinc-500">Source</th>
-            <th class="px-4 py-3 text-left text-xs font-medium text-zinc-500">Date</th>
+          <tr class="border-b border-line bg-card2">
+            <th class="px-4 py-3 text-left text-xs font-medium text-ink-soft">User</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-ink-soft">Game</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-ink-soft">Feedback</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-ink-soft">Source</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-ink-soft">Date</th>
           </tr>
         </thead>
         <tbody>
-          <tr :for={fb <- @recent} class="border-b border-zinc-100 last:border-0">
-            <td class="px-4 py-3 text-sm font-medium text-zinc-900">{fb.user.username}</td>
-            <td class="px-4 py-3 text-sm text-zinc-700">
+          <tr :for={fb <- @recent} class="border-b border-line last:border-0">
+            <td class="px-4 py-3 text-sm font-medium text-ink">{fb.user.username}</td>
+            <td class="px-4 py-3 text-sm text-ink">
               <a href={~p"/games/#{fb.board_game_id}"} class="hover:underline">
                 {fb.board_game.name}
               </a>
@@ -162,14 +162,14 @@ defmodule ReccoWeb.Admin.FeedbackLive do
             <td class="px-4 py-3">
               <span class={[
                 "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium",
-                fb.positive && "bg-green-100 text-green-700",
-                !fb.positive && "bg-red-100 text-red-700"
+                fb.positive && "bg-good/20 text-good",
+                !fb.positive && "bg-danger/20 text-danger"
               ]}>
                 {if fb.positive, do: "Positive", else: "Negative"}
               </span>
             </td>
-            <td class="px-4 py-3 text-sm text-zinc-500">{format_source(fb.source)}</td>
-            <td class="px-4 py-3 text-sm text-zinc-500">
+            <td class="px-4 py-3 text-sm text-ink-soft">{format_source(fb.source)}</td>
+            <td class="px-4 py-3 text-sm text-ink-soft">
               {Calendar.strftime(fb.inserted_at, "%b %d, %Y")}
             </td>
           </tr>

@@ -77,27 +77,25 @@ defmodule ReccoWeb.RecommendationLive.Index do
   @spec render(Phoenix.LiveView.Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
   def render(assigns) do
     ~H"""
-    <div>
-      <h1 class="text-2xl font-bold mb-2">{gettext("Recommendations")}</h1>
-      <p class="text-sm font-medium mb-6">
+    <div class="pb-12">
+      <div class="label mb-2">{gettext("Personalised picks")}</div>
+      <h1 class="text-[clamp(34px,4vw,58px)] mb-2">{gettext("Recommendations")}</h1>
+      <p class="text-ink-soft mb-7">
         {gettext("Personalised picks based on your ratings.")}
       </p>
 
       <.progress_banner rating_count={@rating_count} ratings_threshold={@ratings_threshold} />
 
-      <div :if={@loading} class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div :for={_ <- 1..6} class="rounded-base border-2 border-border bg-bw p-4">
-          <div class="h-32 bg-bg rounded-base mb-3 animate-pulse"></div>
-          <div class="h-4 bg-bg rounded-base w-3/4 animate-pulse"></div>
-          <div class="h-3 bg-bg rounded-base w-1/2 mt-2 animate-pulse"></div>
+      <div :if={@loading} class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div :for={_ <- 1..6} class="panel p-4">
+          <div class="aspect-[4/3] bg-card2 mb-3 animate-pulse"></div>
+          <div class="h-4 bg-card2 w-3/4 animate-pulse"></div>
+          <div class="h-3 bg-card2 w-1/2 mt-2 animate-pulse"></div>
         </div>
       </div>
 
-      <div
-        :if={@error}
-        class="text-center py-16 rounded-base border-2 border-border bg-bw shadow-brutalist"
-      >
-        <p class="font-medium">
+      <div :if={@error} class="panel px-6 py-12 text-center">
+        <p class="text-ink-soft text-[17px]">
           <%= case @error do %>
             <% :service_unavailable -> %>
               {gettext("The recommendation engine is currently unavailable. Please try again later.")}
@@ -107,31 +105,18 @@ defmodule ReccoWeb.RecommendationLive.Index do
         </p>
       </div>
 
-      <div
-        :if={@recommendations == []}
-        class="text-center py-16 rounded-base border-2 border-border bg-bw shadow-brutalist"
-      >
-        <p class="text-lg font-bold">
+      <div :if={@recommendations == []} class="panel px-6 py-12 text-center">
+        <h3 class="text-2xl mb-2">
           {gettext("No recommendations yet")}
-        </p>
-        <p class="text-sm font-medium mt-2 max-w-md mx-auto">
+        </h3>
+        <p class="text-ink-soft max-w-md mx-auto mb-5">
           {gettext(
             "Rate a handful of games you've played — even 5 is enough to get started. The more you rate, the sharper your picks."
           )}
         </p>
-        <div class="mt-5 flex items-center justify-center gap-3 flex-wrap">
-          <a
-            href={~p"/games"}
-            class="inline-block rounded-base border-2 border-border bg-main px-4 py-2 text-sm font-bold shadow-brutalist hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none transition-all"
-          >
-            {gettext("Browse games to rate")}
-          </a>
-          <a
-            href={~p"/profile"}
-            class="inline-block rounded-base border-2 border-border bg-bw px-4 py-2 text-sm font-bold hover:bg-main transition-colors"
-          >
-            {gettext("Or import from BGG")}
-          </a>
+        <div class="flex items-center justify-center gap-3 flex-wrap">
+          <a href={~p"/games"} class="btn btn-primary">{gettext("Browse games to rate")}</a>
+          <a href={~p"/profile"} class="btn">{gettext("Or import from BGG")}</a>
         </div>
       </div>
 
@@ -157,17 +142,14 @@ defmodule ReccoWeb.RecommendationLive.Index do
   attr :feedback, :any, required: true
 
   defp recommendation_card(assigns) do
-    {label, color} = match_label(assigns.rank, assigns.total)
-    assigns = assign(assigns, match_label: label, match_color: color)
+    {label, accent} = match_label(assigns.rank, assigns.total)
+    assigns = assign(assigns, match_label: label, match_accent: accent)
 
     ~H"""
-    <div class="rounded-base border-2 border-border bg-bw shadow-brutalist overflow-hidden">
+    <article class="panel lift overflow-hidden flex flex-col">
       <%= if @rec.game do %>
-        <a
-          href={~p"/games/#{@rec.game.id}"}
-          class="block hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none transition-all"
-        >
-          <div class="aspect-[4/3] bg-bg flex items-center justify-center border-b-2 border-border">
+        <a href={~p"/games/#{@rec.game.id}"} class="block">
+          <div class="aspect-[4/3] bg-card2 grid place-items-center border-b-bw border-line overflow-hidden">
             <img
               :if={@rec.game.image_url}
               src={@rec.game.image_url}
@@ -176,60 +158,62 @@ defmodule ReccoWeb.RecommendationLive.Index do
               loading="lazy"
             />
           </div>
-          <div class="p-3">
-            <h2 class="font-bold text-sm truncate">{@rec.name}</h2>
-            <div class="flex items-center justify-between mt-1 text-xs font-medium">
+          <div class="p-3.5">
+            <h3 class="text-[19px] leading-tight truncate">{@rec.name}</h3>
+            <div class="flex items-center justify-between gap-2 mt-2">
               <span class={[
-                "inline-flex items-center rounded-base border-2 border-border px-1.5 py-0.5 text-xs font-bold",
-                @match_color
+                "chip",
+                @match_accent && "chip-accent"
               ]}>
                 {@match_label}
               </span>
               <span
                 :if={@rec.game.average_rating}
-                class="inline-flex items-center rounded-base border-2 border-border bg-main px-1.5 py-0.5 text-xs font-bold"
+                class="font-mono font-bold text-sm border-2 border-line rounded-panel-sm px-2 py-0.5 bg-card2 text-ink whitespace-nowrap"
               >
-                {Float.round(@rec.game.average_rating, 1)}
+                ★ {Float.round(@rec.game.average_rating, 1)}
               </span>
             </div>
           </div>
         </a>
-        <div class="flex items-center gap-1 px-3 pb-3">
-          <span class="text-xs font-medium mr-1">{gettext("Useful?")}</span>
+        <div class="flex items-center gap-2 px-3.5 pb-3.5 mt-auto">
+          <span class="label !text-[10.5px]">{gettext("Useful?")}</span>
           <button
+            type="button"
             phx-click="feedback"
             phx-value-game-id={@rec.game.id}
             phx-value-positive="true"
             class={[
-              "rounded-base border-2 border-border px-2 py-0.5 text-xs font-bold transition-all",
-              @feedback == true && "bg-main",
-              @feedback != true && "bg-bw hover:bg-bg"
+              "btn btn-sm !py-1 !px-2.5",
+              @feedback == true && "btn-primary"
             ]}
             aria-label={gettext("Good recommendation")}
+            aria-pressed={@feedback == true}
           >
-            &#x1F44D;
+            👍
           </button>
           <button
+            type="button"
             phx-click="feedback"
             phx-value-game-id={@rec.game.id}
             phx-value-positive="false"
             class={[
-              "rounded-base border-2 border-border px-2 py-0.5 text-xs font-bold transition-all",
-              @feedback == false && "bg-red-300",
-              @feedback != false && "bg-bw hover:bg-bg"
+              "btn btn-sm !py-1 !px-2.5",
+              @feedback == false && "!bg-danger !text-accent-ink"
             ]}
             aria-label={gettext("Bad recommendation")}
+            aria-pressed={@feedback == false}
           >
-            &#x1F44E;
+            👎
           </button>
         </div>
       <% else %>
-        <div class="p-3">
-          <h2 class="font-bold text-sm">{@rec.name}</h2>
-          <p class="text-xs font-medium mt-1">{@match_label}</p>
+        <div class="p-3.5">
+          <h3 class="text-[19px] leading-tight">{@rec.name}</h3>
+          <p class="text-ink-soft text-sm mt-1">{@match_label}</p>
         </div>
       <% end %>
-    </div>
+    </article>
     """
   end
 
@@ -239,31 +223,21 @@ defmodule ReccoWeb.RecommendationLive.Index do
   defp progress_banner(%{rating_count: count, ratings_threshold: threshold} = assigns)
        when count >= threshold do
     ~H"""
-    <div class="mb-6 rounded-base border-2 border-border bg-main/30 p-4 shadow-brutalist">
+    <div class="panel bg-card2 px-5 py-4 mb-6">
       <div class="flex items-start justify-between gap-3 flex-wrap">
         <div>
-          <p class="text-sm font-bold">
+          <p class="font-bold">
             {gettext("%{count} ratings — picks are live.", count: @rating_count)}
           </p>
-          <p class="text-xs font-medium mt-0.5">
+          <p class="text-ink-soft text-sm mt-1">
             {gettext(
               "Want sharper recommendations? Rate more games, or import your ratings from BoardGameGeek."
             )}
           </p>
         </div>
         <div class="flex flex-wrap gap-2">
-          <a
-            href={~p"/games"}
-            class="rounded-base border-2 border-border bg-bw px-3 py-1.5 text-xs font-bold hover:bg-main transition-colors"
-          >
-            {gettext("Rate more")} &rarr;
-          </a>
-          <a
-            href={~p"/profile"}
-            class="rounded-base border-2 border-border bg-bw px-3 py-1.5 text-xs font-bold hover:bg-main transition-colors"
-          >
-            {gettext("Import from BGG")} &rarr;
-          </a>
+          <a href={~p"/games"} class="btn btn-sm">{gettext("Rate more")} →</a>
+          <a href={~p"/profile"} class="btn btn-sm">{gettext("Import from BGG")} →</a>
         </div>
       </div>
     </div>
@@ -276,16 +250,16 @@ defmodule ReccoWeb.RecommendationLive.Index do
     assigns = assign(assigns, remaining: remaining, pct: pct)
 
     ~H"""
-    <div class="mb-6 rounded-base border-2 border-border bg-main/30 p-4 shadow-brutalist">
+    <div class="panel bg-card2 px-5 py-4 mb-6">
       <div class="flex items-center justify-between gap-3 flex-wrap">
         <div>
-          <p class="text-sm font-bold">
+          <p class="font-bold">
             {gettext("%{count} of %{total} ratings",
               count: @rating_count,
               total: @ratings_threshold
             )}
           </p>
-          <p class="text-xs font-medium mt-0.5">
+          <p class="text-ink-soft text-sm mt-1">
             {ngettext(
               "Rate %{count} more game to unlock sharper recommendations.",
               "Rate %{count} more games to unlock sharper recommendations.",
@@ -293,29 +267,25 @@ defmodule ReccoWeb.RecommendationLive.Index do
             )}
           </p>
         </div>
-        <a
-          href={~p"/games"}
-          class="rounded-base border-2 border-border bg-bw px-3 py-1.5 text-xs font-bold hover:bg-main transition-colors"
-        >
-          {gettext("Rate more games")} &rarr;
-        </a>
+        <a href={~p"/games"} class="btn btn-sm">{gettext("Rate more games")} →</a>
       </div>
-      <div class="mt-3 h-4 w-full rounded-base border-2 border-border bg-bw overflow-hidden">
-        <div class="h-full bg-main" style={"width: #{@pct}%"}></div>
+      <div class="mt-3 h-4 w-full border-2 border-line rounded-panel-sm bg-card overflow-hidden">
+        <div class="h-full bg-accent" style={"width: #{@pct}%"}></div>
       </div>
     </div>
     """
   end
 
+  # Returns {label, paint_with_accent?}
   defp match_label(rank, total) do
     percentile = rank / max(total - 1, 1)
 
     cond do
-      rank == 0 -> {gettext("Top pick"), "bg-main"}
-      percentile <= 0.15 -> {gettext("Excellent match"), "bg-main"}
-      percentile <= 0.4 -> {gettext("Great match"), "bg-main/60"}
-      percentile <= 0.7 -> {gettext("Good match"), "bg-bg"}
-      true -> {gettext("Worth a look"), "bg-bg"}
+      rank == 0 -> {gettext("Top pick"), true}
+      percentile <= 0.15 -> {gettext("Excellent match"), true}
+      percentile <= 0.4 -> {gettext("Great match"), false}
+      percentile <= 0.7 -> {gettext("Good match"), false}
+      true -> {gettext("Worth a look"), false}
     end
   end
 end

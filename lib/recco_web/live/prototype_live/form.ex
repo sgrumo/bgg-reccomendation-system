@@ -292,26 +292,23 @@ defmodule ReccoWeb.PrototypeLive.Form do
   @spec render(Phoenix.LiveView.Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
   def render(assigns) do
     ~H"""
-    <div class="max-w-3xl mx-auto space-y-6">
-      <.link
-        navigate={~p"/prototypes"}
-        class="inline-flex items-center text-sm font-heading hover:bg-main px-2 py-1 rounded-base"
-      >
+    <div class="max-w-3xl mx-auto pb-12 space-y-6">
+      <.link navigate={~p"/prototypes"} class="btn btn-ghost btn-sm !pl-0">
         ← {gettext("Back to prototypes")}
       </.link>
 
-      <h1 class="text-2xl font-heading">{@page_title}</h1>
+      <div>
+        <div class="label mb-2">
+          {if @mode == :new, do: gettext("New submission"), else: gettext("Editing")}
+        </div>
+        <h1 class="text-[clamp(34px,4vw,58px)]">{@page_title}</h1>
+      </div>
 
-      <.form
-        for={@form}
-        phx-change="validate"
-        phx-submit="save"
-        class="space-y-6 rounded-base border-2 border-border bg-bw p-6 shadow-brutalist"
-      >
+      <.form for={@form} phx-change="validate" phx-submit="save" class="space-y-6 panel p-6">
         <.input field={@form[:title]} type="text" label={gettext("Title")} required />
 
         <div>
-          <label for={@form[:description].id} class="mb-1 block text-sm font-bold">
+          <label for={@form[:description].id} class="label label-ink !font-bold block mb-2">
             {gettext("Description")}
           </label>
           <textarea
@@ -319,11 +316,11 @@ defmodule ReccoWeb.PrototypeLive.Form do
             name={@form[:description].name}
             rows="6"
             required
-            class="w-full rounded-base border-2 border-border bg-bw px-3 py-2 text-sm font-medium placeholder:text-fg/50 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+            class="field"
           >{Phoenix.HTML.Form.normalize_value("textarea", @form[:description].value)}</textarea>
           <p
             :for={msg <- field_errors(@form, :description)}
-            class="mt-1 text-sm font-medium text-red-600"
+            class="mt-1.5 text-sm font-semibold text-danger"
           >
             {msg}
           </p>
@@ -373,7 +370,7 @@ defmodule ReccoWeb.PrototypeLive.Form do
         />
         <p
           :for={msg <- field_errors(@form, :categories)}
-          class="text-sm font-base text-red-600"
+          class="text-sm font-semibold text-danger"
         >
           {msg}
         </p>
@@ -388,42 +385,41 @@ defmodule ReccoWeb.PrototypeLive.Form do
         />
         <p
           :for={msg <- field_errors(@form, :mechanics)}
-          class="text-sm font-base text-red-600"
+          class="text-sm font-semibold text-danger"
         >
           {msg}
         </p>
 
         <section class="space-y-3">
           <div class="flex items-center justify-between">
-            <h2 class="font-heading">{gettext("Team")}</h2>
-            <button
-              type="button"
-              phx-click="add_collab"
-              class="rounded-base border-2 border-border bg-bw px-3 py-1 text-sm font-heading hover:bg-main transition-colors"
-            >
+            <h2 class="text-xl">{gettext("Team")}</h2>
+            <button type="button" phx-click="add_collab" class="btn btn-sm">
               + {gettext("Add member")}
             </button>
           </div>
-          <div :for={{collab, idx} <- Enum.with_index(@collaborators)} class="grid grid-cols-12 gap-2">
+          <div
+            :for={{collab, idx} <- Enum.with_index(@collaborators)}
+            class="grid grid-cols-12 gap-2"
+          >
             <input
               type="text"
               name={"collab[#{idx}][name]"}
               value={collab["name"]}
               placeholder={gettext("Name")}
-              class="col-span-5 h-10 rounded-base border-2 border-border bg-bw px-3 text-sm font-base focus:outline-none focus:ring-2 focus:ring-ring"
+              class="field col-span-5 !py-2 !text-sm"
             />
             <input
               type="text"
               name={"collab[#{idx}][role]"}
               value={collab["role"]}
               placeholder={gettext("Role (e.g. designer)")}
-              class="col-span-6 h-10 rounded-base border-2 border-border bg-bw px-3 text-sm font-base focus:outline-none focus:ring-2 focus:ring-ring"
+              class="field col-span-6 !py-2 !text-sm"
             />
             <button
               type="button"
               phx-click="remove_collab"
               phx-value-index={idx}
-              class="col-span-1 h-10 rounded-base border-2 border-border bg-red-300 text-sm font-heading hover:translate-x-shadow-x hover:translate-y-shadow-y transition-all"
+              class="btn btn-sm col-span-1 !p-0 grid place-items-center hover:!bg-danger hover:!text-accent-ink"
               aria-label={gettext("Remove member")}
             >
               ×
@@ -432,18 +428,14 @@ defmodule ReccoWeb.PrototypeLive.Form do
         </section>
 
         <section class="space-y-3">
-          <div class="flex items-center justify-between">
+          <div class="flex items-start justify-between gap-3">
             <div>
-              <h2 class="font-heading">{gettext("Links")}</h2>
-              <p class="text-xs font-base text-fg/70">
+              <h2 class="text-xl">{gettext("Links")}</h2>
+              <p class="text-ink-soft text-sm mt-1">
                 {gettext("Landing pages, crowdfunding, social — anything you want to share.")}
               </p>
             </div>
-            <button
-              type="button"
-              phx-click="add_link"
-              class="rounded-base border-2 border-border bg-bw px-3 py-1 text-sm font-heading hover:bg-main transition-colors"
-            >
+            <button type="button" phx-click="add_link" class="btn btn-sm whitespace-nowrap">
               + {gettext("Add link")}
             </button>
           </div>
@@ -453,20 +445,20 @@ defmodule ReccoWeb.PrototypeLive.Form do
               name={"link[#{idx}][label]"}
               value={link["label"]}
               placeholder={gettext("Label (e.g. Kickstarter)")}
-              class="col-span-4 h-10 rounded-base border-2 border-border bg-bw px-3 text-sm font-base focus:outline-none focus:ring-2 focus:ring-ring"
+              class="field col-span-4 !py-2 !text-sm"
             />
             <input
               type="url"
               name={"link[#{idx}][url]"}
               value={link["url"]}
               placeholder="https://..."
-              class="col-span-7 h-10 rounded-base border-2 border-border bg-bw px-3 text-sm font-base focus:outline-none focus:ring-2 focus:ring-ring"
+              class="field col-span-7 !py-2 !text-sm"
             />
             <button
               type="button"
               phx-click="remove_link"
               phx-value-index={idx}
-              class="col-span-1 h-10 rounded-base border-2 border-border bg-red-300 text-sm font-heading hover:translate-x-shadow-x hover:translate-y-shadow-y transition-all"
+              class="btn btn-sm col-span-1 !p-0 grid place-items-center hover:!bg-danger hover:!text-accent-ink"
               aria-label={gettext("Remove link")}
             >
               ×
@@ -482,12 +474,12 @@ defmodule ReccoWeb.PrototypeLive.Form do
         />
 
         <section class="space-y-3">
-          <h2 class="font-heading">{gettext("Images")}</h2>
+          <h2 class="text-xl">{gettext("Images")}</h2>
 
           <div :if={@existing_images != []} class="grid grid-cols-3 sm:grid-cols-4 gap-2">
             <div
               :for={image <- @existing_images}
-              class="relative aspect-square rounded-base border-2 border-border bg-bg overflow-hidden"
+              class="relative aspect-square border-bw border-line rounded-panel-sm bg-card2 overflow-hidden"
             >
               <img
                 src={~p"/prototype_images/#{image.id}"}
@@ -499,7 +491,7 @@ defmodule ReccoWeb.PrototypeLive.Form do
                 phx-click="delete_image"
                 phx-value-id={image.id}
                 data-confirm={gettext("Remove this image?")}
-                class="absolute top-1 right-1 rounded-base border-2 border-border bg-red-300 w-7 h-7 flex items-center justify-center text-sm font-heading"
+                class="btn btn-sm absolute top-1 right-1 !w-7 !h-7 !p-0 grid place-items-center !bg-danger !text-accent-ink"
                 aria-label={gettext("Delete image")}
               >
                 ×
@@ -507,12 +499,12 @@ defmodule ReccoWeb.PrototypeLive.Form do
             </div>
           </div>
 
-          <label class="block rounded-base border-2 border-dashed border-border bg-bg p-6 text-center cursor-pointer hover:bg-bw transition-colors">
+          <label class="block border-2 border-dashed border-line bg-card2 rounded-panel p-6 text-center cursor-pointer hover:bg-card transition-colors">
             <.live_file_input upload={@uploads.images} class="hidden" />
-            <span class="font-heading text-sm">
+            <span class="font-bold text-sm">
               {gettext("Drop images here or click to upload")}
             </span>
-            <span class="block text-xs font-base text-fg/70 mt-1">
+            <span class="block text-ink-soft text-xs mt-1">
               {gettext("Up to %{count} images, max 10 MB each", count: @max_images)}
             </span>
           </label>
@@ -520,21 +512,21 @@ defmodule ReccoWeb.PrototypeLive.Form do
           <div :if={@uploads.images.entries != []} class="grid grid-cols-3 sm:grid-cols-4 gap-2">
             <div
               :for={entry <- @uploads.images.entries}
-              class="relative aspect-square rounded-base border-2 border-border bg-bg overflow-hidden"
+              class="relative aspect-square border-bw border-line rounded-panel-sm bg-card2 overflow-hidden"
             >
               <.live_img_preview entry={entry} class="w-full h-full object-cover" />
               <button
                 type="button"
                 phx-click="cancel_upload"
                 phx-value-ref={entry.ref}
-                class="absolute top-1 right-1 rounded-base border-2 border-border bg-red-300 w-7 h-7 flex items-center justify-center text-sm font-heading"
+                class="btn btn-sm absolute top-1 right-1 !w-7 !h-7 !p-0 grid place-items-center !bg-danger !text-accent-ink"
                 aria-label={gettext("Cancel upload")}
               >
                 ×
               </button>
               <p
                 :for={err <- upload_errors(@uploads.images, entry)}
-                class="absolute bottom-0 inset-x-0 bg-red-300 text-xs px-1 py-0.5"
+                class="absolute bottom-0 inset-x-0 bg-danger text-accent-ink text-xs px-1 py-0.5 font-semibold"
               >
                 {upload_error_message(err)}
               </p>
@@ -543,17 +535,14 @@ defmodule ReccoWeb.PrototypeLive.Form do
 
           <p
             :for={err <- upload_errors(@uploads.images)}
-            class="text-sm font-base text-red-600"
+            class="text-sm font-semibold text-danger"
           >
             {upload_error_message(err)}
           </p>
         </section>
 
-        <button
-          type="submit"
-          class="rounded-base border-2 border-border bg-main px-4 py-2.5 text-sm font-heading shadow-brutalist hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none transition-all"
-        >
-          {if @mode == :new, do: gettext("Submit prototype"), else: gettext("Save changes")}
+        <button type="submit" class="btn btn-primary btn-lg w-full justify-center">
+          {if @mode == :new, do: gettext("Submit prototype"), else: gettext("Save changes")} →
         </button>
       </.form>
     </div>
@@ -574,14 +563,14 @@ defmodule ReccoWeb.PrototypeLive.Form do
 
     ~H"""
     <div>
-      <label class="mb-1 block text-sm font-heading">{@label}</label>
+      <label class="label label-ink !font-bold block mb-2">{@label}</label>
       <div
         id={@id}
         phx-hook="MultiSelect"
         data-options={@options_json}
         data-selected={@selected_json}
         data-event={@event}
-        class="relative"
+        class="ms"
       >
         <div
           data-header
@@ -589,34 +578,22 @@ defmodule ReccoWeb.PrototypeLive.Form do
           role="combobox"
           aria-expanded="false"
           aria-haspopup="listbox"
-          class="flex flex-wrap items-center gap-1 min-h-[2.5rem] w-full rounded-base border-2 border-border bg-bw px-3 py-1.5 cursor-pointer"
+          class="ms-trigger"
         >
-          <span data-tags class="flex flex-wrap gap-1"></span>
-          <span data-placeholder class="text-sm text-fg/50 font-base">{@placeholder}</span>
-          <span class="ml-auto pl-2">
-            <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
-              <path
-                fill-rule="evenodd"
-                d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
-                clip-rule="evenodd"
-              />
-            </svg>
-          </span>
+          <span data-tags class="flex flex-wrap gap-1.5 items-center"></span>
+          <span data-placeholder class="text-ink-soft text-sm">{@placeholder}</span>
+          <span class="font-mono text-xs opacity-70 ml-auto">▼</span>
         </div>
-        <div
-          data-dropdown
-          role="listbox"
-          class="hidden absolute top-full left-0 right-0 z-50 mt-1 rounded-base border-2 border-border bg-bw shadow-brutalist max-h-[40dvh] overflow-y-auto"
-        >
-          <div class="p-2 border-b-2 border-border">
+        <div data-dropdown role="listbox" class="ms-pop hidden">
+          <div class="p-1.5 border-b-bw border-line">
             <input
               data-search
               type="text"
-              placeholder="Search..."
-              class="w-full rounded-base border-2 border-border bg-bw px-3 py-1.5 text-sm font-base placeholder:text-fg/50 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1"
+              placeholder={gettext("Search…")}
+              class="w-full px-2.5 py-1.5 text-sm font-medium bg-card border-2 border-line rounded-panel-sm text-ink placeholder:text-ink-soft focus:outline-none"
             />
           </div>
-          <div data-options class="p-1"></div>
+          <div data-options></div>
         </div>
       </div>
     </div>

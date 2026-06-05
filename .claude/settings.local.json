@@ -37,7 +37,16 @@
       "Bash(python -c \"import scipy, sklearn, pandas, numpy; print\\('scipy', scipy.__version__\\); print\\('sklearn', sklearn.__version__\\)\")",
       "Bash(PYTHONPATH=. uv run --with pandas --with scikit-learn --with scipy --with numpy python /tmp/smoke_recco.py)",
       "Bash(grep -nA 5 \"^html,\" /Users/samuelemedici/Projects/bgg-reccomendation-system/priv/static/assets/app.css)",
-      "Bash(grep -nA 4 \"^body {\" /Users/samuelemedici/Projects/bgg-reccomendation-system/priv/static/assets/app.css)"
+      "Bash(grep -nA 4 \"^body {\" /Users/samuelemedici/Projects/bgg-reccomendation-system/priv/static/assets/app.css)",
+      "WebFetch(domain:api.anthropic.com)",
+      "Bash(curl -sL \"https://api.anthropic.com/v1/design/h/y_Q0YtjZPDAJm5e_Wt4A8w?open_file=BGRecco+Refresh.html\" -o /tmp/bgrecco-refresh.html)",
+      "Bash(gunzip /tmp/bgrecco-refresh.html.gz)",
+      "Bash(tar -xf /tmp/bgrecco-refresh.html -C /tmp/bgrecco-design)",
+      "Bash(pkill -f \"mix phx.server\")",
+      "Bash(pkill -f \"iex.*phx.server\")",
+      "Bash(grep -nE \"bg-\\(black|white|gray|zinc|red|emerald|amber|orange\\)|text-\\(black|white|gray|zinc|red\\)|border-\\(black|white|gray|zinc\\)|#[0-9A-Fa-f]{3,8}\" lib/recco_web/live/landing_live.ex lib/recco_web/live/game_live/index.ex lib/recco_web/live/game_live/show.ex lib/recco_web/components/navigation.ex)",
+      "Bash(perl -pi -e ' *)",
+      "Bash(perl -pi -e 's/rounded-lg border border-green-300 bg-green-50 p-3 text-sm text-good/panel panel-sm bg-good\\\\/20 p-3 text-sm text-good/g' /Users/samuelemedici/Projects/bgg-reccomendation-system/lib/recco_web/live/admin/crawler_live.ex)"
     ]
   }
 }

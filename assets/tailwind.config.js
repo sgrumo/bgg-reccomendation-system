@@ -8,12 +8,31 @@ module.exports = {
     "../lib/recco_web.ex",
     "../lib/recco_web/**/*.*ex"
   ],
+  darkMode: "class",
   theme: {
     fontFamily: {
-      sans: ['"Red Hat Text"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+      sans: ['"Rubik"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+      head: ['"Darker Grotesque"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+      body: ['"Rubik"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+      mono: ['"Space Mono"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
     },
     extend: {
       colors: {
+        // Sticker-A canonical tokens
+        ink: "var(--ink)",
+        "ink-soft": "var(--ink-soft)",
+        line: "var(--line)",
+        card: "var(--card)",
+        card2: "var(--card2)",
+        bg2: "var(--bg2)",
+        accent: "var(--accent)",
+        "accent-ink": "var(--accent-ink)",
+        accent2: "var(--accent2)",
+        good: "var(--good)",
+        warn: "var(--warn)",
+        danger: "var(--danger)",
+
+        // legacy aliases (kept until the migration finishes)
         main: "var(--main)",
         bg: "var(--background)",
         fg: "var(--foreground)",
@@ -23,11 +42,20 @@ module.exports = {
         ring: "var(--ring)",
         overlay: "var(--overlay)",
       },
+      borderWidth: {
+        bw: "2.5px",
+      },
       borderRadius: {
         base: "5px",
+        panel: "16px",
+        "panel-sm": "10px",
       },
       boxShadow: {
         brutalist: "var(--shadow)",
+        panel: "var(--shadow)",
+        "panel-sm": "var(--shadow-sm)",
+        "panel-lg": "var(--shadow-lg)",
+        "panel-hover": "var(--shadow-hover)",
       },
       translate: {
         "shadow-x": "4px",
@@ -36,6 +64,11 @@ module.exports = {
       fontWeight: {
         base: "500",
         heading: "700",
+        display: "900",
+      },
+      letterSpacing: {
+        label: "0.14em",
+        head: "-0.01em",
       },
     },
   },

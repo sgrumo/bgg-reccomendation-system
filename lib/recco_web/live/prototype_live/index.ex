@@ -73,32 +73,31 @@ defmodule ReccoWeb.PrototypeLive.Index do
   @spec render(Phoenix.LiveView.Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
   def render(assigns) do
     ~H"""
-    <div>
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <h1 class="text-2xl font-heading">{gettext("Prototypes")}</h1>
-        <.link
-          navigate={~p"/prototypes/new"}
-          class="inline-flex items-center justify-center rounded-base border-2 border-border bg-main px-4 py-2 text-sm font-heading shadow-brutalist hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none transition-all"
-        >
-          {gettext("Submit a prototype")}
+    <div class="pb-12">
+      <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
+        <div>
+          <div class="label mb-2">{gettext("Community")}</div>
+          <h1 class="text-[clamp(34px,4vw,58px)]">{gettext("Prototypes")}</h1>
+        </div>
+        <.link navigate={~p"/prototypes/new"} class="btn btn-primary self-start sm:self-end">
+          {gettext("Submit a prototype")} →
         </.link>
       </div>
 
-      <div class="mb-6 flex gap-2">
+      <div class="mb-6 flex gap-2 flex-wrap">
         <.filter_tab active?={!@mine? and !@liked?} href={~p"/prototypes"} label={gettext("All")} />
         <.filter_tab active?={@mine?} href={~p"/prototypes?mine=1"} label={gettext("Mine")} />
         <.filter_tab active?={@liked?} href={~p"/prototypes?liked=1"} label={gettext("Liked")} />
       </div>
 
-      <p class="text-sm font-base mb-4">
+      <p class="label mb-3">
         {ngettext("%{count} prototype", "%{count} prototypes", @total)}
       </p>
 
-      <div
-        :if={@prototypes == []}
-        class="text-center py-16 rounded-base border-2 border-border bg-bw shadow-brutalist"
-      >
-        <p class="font-base">{gettext("No prototypes yet. Be the first to submit one!")}</p>
+      <div :if={@prototypes == []} class="panel px-6 py-12 text-center">
+        <p class="text-ink-soft text-[17px]">
+          {gettext("No prototypes yet. Be the first to submit one!")}
+        </p>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -119,9 +118,9 @@ defmodule ReccoWeb.PrototypeLive.Index do
 
   defp prototype_card(assigns) do
     ~H"""
-    <div class="relative rounded-base border-2 border-border bg-bw shadow-brutalist overflow-hidden hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none transition-all">
+    <article class="panel lift relative overflow-hidden flex flex-col">
       <.link navigate={~p"/prototypes/#{@prototype.id}"} class="block">
-        <div class="aspect-video bg-bg border-b-2 border-border flex items-center justify-center overflow-hidden">
+        <div class="aspect-video bg-card2 border-b-bw border-line grid place-items-center overflow-hidden">
           <img
             :if={cover_image(@prototype)}
             src={~p"/prototype_images/#{cover_image(@prototype).id}"}
@@ -129,45 +128,45 @@ defmodule ReccoWeb.PrototypeLive.Index do
             class="w-full h-full object-cover"
             loading="lazy"
           />
-          <span :if={!cover_image(@prototype)} class="font-heading text-fg/40 text-sm">
+          <span :if={!cover_image(@prototype)} class="text-ink-soft text-sm">
             {gettext("No image")}
           </span>
         </div>
-        <div class="p-4 space-y-2">
-          <h2 class="font-heading truncate">{@prototype.title}</h2>
-          <div class="flex flex-wrap gap-2 text-xs font-base">
-            <span class="inline-flex items-center rounded-base border-2 border-border bg-bg px-2 py-0.5">
+        <div class="p-4 space-y-2.5">
+          <h3 class="text-[19px] leading-tight truncate">{@prototype.title}</h3>
+          <div class="flex flex-wrap gap-2 font-mono text-ink-soft text-[12.5px]">
+            <span>
               {gettext("%{min}-%{max} players",
                 min: @prototype.min_players,
                 max: @prototype.max_players
               )}
             </span>
-            <span class="inline-flex items-center rounded-base border-2 border-border bg-bg px-2 py-0.5">
+            <span>
               {gettext("%{min}-%{max} min",
                 min: @prototype.min_playtime,
                 max: @prototype.max_playtime
               )}
             </span>
           </div>
-          <p :if={@prototype.categories != []} class="text-xs font-base text-fg/70 truncate">
+          <p :if={@prototype.categories != []} class="text-ink-soft text-xs truncate">
             {Enum.join(Enum.take(@prototype.categories, 3), " · ")}
           </p>
         </div>
       </.link>
       <button
+        type="button"
         phx-click="toggle_like"
         phx-value-id={@prototype.id}
         aria-pressed={to_string(@liked?)}
         aria-label={if @liked?, do: gettext("Unlike"), else: gettext("Like")}
         class={[
-          "absolute top-2 right-2 rounded-base border-2 border-border w-9 h-9 flex items-center justify-center text-lg font-heading shadow-brutalist transition-all hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none",
-          @liked? && "bg-red-300",
-          !@liked? && "bg-bw"
+          "btn btn-sm absolute top-2.5 right-2.5 !p-2 !text-lg leading-none",
+          @liked? && "!bg-danger !text-accent-ink"
         ]}
       >
         {if @liked?, do: "♥", else: "♡"}
       </button>
-    </div>
+    </article>
     """
   end
 
@@ -180,10 +179,11 @@ defmodule ReccoWeb.PrototypeLive.Index do
     <.link
       patch={@href}
       class={[
-        "px-3 py-1.5 rounded-base border-2 border-border text-sm font-heading transition-colors",
-        @active? && "bg-main shadow-brutalist",
-        !@active? && "bg-bw hover:bg-bg"
+        "btn btn-sm",
+        @active? && "btn-primary",
+        !@active? && "btn-ghost"
       ]}
+      aria-current={@active? && "page"}
     >
       {@label}
     </.link>
@@ -239,9 +239,9 @@ defmodule ReccoWeb.PrototypeLive.Index do
     <.link
       patch={@href}
       class={[
-        "px-3 py-2 text-sm font-heading rounded-base border-2 border-border transition-all",
-        @current && "bg-main shadow-brutalist",
-        !@current && "bg-bw hover:bg-main"
+        "btn btn-sm",
+        @current && "btn-primary",
+        !@current && "btn-ghost"
       ]}
       aria-current={@current && "page"}
     >

@@ -143,11 +143,12 @@ defmodule ReccoWeb.ProfileLive do
   @spec render(Phoenix.LiveView.Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
   def render(assigns) do
     ~H"""
-    <div class="max-w-xl">
-      <h1 class="text-2xl font-bold mb-6">{gettext("Profile")}</h1>
+    <div class="max-w-2xl pb-12">
+      <div class="label mb-2">{gettext("Settings")}</div>
+      <h1 class="text-[clamp(34px,4vw,58px)] mb-7">{gettext("Profile")}</h1>
 
-      <div class="rounded-base border-2 border-border bg-bw p-6 shadow-brutalist mb-6">
-        <h2 class="text-lg font-bold mb-4">{gettext("Account details")}</h2>
+      <div class="panel p-6 mb-5">
+        <h2 class="text-2xl mb-4">{gettext("Account details")}</h2>
         <dl class="space-y-3 text-sm">
           <div class="flex gap-2">
             <dt class="font-bold">{gettext("Username")}:</dt>
@@ -160,9 +161,9 @@ defmodule ReccoWeb.ProfileLive do
         </dl>
       </div>
 
-      <div class="rounded-base border-2 border-border bg-bw p-6 shadow-brutalist mb-6">
-        <h2 class="text-lg font-bold mb-4">{gettext("BoardGameGeek")}</h2>
-        <p class="text-sm mb-4">
+      <div class="panel p-6 mb-5">
+        <h2 class="text-2xl mb-3">{gettext("BoardGameGeek")}</h2>
+        <p class="text-ink-soft mb-4">
           {gettext("Link your BGG account to import your ratings automatically.")}
         </p>
 
@@ -170,33 +171,27 @@ defmodule ReccoWeb.ProfileLive do
           <.input field={@bgg_form[:bgg_username]} type="text" label={gettext("BGG username")} />
 
           <div class="flex gap-3">
-            <button
-              type="submit"
-              class="rounded-base border-2 border-border bg-main px-4 py-2.5 text-sm font-bold shadow-brutalist hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none transition-all"
-            >
-              {gettext("Save")}
-            </button>
+            <button type="submit" class="btn btn-primary">{gettext("Save")}</button>
           </div>
         </.form>
 
-        <div :if={@current_user.bgg_username} class="mt-4 pt-4 border-t-2 border-border">
-          <p class="text-sm mb-3">
+        <div :if={@current_user.bgg_username} class="mt-5 pt-5 border-t-bw border-line">
+          <p class="text-ink-soft mb-3">
             {gettext(
               "Import your rated games from BGG. Games you've already rated here will be skipped."
             )}
           </p>
           <button
+            type="button"
             phx-click="import_bgg_ratings"
             disabled={@import_status == :loading}
             class={[
-              "rounded-base border-2 border-border px-4 py-2.5 text-sm font-bold shadow-brutalist transition-all",
-              @import_status == :loading && "bg-gray-200 cursor-wait",
-              @import_status != :loading &&
-                "bg-bw hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none"
+              "btn",
+              @import_status == :loading && "cursor-wait"
             ]}
           >
             <%= if @import_status == :loading do %>
-              {gettext("Importing...")}
+              {gettext("Importing…")}
             <% else %>
               {gettext("Import ratings from BGG")}
             <% end %>
@@ -204,8 +199,8 @@ defmodule ReccoWeb.ProfileLive do
         </div>
       </div>
 
-      <div class="rounded-base border-2 border-border bg-bw p-6 shadow-brutalist mb-6">
-        <h2 class="text-lg font-bold mb-4">{gettext("Change password")}</h2>
+      <div class="panel p-6 mb-5">
+        <h2 class="text-2xl mb-4">{gettext("Change password")}</h2>
 
         <.form
           for={@password_form}
@@ -214,7 +209,10 @@ defmodule ReccoWeb.ProfileLive do
           class="space-y-4"
         >
           <div>
-            <label for="password_current_password" class="block text-sm font-bold mb-1">
+            <label
+              for="password_current_password"
+              class="label label-ink !font-bold block mb-2"
+            >
               {gettext("Current password")}
             </label>
             <input
@@ -222,33 +220,25 @@ defmodule ReccoWeb.ProfileLive do
               name="password[current_password]"
               id="password_current_password"
               required
-              class={[
-                "w-full rounded-base border-2 border-border bg-bw px-3 py-2 text-sm font-medium shadow-brutalist-sm focus:outline-none focus:ring-2 focus:ring-main",
-                @current_password_error && "border-red-500"
-              ]}
+              class={["field", @current_password_error && "!border-danger"]}
             />
-            <p :if={@current_password_error} class="mt-1 text-xs text-red-500 font-medium">
+            <p :if={@current_password_error} class="mt-1.5 text-sm font-semibold text-danger">
               {@current_password_error}
             </p>
           </div>
 
           <.input field={@password_form[:password]} type="password" label={gettext("New password")} />
 
-          <button
-            type="submit"
-            class="rounded-base border-2 border-border bg-main px-4 py-2.5 text-sm font-bold shadow-brutalist hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none transition-all"
-          >
-            {gettext("Change password")}
-          </button>
+          <button type="submit" class="btn btn-primary">{gettext("Change password")}</button>
         </.form>
       </div>
 
-      <div class="rounded-base border-2 border-border bg-bw p-6 shadow-brutalist">
-        <h2 class="text-lg font-bold mb-4">{gettext("Session")}</h2>
+      <div class="panel p-6">
+        <h2 class="text-2xl mb-4">{gettext("Session")}</h2>
         <.link
           href={~p"/logout"}
           method="delete"
-          class="rounded-base border-2 border-border bg-bw px-4 py-2.5 text-sm font-bold hover:bg-red-300 transition-colors"
+          class="btn hover:!bg-danger hover:!text-accent-ink"
         >
           {gettext("Sign out")}
         </.link>

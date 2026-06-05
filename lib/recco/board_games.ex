@@ -249,11 +249,30 @@ defmodule Recco.BoardGames do
 
   defp apply_mechanic(query, _opts), do: query
 
-  defp apply_player_count(query, %{min_players: n}) when is_integer(n) and n > 0 do
+  # Player-count filter uses overlap semantics: returns games whose
+  # [min_players..max_players] range overlaps the requested
+  # [min_players..max_players] window.
+  #
+  #   only :min_players   → games that *support at least* N players
+  #   only :max_players   → games that *can be played with* N players
+  #   both                → games whose range overlaps [min..max]
+  defp apply_player_count(query, opts) do
+    query
+    |> apply_min_players(Map.get(opts, :min_players))
+    |> apply_max_players(Map.get(opts, :max_players))
+  end
+
+  defp apply_min_players(query, n) when is_integer(n) and n > 0 do
     from bg in query, where: bg.max_players >= ^n
   end
 
-  defp apply_player_count(query, _opts), do: query
+  defp apply_min_players(query, _), do: query
+
+  defp apply_max_players(query, n) when is_integer(n) and n > 0 do
+    from bg in query, where: bg.min_players <= ^n
+  end
+
+  defp apply_max_players(query, _), do: query
 
   defp apply_sort(query, opts) do
     dir = sort_direction(opts)

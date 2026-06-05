@@ -59,28 +59,28 @@ defmodule ReccoWeb.ResetPasswordLive do
   @spec render(Phoenix.LiveView.Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
   def render(assigns) do
     ~H"""
-    <div class="mx-auto max-w-sm mt-16 px-4">
-      <div class="rounded-base border-2 border-border bg-bw p-8 shadow-brutalist">
-        <h1 class="text-2xl font-bold text-center mb-8">{gettext("Reset password")}</h1>
+    <div class="mx-auto max-w-md mt-16 px-4">
+      <div class="panel panel-lg p-8">
+        <div class="label mb-2">{gettext("Almost there")}</div>
+        <h1 class="text-[clamp(30px,3.6vw,44px)] mb-7">{gettext("Reset password")}</h1>
 
         <.form for={@form} phx-submit="reset" phx-change="validate">
           <div class="space-y-4">
-            <.input field={@form[:password]} type="password" label={gettext("New password")} required />
+            <.input
+              field={@form[:password]}
+              type="password"
+              label={gettext("New password")}
+              required
+            />
           </div>
 
-          <button
-            type="submit"
-            class="mt-6 w-full rounded-base border-2 border-border bg-main px-4 py-2.5 text-sm font-bold shadow-brutalist hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none transition-all"
-          >
-            {gettext("Reset password")}
+          <button type="submit" class="btn btn-primary btn-lg w-full justify-center mt-6">
+            {gettext("Reset password")} →
           </button>
         </.form>
 
-        <p class="mt-6 text-center text-sm font-medium">
-          <a
-            href={~p"/login"}
-            class="font-bold underline decoration-2 underline-offset-2 hover:bg-main"
-          >
+        <p class="mt-6 text-center text-sm">
+          <a href={~p"/login"} class="font-bold underline decoration-2 underline-offset-2">
             {gettext("Back to sign in")}
           </a>
         </p>

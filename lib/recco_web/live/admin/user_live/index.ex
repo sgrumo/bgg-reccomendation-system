@@ -52,7 +52,7 @@ defmodule ReccoWeb.Admin.UserLive.Index do
   def render(assigns) do
     ~H"""
     <div>
-      <h1 class="text-2xl font-bold text-zinc-900 mb-6">Users</h1>
+      <h1 class="text-2xl font-bold text-ink mb-6">Users</h1>
 
       <form phx-change="search" phx-submit="search" class="mb-6 max-w-md">
         <.input
@@ -65,10 +65,10 @@ defmodule ReccoWeb.Admin.UserLive.Index do
       </form>
 
       <div class="flex items-center justify-between mb-4">
-        <p class="text-sm text-zinc-500">{@total} users</p>
+        <p class="text-sm text-ink-soft">{@total} users</p>
         <a
           href={~p"/admin/users?#{deleted_toggle_params(@include_deleted, @search)}"}
-          class="text-sm text-brand-600 hover:underline"
+          class="text-sm text-accent hover:underline"
         >
           {if @include_deleted, do: "Hide deleted", else: "Show deleted"}
         </a>
@@ -77,40 +77,40 @@ defmodule ReccoWeb.Admin.UserLive.Index do
       <div class="overflow-x-auto">
         <table class="w-full text-sm">
           <thead>
-            <tr class="border-b border-zinc-200 text-left">
-              <th class="pb-3 pr-4 font-medium text-zinc-500">Username</th>
-              <th class="pb-3 pr-4 font-medium text-zinc-500">Email</th>
-              <th class="pb-3 pr-4 font-medium text-zinc-500">Role</th>
-              <th class="pb-3 pr-4 font-medium text-zinc-500">Ratings</th>
-              <th class="pb-3 font-medium text-zinc-500">Joined</th>
+            <tr class="border-b border-line text-left">
+              <th class="pb-3 pr-4 font-medium text-ink-soft">Username</th>
+              <th class="pb-3 pr-4 font-medium text-ink-soft">Email</th>
+              <th class="pb-3 pr-4 font-medium text-ink-soft">Role</th>
+              <th class="pb-3 pr-4 font-medium text-ink-soft">Ratings</th>
+              <th class="pb-3 font-medium text-ink-soft">Joined</th>
             </tr>
           </thead>
           <tbody>
             <tr
               :for={row <- @users}
-              class={["border-b border-zinc-100", row.user.deleted_at && "opacity-60"]}
+              class={["border-b border-line", row.user.deleted_at && "opacity-60"]}
             >
               <td class="py-3 pr-4">
                 <a
                   href={~p"/admin/users/#{row.user.id}"}
-                  class="font-medium text-zinc-900 hover:underline"
+                  class="font-medium text-ink hover:underline"
                 >
                   {row.user.username}
                 </a>
-                <span :if={row.user.deleted_at} class="ml-2 text-xs text-red-700">(deleted)</span>
+                <span :if={row.user.deleted_at} class="ml-2 text-xs text-danger">(deleted)</span>
               </td>
-              <td class="py-3 pr-4 text-zinc-600">{row.user.email}</td>
+              <td class="py-3 pr-4 text-ink">{row.user.email}</td>
               <td class="py-3 pr-4">
                 <span class={[
                   "inline-block rounded-full px-2 py-0.5 text-xs font-medium",
-                  row.user.role == "superadmin" && "bg-brand-100 text-brand-700",
-                  row.user.role == "base" && "bg-zinc-100 text-zinc-600"
+                  row.user.role == "superadmin" && "bg-accent/20 text-accent",
+                  row.user.role == "base" && "bg-card2 text-ink"
                 ]}>
                   {row.user.role}
                 </span>
               </td>
-              <td class="py-3 pr-4 text-zinc-600">{row.rating_count}</td>
-              <td class="py-3 text-zinc-500">
+              <td class="py-3 pr-4 text-ink">{row.rating_count}</td>
+              <td class="py-3 text-ink-soft">
                 {Calendar.strftime(row.user.inserted_at, "%Y-%m-%d")}
               </td>
             </tr>
@@ -162,8 +162,8 @@ defmodule ReccoWeb.Admin.UserLive.Index do
       href={@href}
       class={[
         "px-3 py-2 text-sm rounded-lg",
-        @current && "bg-brand-600 text-white",
-        !@current && "text-zinc-600 hover:bg-zinc-100"
+        @current && "bg-accent text-accent-ink",
+        !@current && "text-ink hover:bg-card2"
       ]}
       aria-current={@current && "page"}
     >

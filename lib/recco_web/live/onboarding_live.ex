@@ -118,10 +118,13 @@ defmodule ReccoWeb.OnboardingLive do
     assigns = assign(assigns, rated_count: rated_count)
 
     ~H"""
-    <div class="max-w-5xl mx-auto">
-      <div class="text-center mb-6">
-        <h1 class="text-3xl font-bold">{gettext("Welcome! Tell us what you like")}</h1>
-        <p class="text-sm font-medium mt-2 max-w-xl mx-auto">
+    <div class="max-w-5xl mx-auto pb-12">
+      <div class="text-center mb-8">
+        <div class="label mb-2">{gettext("Step 1 of 1")}</div>
+        <h1 class="text-[clamp(34px,4vw,58px)] mb-3">
+          {gettext("Welcome! Tell us what you like")}
+        </h1>
+        <p class="text-ink-soft text-base max-w-xl mx-auto">
           {gettext(
             "Rate any games you've played below. Even 3-5 ratings are enough to start getting personalised picks — the more you rate, the sharper they get."
           )}
@@ -131,16 +134,18 @@ defmodule ReccoWeb.OnboardingLive do
       <.progress_banner rated_count={@rated_count} ratings_threshold={@ratings_threshold} />
 
       <form phx-change="search" phx-submit="search" class="mb-6">
-        <.input
-          name="search"
+        <input
           type="text"
+          name="search"
           value={@search}
-          placeholder={gettext("Search for a game you've played...")}
+          placeholder={gettext("Search for a game you've played…")}
+          class="field"
           phx-debounce="300"
+          aria-label={gettext("Search games")}
         />
       </form>
 
-      <p :if={@search != ""} class="text-xs font-medium mb-3">
+      <p :if={@search != ""} class="label mb-3">
         {if @games == [],
           do: gettext("No games match \"%{search}\".", search: @search),
           else: gettext("Showing results for \"%{search}\".", search: @search)}
@@ -156,16 +161,10 @@ defmodule ReccoWeb.OnboardingLive do
       </div>
 
       <div class="mt-8 flex items-center justify-between gap-3 flex-wrap">
-        <button
-          phx-click="skip"
-          class="text-sm font-bold underline decoration-2 underline-offset-2 hover:bg-main px-1"
-        >
+        <button type="button" phx-click="skip" class="btn btn-ghost">
           {gettext("Skip for now")}
         </button>
-        <button
-          phx-click="finish"
-          class="rounded-base border-2 border-border bg-main px-5 py-2.5 text-sm font-bold shadow-brutalist hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none transition-all"
-        >
+        <button type="button" phx-click="finish" class="btn btn-primary btn-lg">
           {if @rated_count > 0,
             do: gettext("I'm done — show my picks") <> " →",
             else: gettext("I'm done") <> " →"}
@@ -184,9 +183,9 @@ defmodule ReccoWeb.OnboardingLive do
     assigns = assign(assigns, remaining: remaining, pct: pct)
 
     ~H"""
-    <div class="mb-6 rounded-base border-2 border-border bg-main/30 p-4 shadow-brutalist">
+    <div class="panel bg-card2 px-5 py-4 mb-6">
       <div class="flex items-center justify-between gap-3 flex-wrap">
-        <p class="text-sm font-bold">
+        <p class="font-bold">
           <%= if @remaining == 0 do %>
             {gettext("%{count} rated — you're ready for recommendations.",
               count: @rated_count
@@ -198,7 +197,7 @@ defmodule ReccoWeb.OnboardingLive do
             )}
           <% end %>
         </p>
-        <p :if={@remaining > 0} class="text-xs font-medium">
+        <p :if={@remaining > 0} class="text-ink-soft text-sm">
           {ngettext(
             "Rate %{count} more to unlock picks.",
             "Rate %{count} more to unlock picks.",
@@ -206,8 +205,8 @@ defmodule ReccoWeb.OnboardingLive do
           )}
         </p>
       </div>
-      <div class="mt-3 h-4 w-full rounded-base border-2 border-border bg-bw overflow-hidden">
-        <div class="h-full bg-main" style={"width: #{@pct}%"}></div>
+      <div class="mt-3 h-4 w-full border-2 border-line rounded-panel-sm bg-card overflow-hidden">
+        <div class="h-full bg-accent" style={"width: #{@pct}%"}></div>
       </div>
     </div>
     """
@@ -218,8 +217,8 @@ defmodule ReccoWeb.OnboardingLive do
 
   defp onboarding_card(assigns) do
     ~H"""
-    <div class="rounded-base border-2 border-border bg-bw shadow-brutalist overflow-hidden">
-      <div class="aspect-square bg-bg flex items-center justify-center border-b-2 border-border">
+    <article class="panel overflow-hidden flex flex-col">
+      <div class="aspect-square bg-card2 grid place-items-center border-b-bw border-line overflow-hidden">
         <img
           :if={@game.image_url}
           src={@game.image_url}
@@ -228,57 +227,66 @@ defmodule ReccoWeb.OnboardingLive do
           loading="lazy"
         />
       </div>
-      <div class="p-3">
-        <h2 class="font-heading text-sm truncate">{@game.name}</h2>
-        <p :if={@game.year_published} class="text-xs font-base">{@game.year_published}</p>
-      </div>
-      <div class="px-2 py-2 border-t-2 border-border">
-        <div class="flex items-center justify-between mb-1 px-1">
-          <span class="text-[10px] font-heading uppercase tracking-wide">
-            {if @score, do: gettext("Your rating"), else: gettext("Rate this")}
-          </span>
-          <div class="flex items-center gap-1">
-            <span :if={@score} class="text-xs font-heading">{trunc(@score)}/10</span>
+      <div class="p-3.5 flex-1 flex flex-col gap-2.5">
+        <div>
+          <h3 class="text-[19px] leading-tight truncate">{@game.name}</h3>
+          <p :if={@game.year_published} class="font-mono text-ink-soft text-[13px] mt-1">
+            {@game.year_published}
+          </p>
+        </div>
+        <div class="mt-auto">
+          <div class="flex items-center justify-between gap-2 mb-1.5 min-h-[28px]">
+            <span class="label !text-[10.5px]">
+              {if @score, do: gettext("Your rating"), else: gettext("Rate this")}
+            </span>
             <button
               :if={@score}
+              type="button"
               phx-click="clear_rating"
               phx-value-game-id={@game.id}
-              class="rounded-sm border border-border bg-bw px-1 text-[10px] font-heading leading-none hover:bg-red-300 transition-colors"
+              class="btn btn-ghost btn-sm !py-1 !px-2.5 !gap-1.5 !text-[12px] !font-bold hover:!bg-danger hover:!text-accent-ink"
               aria-label={gettext("Clear rating")}
-              title={gettext("Clear rating")}
             >
-              &times;
+              <span aria-hidden="true" class="text-base leading-none">×</span>
+              {gettext("Clear")}
             </button>
           </div>
-        </div>
-        <div class="grid grid-cols-10 gap-0.5">
+          <form phx-change="rate" class="flex items-center gap-3">
+            <input type="hidden" name="game-id" value={@game.id} />
+            <input
+              type="range"
+              name="score"
+              min="1"
+              max="10"
+              step="1"
+              value={slider_value(@score)}
+              phx-debounce="250"
+              data-unrated={if @score, do: "false", else: "true"}
+              class="rate-slider flex-1"
+              aria-label={gettext("Rate %{game} out of 10", game: @game.name)}
+              aria-valuenow={trunc(@score || 0)}
+            />
+            <span class={[
+              "font-mono font-bold text-sm tabular-nums min-w-[44px] text-right",
+              !@score && "text-ink-soft"
+            ]}>
+              {if @score, do: "#{trunc(@score)}/10", else: "—/10"}
+            </span>
+          </form>
           <button
-            :for={n <- 1..10}
-            phx-click="rate"
+            type="button"
+            phx-click="dismiss"
             phx-value-game-id={@game.id}
-            phx-value-score={n}
-            class={[
-              "h-6 rounded-sm border border-border text-[10px] font-heading transition-colors",
-              rate_active?(n, @score) && "bg-main",
-              !rate_active?(n, @score) && "bg-bw hover:bg-main/50"
-            ]}
-            aria-label={gettext("Rate %{score} out of 10", score: n)}
+            class="btn btn-ghost btn-sm w-full justify-center mt-2 !text-[12px]"
           >
-            {n}
+            {gettext("Haven't played")}
           </button>
         </div>
-        <button
-          phx-click="dismiss"
-          phx-value-game-id={@game.id}
-          class="mt-2 w-full rounded-sm border border-border bg-bw px-2 py-1 text-[10px] font-heading hover:bg-bg transition-colors"
-        >
-          {gettext("Haven't played")}
-        </button>
       </div>
-    </div>
+    </article>
     """
   end
 
-  defp rate_active?(_n, nil), do: false
-  defp rate_active?(n, score) when is_number(score), do: n <= trunc(score)
+  defp slider_value(nil), do: 5
+  defp slider_value(score) when is_number(score), do: trunc(score)
 end

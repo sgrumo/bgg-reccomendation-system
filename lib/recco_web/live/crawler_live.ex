@@ -132,7 +132,7 @@ defmodule ReccoWeb.CrawlerLive do
 
           <div class="w-full bg-gray-200 rounded-full h-3">
             <div
-              class="bg-blue-600 h-3 rounded-full transition-all duration-500"
+              class="bg-accent h-3 rounded-full transition-all duration-500"
               style={"width: #{@progress}%"}
             >
             </div>
@@ -143,7 +143,7 @@ defmodule ReccoWeb.CrawlerLive do
       <%= if @running do %>
         <button
           phx-click="stop"
-          class="w-full bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700"
+          class="w-full bg-danger text-accent-ink py-2 px-4 rounded hover:bg-danger"
         >
           Stop Crawler
         </button>
@@ -159,7 +159,7 @@ defmodule ReccoWeb.CrawlerLive do
           />
           <button
             type="submit"
-            class="bg-blue-600 text-white py-2 px-6 rounded hover:bg-blue-700"
+            class="bg-accent text-accent-ink py-2 px-6 rounded hover:bg-accent"
           >
             Start Crawler
           </button>

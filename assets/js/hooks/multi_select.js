@@ -114,8 +114,12 @@ const MultiSelect = {
   },
 
   _renderTags() {
-    const container = this.el.querySelector("[data-tags]")
+    // The selected items are rendered as removable chips below the
+    // dropdown (via the LiveView template), so we don't render duplicate
+    // tags inside the trigger — only toggle the placeholder visibility
+    // and surface a compact "N selected" summary when many are picked.
     const placeholder = this.el.querySelector("[data-placeholder]")
+    const container = this.el.querySelector("[data-tags]")
 
     container.innerHTML = ""
     if (this.selected.size === 0) {
@@ -124,12 +128,12 @@ const MultiSelect = {
     }
 
     placeholder.classList.add("hidden")
-    this.selected.forEach(name => {
-      const tag = document.createElement("span")
-      tag.className = "inline-flex items-center gap-1 rounded-base border-2 border-border bg-main px-1.5 py-0.5 text-xs font-bold"
-      tag.textContent = name
-      container.appendChild(tag)
-    })
+    const summary = document.createElement("span")
+    summary.className = "text-sm font-semibold text-ink"
+    summary.textContent = this.selected.size === 1
+      ? [...this.selected][0]
+      : `${this.selected.size} selected`
+    container.appendChild(summary)
   },
 
   _renderOptions() {
@@ -138,11 +142,13 @@ const MultiSelect = {
       const row = document.createElement("button")
       row.type = "button"
       row.dataset.value = opt.name
-      row.className = "flex items-center w-full px-3 py-2 rounded-base text-sm font-base text-left cursor-pointer hover:bg-bg transition-colors"
+      row.className = "ms-opt w-full text-left"
+      row.setAttribute("data-on", this.selected.has(opt.name) ? "1" : "0")
 
       const checkbox = document.createElement("span")
       checkbox.dataset.checkbox = ""
-      this._setCheckboxState(checkbox, this.selected.has(opt.name))
+      checkbox.className = "ms-check"
+      checkbox.innerHTML = this.selected.has(opt.name) ? "✓" : ""
 
       const label = document.createElement("span")
       label.textContent = opt.name
@@ -160,19 +166,11 @@ const MultiSelect = {
 
   _updateCheckboxes() {
     this.optionsList.querySelectorAll("button[data-value]").forEach(row => {
+      const on = this.selected.has(row.dataset.value)
+      row.setAttribute("data-on", on ? "1" : "0")
       const cb = row.querySelector("[data-checkbox]")
-      this._setCheckboxState(cb, this.selected.has(row.dataset.value))
+      if (cb) cb.innerHTML = on ? "✓" : ""
     })
-  },
-
-  _setCheckboxState(el, checked) {
-    if (checked) {
-      el.className = "w-4 h-4 rounded-[3px] border-2 border-border bg-main mr-3 flex-shrink-0 flex items-center justify-center"
-      el.innerHTML = '<svg class="w-2.5 h-2.5" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
-    } else {
-      el.className = "w-4 h-4 rounded-[3px] border-2 border-border bg-bw mr-3 flex-shrink-0"
-      el.innerHTML = ""
-    }
   },
 
   _filterOptions() {

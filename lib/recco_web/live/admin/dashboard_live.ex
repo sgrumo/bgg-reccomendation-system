@@ -73,49 +73,50 @@ defmodule ReccoWeb.Admin.DashboardLive do
   @spec render(Phoenix.LiveView.Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
   def render(assigns) do
     ~H"""
-    <div>
-      <h1 class="text-2xl font-bold text-zinc-900 mb-8">Dashboard</h1>
+    <div class="pb-12">
+      <div class="label mb-2">Admin</div>
+      <h1 class="text-[clamp(34px,4vw,58px)] mb-8">Dashboard</h1>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
         <.stat_card title="Users" value={@user_count} href={~p"/admin/users"} />
         <.stat_card title="Board Games" value={@game_count} />
         <.stat_card title="Total Ratings" value={@total_ratings} />
       </div>
 
-      <h2 class="text-lg font-bold text-zinc-900 mb-4">Observability</h2>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <h2 class="text-2xl mb-4">Observability</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         <.info_card title="Crawler">
-          <p class="text-sm text-zinc-700">
+          <p class="text-sm text-ink">
             Status: <span class="font-semibold">{@crawler_status.status}</span>
           </p>
-          <p class="text-sm text-zinc-700">Last fetched ID: {@crawler_status.last_fetched_id}</p>
-          <p :if={@crawler_status.updated_at} class="text-xs text-zinc-500 mt-1">
+          <p class="text-sm text-ink">Last fetched ID: {@crawler_status.last_fetched_id}</p>
+          <p :if={@crawler_status.updated_at} class="text-xs text-ink-soft mt-1">
             Updated {format_ago(@crawler_status.updated_at)}
           </p>
         </.info_card>
 
         <.info_card title="Oban">
-          <p class="text-sm text-zinc-700">Executing: {@oban_health.executing}</p>
-          <p class="text-sm text-zinc-700">Retryable: {@oban_health.retryable}</p>
+          <p class="text-sm text-ink">Executing: {@oban_health.executing}</p>
+          <p class="text-sm text-ink">Retryable: {@oban_health.retryable}</p>
           <p class={[
             "text-sm",
-            if(@oban_health.discarded > 0, do: "text-red-700 font-semibold", else: "text-zinc-700")
+            if(@oban_health.discarded > 0, do: "text-danger font-semibold", else: "text-ink")
           ]}>
             Discarded: {@oban_health.discarded}
           </p>
-          <a href={~p"/admin/jobs"} class="mt-2 inline-block text-xs text-brand-600 hover:underline">
+          <a href={~p"/admin/jobs"} class="mt-2 inline-block text-xs text-accent hover:underline">
             View jobs &rarr;
           </a>
         </.info_card>
 
         <.info_card title="Auth (current window)">
-          <p class="text-sm text-zinc-700">Failed logins: {@auth_failed}</p>
-          <p class="text-sm text-zinc-700">Locked-out hits: {@auth_locked_out}</p>
-          <p class="text-sm text-zinc-700">BGG 429s: {@bgg_429}</p>
+          <p class="text-sm text-ink">Failed logins: {@auth_failed}</p>
+          <p class="text-sm text-ink">Locked-out hits: {@auth_locked_out}</p>
+          <p class="text-sm text-ink">BGG 429s: {@bgg_429}</p>
         </.info_card>
 
         <.info_card :if={@cache_stats != %{}} title="Cache">
-          <p :for={{cache, stats} <- @cache_stats} class="text-sm text-zinc-700">
+          <p :for={{cache, stats} <- @cache_stats} class="text-sm text-ink">
             <span class="font-semibold">{cache}</span>: {cache_hit_rate(stats)} hit rate ({Map.get(
               stats,
               :hits,
@@ -142,11 +143,15 @@ defmodule ReccoWeb.Admin.DashboardLive do
 
   defp stat_card(assigns) do
     ~H"""
-    <div class="rounded-lg border border-zinc-200 bg-white p-6">
-      <p class="text-sm font-medium text-zinc-500">{@title}</p>
-      <p class="mt-2 text-3xl font-bold text-zinc-900">{@value}</p>
-      <a :if={@href} href={@href} class="mt-3 inline-block text-sm text-brand-600 hover:underline">
-        View all &rarr;
+    <div class="panel p-5">
+      <div class="label">{@title}</div>
+      <p class="mt-2 font-mono font-bold text-[34px] leading-none text-ink">{@value}</p>
+      <a
+        :if={@href}
+        href={@href}
+        class="mt-3 inline-block text-sm font-bold underline decoration-2 underline-offset-2"
+      >
+        View all →
       </a>
     </div>
     """
@@ -157,8 +162,8 @@ defmodule ReccoWeb.Admin.DashboardLive do
 
   defp info_card(assigns) do
     ~H"""
-    <div class="rounded-lg border border-zinc-200 bg-white p-6">
-      <p class="text-sm font-medium text-zinc-500 mb-3">{@title}</p>
+    <div class="panel p-5">
+      <div class="label mb-3">{@title}</div>
       {render_slot(@inner_block)}
     </div>
     """

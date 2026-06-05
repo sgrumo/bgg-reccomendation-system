@@ -7,9 +7,22 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Red+Hat+Text:ital,wght@0,300..700;1,300..700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Anton&family=Darker+Grotesque:wght@500;700;900&family=Rubik:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap"
       rel="stylesheet"
     />
+    <script>
+      // FOUC-prevention: apply .dark class before paint based on stored
+      // preference or OS setting. Mirrors the toggle in assets/js/hooks/theme_toggle.js.
+      (function () {
+        try {
+          var stored = localStorage.getItem("bgrecco-theme");
+          var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+          if (stored === "dark" || (stored === null && prefersDark)) {
+            document.documentElement.classList.add("dark");
+          }
+        } catch (_e) {}
+      })();
+    </script>
     <.live_title default="BGRecco">
       {assigns[:page_title]}
     </.live_title>

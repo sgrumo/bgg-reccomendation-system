@@ -28,13 +28,17 @@ defmodule ReccoWeb.CoreComponents do
       :if={msg = Phoenix.Flash.get(@flash, @kind)}
       role="alert"
       class={[
-        "mb-4 flex items-center justify-between rounded-base border-2 border-border p-4 text-sm font-medium",
-        @kind == :info && "bg-main",
-        @kind == :error && "bg-red-300"
+        "panel mb-4 flex items-center justify-between gap-3 px-4 py-3 text-sm font-semibold",
+        @kind == :info && "!bg-accent !text-accent-ink",
+        @kind == :error && "!bg-danger !text-accent-ink"
       ]}
     >
       <p>{msg}</p>
-      <button phx-click={JS.push("lv:clear-flash", value: %{key: @kind})}>
+      <button
+        type="button"
+        phx-click={JS.push("lv:clear-flash", value: %{key: @kind})}
+        aria-label={gettext("Dismiss")}
+      >
         <.icon name="hero-x-mark" class="h-5 w-5" />
       </button>
     </div>
@@ -81,16 +85,16 @@ defmodule ReccoWeb.CoreComponents do
   def input(assigns) do
     ~H"""
     <div>
-      <label :if={@label} for={@id} class="mb-1 block text-sm font-bold">{@label}</label>
+      <label :if={@label} for={@id} class="label label-ink !font-bold block mb-2">{@label}</label>
       <input
         type={@type}
         name={@name}
         id={@id}
         value={Phoenix.HTML.Form.normalize_value(@type, @value)}
-        class="flex h-10 w-full rounded-base border-2 border-border bg-bw px-3 py-2 text-sm font-medium placeholder:text-fg/50 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+        class="field disabled:cursor-not-allowed disabled:opacity-50"
         {@rest}
       />
-      <p :for={msg <- @errors} class="mt-1 text-sm font-medium text-red-600">{msg}</p>
+      <p :for={msg <- @errors} class="mt-1.5 text-sm font-semibold text-danger">{msg}</p>
     </div>
     """
   end

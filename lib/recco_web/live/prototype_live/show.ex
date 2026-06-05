@@ -121,32 +121,26 @@ defmodule ReccoWeb.PrototypeLive.Show do
   @spec render(Phoenix.LiveView.Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
   def render(assigns) do
     ~H"""
-    <div class="max-w-4xl mx-auto space-y-6">
-      <.link
-        navigate={~p"/prototypes"}
-        class="inline-flex items-center text-sm font-heading hover:bg-main px-2 py-1 rounded-base"
-      >
+    <div class="max-w-4xl mx-auto pb-12 space-y-6">
+      <.link navigate={~p"/prototypes"} class="btn btn-ghost btn-sm !pl-0">
         ← {gettext("Back to prototypes")}
       </.link>
 
-      <div
-        :if={@prototype.blocked_at}
-        class="rounded-base border-2 border-border bg-red-300 p-4 shadow-brutalist"
-      >
-        <p class="font-heading text-sm">
+      <div :if={@prototype.blocked_at} class="panel !bg-danger !text-accent-ink p-4">
+        <p class="font-bold text-sm">
           {gettext("This prototype has been blocked by an admin and is hidden from other users.")}
         </p>
       </div>
 
-      <div class="rounded-base border-2 border-border bg-bw shadow-brutalist overflow-hidden">
-        <div :if={@prototype.images != []} class="grid grid-cols-2 sm:grid-cols-3 gap-2 p-4 bg-bg">
+      <div class="panel overflow-hidden">
+        <div :if={@prototype.images != []} class="grid grid-cols-2 sm:grid-cols-3 gap-2 p-4 bg-card2">
           <button
             :for={{image, idx} <- Enum.with_index(@prototype.images)}
             type="button"
             phx-click="open_lightbox"
             phx-value-index={idx}
             aria-label={gettext("View image %{n}", n: idx + 1)}
-            class="block aspect-square rounded-base border-2 border-border overflow-hidden bg-bw hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none transition-all"
+            class="block aspect-square border-bw border-line rounded-panel-sm overflow-hidden bg-card hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-panel-sm transition-transform"
           >
             <img
               src={~p"/prototype_images/#{image.id}"}
@@ -158,37 +152,37 @@ defmodule ReccoWeb.PrototypeLive.Show do
         </div>
 
         <div class="p-6 space-y-6">
-          <div class="flex items-start justify-between gap-4">
+          <div class="flex items-start justify-between gap-4 flex-wrap">
             <div>
-              <h1 class="text-3xl font-heading mb-2">{@prototype.title}</h1>
-              <p class="text-sm font-base text-fg/70">
-                {gettext("Submitted by")}
-                <span class="font-heading">{@prototype.user.username}</span>
-              </p>
+              <div class="label mb-2">
+                {gettext("Submitted by")} <span class="!text-ink">{@prototype.user.username}</span>
+              </div>
+              <h1 class="text-[clamp(34px,4vw,58px)]">{@prototype.title}</h1>
             </div>
             <button
+              type="button"
               phx-click="toggle_like"
               aria-pressed={to_string(@liked?)}
               aria-label={if @liked?, do: gettext("Unlike"), else: gettext("Like")}
               class={[
-                "flex items-center gap-1.5 rounded-base border-2 border-border px-3 py-2 text-sm font-heading shadow-brutalist transition-all hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none",
-                @liked? && "bg-red-300",
-                !@liked? && "bg-bw"
+                "btn !gap-2",
+                @liked? && "!bg-danger !text-accent-ink"
               ]}
             >
               <span aria-hidden="true">{if @liked?, do: "♥", else: "♡"}</span>
-              <span>{@like_count}</span>
+              <span class="font-mono tabular-nums">{@like_count}</span>
             </button>
           </div>
 
-          <div class="flex flex-wrap gap-2 text-sm font-base">
-            <span class="inline-flex items-center rounded-base border-2 border-border bg-bg px-3 py-1">
+          <div class="flex flex-wrap gap-2 font-mono text-ink-soft text-[13px]">
+            <span>
               {gettext("%{min}-%{max} players",
                 min: @prototype.min_players,
                 max: @prototype.max_players
               )}
             </span>
-            <span class="inline-flex items-center rounded-base border-2 border-border bg-bg px-3 py-1">
+            <span aria-hidden="true">·</span>
+            <span>
               {gettext("%{min}-%{max} min",
                 min: @prototype.min_playtime,
                 max: @prototype.max_playtime
@@ -197,93 +191,69 @@ defmodule ReccoWeb.PrototypeLive.Show do
           </div>
 
           <section>
-            <h2 class="text-sm font-heading uppercase tracking-wide mb-2">
-              {gettext("Description")}
-            </h2>
-            <p class="font-base whitespace-pre-line">{@prototype.description}</p>
+            <div class="label mb-2.5">{gettext("Description")}</div>
+            <p class="text-[16.5px] leading-[1.62] whitespace-pre-line">{@prototype.description}</p>
           </section>
 
           <section :if={@prototype.categories != []}>
-            <h2 class="text-sm font-heading uppercase tracking-wide mb-2">
-              {gettext("Categories")}
-            </h2>
+            <div class="label mb-2.5">{gettext("Categories")}</div>
             <div class="flex flex-wrap gap-2">
-              <span
-                :for={c <- @prototype.categories}
-                class="inline-flex items-center rounded-base border-2 border-border bg-main px-2 py-0.5 text-xs font-heading"
-              >
-                {c}
-              </span>
+              <span :for={c <- @prototype.categories} class="chip chip-accent">{c}</span>
             </div>
           </section>
 
           <section :if={@prototype.mechanics != []}>
-            <h2 class="text-sm font-heading uppercase tracking-wide mb-2">
-              {gettext("Mechanics")}
-            </h2>
+            <div class="label mb-2.5">{gettext("Mechanics")}</div>
             <div class="flex flex-wrap gap-2">
-              <span
-                :for={m <- @prototype.mechanics}
-                class="inline-flex items-center rounded-base border-2 border-border bg-bg px-2 py-0.5 text-xs font-heading"
-              >
-                {m}
-              </span>
+              <span :for={m <- @prototype.mechanics} class="chip">{m}</span>
             </div>
           </section>
 
           <section :if={@prototype.collaborators != []}>
-            <h2 class="text-sm font-heading uppercase tracking-wide mb-2">
-              {gettext("Team")}
-            </h2>
-            <ul class="space-y-1 font-base">
+            <div class="label mb-2.5">{gettext("Team")}</div>
+            <ul class="space-y-1">
               <li :for={collab <- @prototype.collaborators}>
-                <span class="font-heading">{collab.name}</span> — {collab.role}
+                <span class="font-bold">{collab.name}</span>
+                <span class="text-ink-soft">— {collab.role}</span>
               </li>
             </ul>
           </section>
 
           <section :if={@prototype.links != []}>
-            <h2 class="text-sm font-heading uppercase tracking-wide mb-2">
-              {gettext("Links")}
-            </h2>
+            <div class="label mb-2.5">{gettext("Links")}</div>
             <ul class="flex flex-wrap gap-2">
               <li :for={link <- @prototype.links}>
                 <a
                   href={link.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  class="inline-flex items-center gap-1 rounded-base border-2 border-border bg-bw px-3 py-1.5 text-sm font-heading shadow-brutalist hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none transition-all"
+                  class="btn btn-sm"
                 >
-                  {link.label}
-                  <span aria-hidden="true">↗</span>
+                  {link.label} <span aria-hidden="true">↗</span>
                 </a>
               </li>
             </ul>
           </section>
 
           <section>
-            <h2 class="text-sm font-heading uppercase tracking-wide mb-2">
-              {gettext("Contact")}
-            </h2>
+            <div class="label mb-2.5">{gettext("Contact")}</div>
             <a
               href={"mailto:#{@prototype.contact_email}"}
-              class="font-base underline decoration-2 underline-offset-2 hover:bg-main"
+              class="font-bold underline decoration-2 underline-offset-2"
             >
               {@prototype.contact_email}
             </a>
           </section>
 
-          <div :if={@owner?} class="flex gap-3 pt-4 border-t-2 border-border">
-            <.link
-              navigate={~p"/prototypes/#{@prototype.id}/edit"}
-              class="rounded-base border-2 border-border bg-bw px-4 py-2 text-sm font-heading shadow-brutalist hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none transition-all"
-            >
+          <div :if={@owner?} class="flex gap-3 pt-5 border-t-bw border-line">
+            <.link navigate={~p"/prototypes/#{@prototype.id}/edit"} class="btn">
               {gettext("Edit")}
             </.link>
             <button
+              type="button"
               phx-click="delete"
               data-confirm={gettext("Delete this prototype? This cannot be undone.")}
-              class="rounded-base border-2 border-border bg-red-300 px-4 py-2 text-sm font-heading shadow-brutalist hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none transition-all"
+              class="btn hover:!bg-danger hover:!text-accent-ink"
             >
               {gettext("Delete")}
             </button>
@@ -325,7 +295,7 @@ defmodule ReccoWeb.PrototypeLive.Show do
         type="button"
         phx-click="close_lightbox"
         aria-label={gettext("Close")}
-        class="absolute top-4 right-4 z-10 rounded-base border-2 border-border bg-bw w-10 h-10 flex items-center justify-center font-heading text-xl hover:bg-main transition-colors"
+        class="btn btn-sm absolute top-4 right-4 z-10 !w-10 !h-10 !p-0 grid place-items-center text-xl"
       >
         ×
       </button>
@@ -335,7 +305,7 @@ defmodule ReccoWeb.PrototypeLive.Show do
         type="button"
         phx-click="prev_image"
         aria-label={gettext("Previous image")}
-        class="absolute left-4 top-1/2 -translate-y-1/2 z-10 rounded-base border-2 border-border bg-bw w-12 h-12 flex items-center justify-center font-heading text-2xl hover:bg-main transition-colors"
+        class="btn absolute left-4 top-1/2 -translate-y-1/2 z-10 !w-12 !h-12 !p-0 grid place-items-center text-2xl"
       >
         ‹
       </button>
@@ -345,7 +315,7 @@ defmodule ReccoWeb.PrototypeLive.Show do
         type="button"
         phx-click="next_image"
         aria-label={gettext("Next image")}
-        class="absolute right-4 top-1/2 -translate-y-1/2 z-10 rounded-base border-2 border-border bg-bw w-12 h-12 flex items-center justify-center font-heading text-2xl hover:bg-main transition-colors"
+        class="btn absolute right-4 top-1/2 -translate-y-1/2 z-10 !w-12 !h-12 !p-0 grid place-items-center text-2xl"
       >
         ›
       </button>
@@ -354,7 +324,7 @@ defmodule ReccoWeb.PrototypeLive.Show do
         <img
           src={~p"/prototype_images/#{@image.id}"}
           alt={@image.original_filename}
-          class="max-w-full max-h-[85vh] object-contain rounded-base border-2 border-border bg-bw"
+          class="max-w-full max-h-[85vh] object-contain border-bw border-line rounded-panel bg-card"
         />
       </div>
 

@@ -74,6 +74,7 @@ defmodule ReccoWeb.Router do
       on_mount: [
         ReccoWeb.Live.RequestIdHook,
         ReccoWeb.Live.SetLocale,
+        ReccoWeb.Live.CurrentPathHook,
         {ReccoWeb.Live.UserAuth, :mount_current_user}
       ],
       layout: {ReccoWeb.Layouts, :app} do
@@ -91,6 +92,7 @@ defmodule ReccoWeb.Router do
       on_mount: [
         ReccoWeb.Live.RequestIdHook,
         ReccoWeb.Live.SetLocale,
+        ReccoWeb.Live.CurrentPathHook,
         {ReccoWeb.Live.UserAuth, :ensure_authenticated}
       ],
       layout: {ReccoWeb.Layouts, :app} do
@@ -118,6 +120,7 @@ defmodule ReccoWeb.Router do
       on_mount: [
         ReccoWeb.Live.RequestIdHook,
         ReccoWeb.Live.SetLocale,
+        ReccoWeb.Live.CurrentPathHook,
         {ReccoWeb.Live.UserAuth, :ensure_superadmin},
         ReccoWeb.Live.AdminPresenceHook
       ],

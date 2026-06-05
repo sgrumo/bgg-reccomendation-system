@@ -124,14 +124,14 @@ defmodule ReccoWeb.Admin.UserLive.Show do
   def render(assigns) do
     ~H"""
     <div>
-      <a href={~p"/admin/users"} class="text-sm text-brand-600 hover:underline mb-4 inline-block">
+      <a href={~p"/admin/users"} class="text-sm text-accent hover:underline mb-4 inline-block">
         &larr; Back to users
       </a>
 
       <div class="flex items-center justify-between mb-6 gap-4 flex-wrap">
-        <h1 class="text-2xl font-bold text-zinc-900">
+        <h1 class="text-2xl font-bold text-ink">
           {@user.username}
-          <span :if={@user.deleted_at} class="ml-2 text-sm font-medium text-red-700">
+          <span :if={@user.deleted_at} class="ml-2 text-sm font-medium text-danger">
             (deleted {Calendar.strftime(@user.deleted_at, "%Y-%m-%d")})
           </span>
         </h1>
@@ -141,7 +141,7 @@ defmodule ReccoWeb.Admin.UserLive.Show do
             :if={@user.role == "base" and is_nil(@user.deleted_at)}
             phx-click="promote_to_superadmin"
             data-confirm={"Promote #{@user.username} to superadmin? They will get full admin access."}
-            class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-500"
+            class="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-accent-ink hover:bg-accent"
           >
             Make admin
           </button>
@@ -153,7 +153,7 @@ defmodule ReccoWeb.Admin.UserLive.Show do
             }
             phx-click="demote_to_base"
             data-confirm={"Revoke superadmin from #{@user.username}? They will become a base user."}
-            class="rounded-lg bg-zinc-600 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-500"
+            class="rounded-lg bg-ink-soft px-4 py-2 text-sm font-semibold text-accent-ink hover:bg-ink-soft"
           >
             Revoke admin
           </button>
@@ -162,7 +162,7 @@ defmodule ReccoWeb.Admin.UserLive.Show do
             :if={@user.role != "superadmin" and is_nil(@user.deleted_at)}
             phx-click="soft_delete_user"
             data-confirm={"Soft-delete #{@user.username}? PII will be scrubbed. Restorable for 30 days."}
-            class="rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-500"
+            class="rounded-lg bg-warn px-4 py-2 text-sm font-semibold text-accent-ink hover:bg-warn"
           >
             Soft delete
           </button>
@@ -170,7 +170,7 @@ defmodule ReccoWeb.Admin.UserLive.Show do
           <button
             :if={@user.role != "superadmin" and @user.deleted_at}
             phx-click="restore_user"
-            class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500"
+            class="rounded-lg bg-good px-4 py-2 text-sm font-semibold text-accent-ink hover:bg-good"
           >
             Restore
           </button>
@@ -179,7 +179,7 @@ defmodule ReccoWeb.Admin.UserLive.Show do
             :if={@user.role != "superadmin"}
             phx-click="hard_delete_user"
             data-confirm={"HARD-delete #{@user.username}? Removes all data (ratings, feedback) irreversibly."}
-            class="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-500"
+            class="rounded-lg bg-danger px-4 py-2 text-sm font-semibold text-accent-ink hover:bg-danger"
           >
             Hard delete
           </button>
@@ -193,45 +193,45 @@ defmodule ReccoWeb.Admin.UserLive.Show do
         <.stat_card label="Lowest" value={format_float(@stats.lowest_score)} />
       </div>
 
-      <div class="rounded-lg border border-zinc-200 p-4 mb-8">
+      <div class="rounded-lg border border-line p-4 mb-8">
         <dl class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
           <div>
-            <dt class="text-zinc-500">Email</dt>
-            <dd class="font-medium text-zinc-900">{@user.email}</dd>
+            <dt class="text-ink-soft">Email</dt>
+            <dd class="font-medium text-ink">{@user.email}</dd>
           </div>
           <div>
-            <dt class="text-zinc-500">Role</dt>
-            <dd class="font-medium text-zinc-900">{@user.role}</dd>
+            <dt class="text-ink-soft">Role</dt>
+            <dd class="font-medium text-ink">{@user.role}</dd>
           </div>
           <div>
-            <dt class="text-zinc-500">Joined</dt>
-            <dd class="font-medium text-zinc-900">
+            <dt class="text-ink-soft">Joined</dt>
+            <dd class="font-medium text-ink">
               {Calendar.strftime(@user.inserted_at, "%Y-%m-%d %H:%M")}
             </dd>
           </div>
         </dl>
       </div>
 
-      <h2 class="text-lg font-bold text-zinc-900 mb-4">Ratings ({length(@ratings)})</h2>
+      <h2 class="text-lg font-bold text-ink mb-4">Ratings ({length(@ratings)})</h2>
 
-      <div :if={@ratings == []} class="text-sm text-zinc-500">
+      <div :if={@ratings == []} class="text-sm text-ink-soft">
         No ratings yet.
       </div>
 
       <div :if={@ratings != []} class="overflow-x-auto">
         <table class="w-full text-sm">
           <thead>
-            <tr class="border-b border-zinc-200 text-left">
-              <th class="pb-3 pr-4 font-medium text-zinc-500">Game</th>
-              <th class="pb-3 pr-4 font-medium text-zinc-500">Score</th>
-              <th class="pb-3 font-medium text-zinc-500">Date</th>
+            <tr class="border-b border-line text-left">
+              <th class="pb-3 pr-4 font-medium text-ink-soft">Game</th>
+              <th class="pb-3 pr-4 font-medium text-ink-soft">Score</th>
+              <th class="pb-3 font-medium text-ink-soft">Date</th>
             </tr>
           </thead>
           <tbody>
-            <tr :for={rating <- @ratings} class="border-b border-zinc-100">
-              <td class="py-3 pr-4 font-medium text-zinc-900">{rating.board_game.name}</td>
-              <td class="py-3 pr-4 text-zinc-600">{Float.round(rating.score, 1)}</td>
-              <td class="py-3 text-zinc-500">
+            <tr :for={rating <- @ratings} class="border-b border-line">
+              <td class="py-3 pr-4 font-medium text-ink">{rating.board_game.name}</td>
+              <td class="py-3 pr-4 text-ink">{Float.round(rating.score, 1)}</td>
+              <td class="py-3 text-ink-soft">
                 {Calendar.strftime(rating.updated_at, "%Y-%m-%d")}
               </td>
             </tr>
@@ -247,9 +247,9 @@ defmodule ReccoWeb.Admin.UserLive.Show do
 
   defp stat_card(assigns) do
     ~H"""
-    <div class="rounded-lg border border-zinc-200 p-4">
-      <p class="text-xs text-zinc-500">{@label}</p>
-      <p class="text-2xl font-bold text-zinc-900">{@value}</p>
+    <div class="rounded-lg border border-line p-4">
+      <p class="text-xs text-ink-soft">{@label}</p>
+      <p class="text-2xl font-bold text-ink">{@value}</p>
     </div>
     """
   end

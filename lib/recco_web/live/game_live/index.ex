@@ -5,6 +5,7 @@ defmodule ReccoWeb.GameLive.Index do
   alias Recco.Ratings
 
   @per_page 24
+  @player_chips ~w(any 1 2 3-4 5plus)
 
   @impl true
   @spec mount(map(), map(), Phoenix.LiveView.Socket.t()) ::
@@ -27,6 +28,7 @@ defmodule ReccoWeb.GameLive.Index do
     mechanics = parse_list(params["mechanics"])
     sort = params["sort"] || "rating"
     sort_dir = params["sort_dir"]
+    players = parse_players(params["players"])
 
     opts =
       %{page: page, per_page: @per_page, sort: sort}
@@ -34,6 +36,7 @@ defmodule ReccoWeb.GameLive.Index do
       |> maybe_put(:sort_dir, sort_dir)
       |> maybe_put_list(:categories, categories)
       |> maybe_put_list(:mechanics, mechanics)
+      |> apply_players_opts(players)
 
     %{games: games, total: total} = BoardGames.list_board_games(opts)
     total_pages = max(ceil(total / @per_page), 1)
@@ -51,6 +54,7 @@ defmodule ReccoWeb.GameLive.Index do
        mechanics: mechanics,
        sort: sort,
        sort_dir: sort_dir || default_dir(sort),
+       players: players,
        user_scores: user_scores
      )}
   end
@@ -79,8 +83,20 @@ defmodule ReccoWeb.GameLive.Index do
     {:noreply, push_patch(socket, to: ~p"/games?#{params}")}
   end
 
+  def handle_event("set_players", %{"chip" => value}, socket) do
+    params = build_params(socket.assigns, players: value, page: 1)
+    {:noreply, push_patch(socket, to: ~p"/games?#{params}")}
+  end
+
   def handle_event("clear_filters", _params, socket) do
-    params = build_params(socket.assigns, categories: [], mechanics: [], page: 1)
+    params =
+      build_params(socket.assigns,
+        categories: [],
+        mechanics: [],
+        players: "any",
+        page: 1
+      )
+
     {:noreply, push_patch(socket, to: ~p"/games?#{params}")}
   end
 
@@ -131,129 +147,232 @@ defmodule ReccoWeb.GameLive.Index do
   @spec render(Phoenix.LiveView.Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
   def render(assigns) do
     ~H"""
-    <div>
-      <h1 class="text-2xl font-heading mb-6">{gettext("Browse Games")}</h1>
-
-      <div class="mb-6 flex flex-col sm:flex-row gap-4">
-        <form phx-change="search" phx-submit="search" class="flex-1">
-          <.input
-            name="search"
+    <div class="pb-12">
+      <header class="flex flex-wrap items-end justify-between gap-4 mb-6">
+        <div>
+          <div class="label mb-1.5">{gettext("Catalogue")}</div>
+          <h1 class="text-[clamp(34px,4vw,58px)]">{gettext("Browse Games")}</h1>
+        </div>
+        <form phx-change="search" phx-submit="search" class="w-full sm:w-[380px]">
+          <input
             type="text"
+            name="search"
             value={@search}
-            placeholder={gettext("Search games...")}
+            placeholder={gettext("Search by title or designer…")}
+            class="field"
             phx-debounce="300"
+            aria-label={gettext("Search games")}
           />
         </form>
+      </header>
 
-        <div class="flex gap-2 w-full sm:w-auto">
-          <form phx-change="sort" class="flex-1 sm:w-48">
-            <select
-              name="sort"
-              class="w-full h-10 rounded-base border-2 border-border bg-bw px-3 py-2 text-sm font-base focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-              aria-label={gettext("Sort by")}
-            >
-              <option value="rating" selected={@sort == "rating"}>{gettext("Top rated")}</option>
-              <option value="name" selected={@sort == "name"}>{gettext("Name")}</option>
-              <option value="year" selected={@sort == "year"}>{gettext("Newest")}</option>
-              <option value="weight" selected={@sort == "weight"}>{gettext("Heaviest")}</option>
-            </select>
-          </form>
+      <div class="grid grid-cols-1 lg:grid-cols-[256px_1fr] gap-7 items-start">
+        <aside class="lg:sticky lg:top-[90px] grid gap-4">
+          <.sort_panel sort={@sort} sort_dir={@sort_dir} total={@total} />
+          <.players_panel players={@players} />
+          <.filter_panel
+            id="category-filter"
+            title={gettext("Categories")}
+            event="filter_categories"
+            placeholder={gettext("All categories")}
+            options={@all_categories}
+            selected={@categories}
+          />
+          <.filter_panel
+            id="mechanic-filter"
+            title={gettext("Mechanics")}
+            event="filter_mechanics"
+            placeholder={gettext("All mechanics")}
+            options={@all_mechanics}
+            selected={@mechanics}
+          />
           <button
-            phx-click="toggle_sort_dir"
-            class="h-10 w-10 flex items-center justify-center rounded-base border-2 border-border bg-bw hover:bg-bg transition-colors flex-shrink-0"
-            aria-label={gettext("Toggle sort direction")}
-            title={if @sort_dir == "asc", do: gettext("Ascending"), else: gettext("Descending")}
+            :if={any_filter?(@categories, @mechanics, @players)}
+            phx-click="clear_filters"
+            class="btn btn-ghost btn-sm justify-center"
           >
-            <svg
-              :if={@sort_dir == "asc"}
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke-width="2"
-              stroke="currentColor"
-              class="w-5 h-5"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M4.5 10.5 12 3m0 0 7.5 7.5M12 3v18"
-              />
-            </svg>
-            <svg
-              :if={@sort_dir != "asc"}
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke-width="2"
-              stroke="currentColor"
-              class="w-5 h-5"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M19.5 13.5 12 21m0 0-7.5-7.5M12 21V3"
-              />
-            </svg>
+            {gettext("Clear all filters")}
           </button>
+        </aside>
+
+        <div>
+          <p class="label mb-3">
+            {ngettext("%{count} game found", "%{count} games found", @total)}
+          </p>
+
+          <div
+            :if={@games == []}
+            class="panel px-6 py-12 text-center"
+          >
+            <p class="text-ink-soft text-[17px]">
+              {gettext("No games found. Try a different search.")}
+            </p>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+            <.game_card
+              :for={game <- @games}
+              game={game}
+              current_user={@current_user}
+              user_score={Map.get(@user_scores, game.id)}
+            />
+          </div>
+
+          <.pagination
+            :if={@total_pages > 1}
+            page={@page}
+            total_pages={@total_pages}
+            params={build_params(assigns)}
+          />
         </div>
       </div>
-
-      <div class="mb-6 flex flex-col sm:flex-row gap-4">
-        <.multi_select
-          id="category-filter"
-          label={gettext("Categories")}
-          options={@all_categories}
-          selected={@categories}
-          event="filter_categories"
-          placeholder={gettext("All categories")}
-        />
-        <.multi_select
-          id="mechanic-filter"
-          label={gettext("Mechanics")}
-          options={@all_mechanics}
-          selected={@mechanics}
-          event="filter_mechanics"
-          placeholder={gettext("All mechanics")}
-        />
-      </div>
-
-      <button
-        :if={@categories != [] or @mechanics != []}
-        phx-click="clear_filters"
-        class="mb-4 rounded-base border-2 border-border bg-bw px-3 py-1.5 text-sm font-heading hover:bg-bg transition-colors"
-      >
-        {gettext("Clear all filters")}
-      </button>
-
-      <p class="text-sm font-base mb-4">
-        {ngettext("%{count} game found", "%{count} games found", @total)}
-      </p>
-
-      <div
-        :if={@games == []}
-        class="text-center py-16 rounded-base border-2 border-border bg-bw shadow-brutalist"
-      >
-        <p class="font-base">{gettext("No games found. Try a different search.")}</p>
-      </div>
-
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-        <.game_card
-          :for={game <- @games}
-          game={game}
-          current_user={@current_user}
-          user_score={Map.get(@user_scores, game.id)}
-        />
-      </div>
-
-      <.pagination
-        :if={@total_pages > 1}
-        page={@page}
-        total_pages={@total_pages}
-        params={build_params(assigns)}
-      />
     </div>
     """
   end
+
+  ## ── filter rail panels ────────────────────────────────────────────────
+
+  attr :sort, :string, required: true
+  attr :sort_dir, :string, required: true
+  attr :total, :integer, required: true
+
+  defp sort_panel(assigns) do
+    assigns =
+      assign(assigns,
+        options: [
+          {"rating", gettext("Top rated")},
+          {"name", gettext("Name")},
+          {"year", gettext("Newest")},
+          {"weight", gettext("Heaviest")}
+        ]
+      )
+
+    ~H"""
+    <div class="panel p-4">
+      <div class="flex items-center justify-between mb-3.5">
+        <span class="label label-ink !font-bold">{gettext("Sort")}</span>
+        <button
+          phx-click="toggle_sort_dir"
+          class="label hover:text-ink"
+          aria-label={gettext("Toggle sort direction")}
+          title={if @sort_dir == "asc", do: gettext("Ascending"), else: gettext("Descending")}
+        >
+          {if @sort_dir == "asc", do: "↑", else: "↓"}
+        </button>
+      </div>
+      <div class="grid gap-2">
+        <button
+          :for={{value, label} <- @options}
+          phx-click="sort"
+          phx-value-sort={value}
+          class={[
+            "btn btn-sm justify-start",
+            @sort == value && "btn-primary",
+            @sort != value && "btn-ghost"
+          ]}
+          aria-pressed={@sort == value}
+        >
+          {label}
+        </button>
+      </div>
+    </div>
+    """
+  end
+
+  attr :players, :string, required: true
+
+  defp players_panel(assigns) do
+    assigns = assign(assigns, :chips, player_chip_labels())
+
+    ~H"""
+    <div class="panel p-4">
+      <span class="label label-ink !font-bold block mb-3">{gettext("Players")}</span>
+      <div class="flex flex-wrap gap-1.5">
+        <button
+          :for={{chip_value, label} <- @chips}
+          type="button"
+          phx-click="set_players"
+          phx-value-chip={chip_value}
+          class={[
+            "chip cursor-pointer",
+            @players == chip_value && "chip-accent"
+          ]}
+          aria-pressed={@players == chip_value}
+        >
+          {label}
+        </button>
+      </div>
+    </div>
+    """
+  end
+
+  attr :id, :string, required: true
+  attr :title, :string, required: true
+  attr :event, :string, required: true
+  attr :placeholder, :string, required: true
+  attr :options, :list, required: true
+  attr :selected, :list, required: true
+
+  defp filter_panel(assigns) do
+    options_json = Jason.encode!(Enum.map(assigns.options, &%{name: &1.name}))
+    selected_json = Jason.encode!(assigns.selected)
+    assigns = assign(assigns, options_json: options_json, selected_json: selected_json)
+
+    ~H"""
+    <div class="panel p-4">
+      <span class="label label-ink !font-bold block mb-3">{@title}</span>
+      <div
+        id={@id}
+        phx-hook="MultiSelect"
+        data-options={@options_json}
+        data-selected={@selected_json}
+        data-event={@event}
+        class="ms"
+      >
+        <div
+          data-header
+          tabindex="0"
+          role="combobox"
+          aria-expanded="false"
+          aria-haspopup="listbox"
+          class="ms-trigger"
+        >
+          <span data-tags class="flex flex-wrap gap-1.5 items-center"></span>
+          <span data-placeholder class="text-ink-soft text-sm">{@placeholder}</span>
+          <span class="font-mono text-xs opacity-70 ml-auto">▼</span>
+        </div>
+        <div
+          data-dropdown
+          role="listbox"
+          class="ms-pop hidden"
+        >
+          <div class="p-1.5 border-b-bw border-line">
+            <input
+              data-search
+              type="text"
+              placeholder={gettext("Search…")}
+              class="w-full px-2.5 py-1.5 text-sm font-medium bg-card border-2 border-line rounded-panel-sm text-ink placeholder:text-ink-soft focus:outline-none"
+            />
+          </div>
+          <div data-options></div>
+        </div>
+      </div>
+
+      <div :if={@selected != []} class="flex flex-wrap gap-1.5 mt-3">
+        <button
+          :for={item <- @selected}
+          phx-click={@event}
+          phx-value-selected={Jason.encode!(Enum.reject(@selected, &(&1 == item)))}
+          class="chip chip-accent cursor-pointer text-xs"
+        >
+          {item} <span class="ml-1 font-extrabold">×</span>
+        </button>
+      </div>
+    </div>
+    """
+  end
+
+  ## ── card ──────────────────────────────────────────────────────────────
 
   attr :game, :map, required: true
   attr :current_user, :any, required: true
@@ -261,9 +380,9 @@ defmodule ReccoWeb.GameLive.Index do
 
   defp game_card(assigns) do
     ~H"""
-    <div class="group relative rounded-base border-2 border-border bg-bw shadow-brutalist overflow-hidden hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none focus-within:translate-x-shadow-x focus-within:translate-y-shadow-y focus-within:shadow-none transition-all">
-      <a href={~p"/games/#{@game.id}"} class="block">
-        <div class="aspect-square bg-bg flex items-center justify-center border-b-2 border-border">
+    <article class="panel lift overflow-hidden flex flex-col">
+      <.link patch={~p"/games/#{@game.id}"} class="block relative">
+        <div class="aspect-[1.18/1] border-b-bw border-line bg-card2 grid place-items-center overflow-hidden">
           <img
             :if={@game.image_url}
             src={@game.image_url}
@@ -272,157 +391,89 @@ defmodule ReccoWeb.GameLive.Index do
             loading="lazy"
           />
         </div>
-        <div class="p-3">
-          <h2 class="font-heading text-sm truncate">{@game.name}</h2>
-          <div class="flex items-center justify-between mt-1 text-xs font-base">
-            <span :if={@game.year_published}>{@game.year_published}</span>
-            <span
-              :if={@game.average_rating}
-              class="inline-flex items-center rounded-base border-2 border-border bg-main px-1.5 py-0.5 text-xs font-heading"
-            >
-              {Float.round(@game.average_rating, 1)}
-            </span>
-          </div>
-          <div class="flex items-center justify-between mt-1 text-xs font-base">
-            <span :if={@game.min_players && @game.max_players}>
-              {gettext("%{min}-%{max} players", min: @game.min_players, max: @game.max_players)}
-            </span>
-            <span :if={@game.users_rated}>
-              {ngettext("%{count} vote", "%{count} votes", @game.users_rated)}
-            </span>
-          </div>
-        </div>
-      </a>
-      <div class="absolute inset-x-0 bottom-0 bg-bw opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto group-focus-within:opacity-100 group-focus-within:pointer-events-auto transition-opacity">
-        <.quick_rate game={@game} current_user={@current_user} score={@user_score} />
-      </div>
-    </div>
-    """
-  end
-
-  attr :game, :map, required: true
-  attr :current_user, :any, required: true
-  attr :score, :any, required: true
-
-  defp quick_rate(%{current_user: nil} = assigns) do
-    ~H"""
-    <div class="px-3 py-2 border-t-2 border-border bg-bg/40 text-center">
-      <a
-        href={~p"/login"}
-        class="text-xs font-heading underline decoration-2 underline-offset-2 hover:bg-main"
-      >
-        {gettext("Sign in to rate")}
-      </a>
-    </div>
-    """
-  end
-
-  defp quick_rate(assigns) do
-    ~H"""
-    <div class="px-2 py-2 border-t-2 border-border">
-      <div class="flex items-center justify-between mb-1 px-1">
-        <span class="text-[10px] font-heading uppercase tracking-wide">
-          {if @score, do: gettext("Your rating"), else: gettext("Rate this")}
+        <span
+          :if={@user_score && @user_score > 0}
+          class="absolute top-2.5 right-2.5 font-mono font-bold text-[13px] bg-accent text-accent-ink border-2 border-line rounded-panel-sm px-2 py-0.5 shadow-panel-sm"
+          style="transform: rotate(5deg);"
+        >
+          ★ {trunc(@user_score)}/10
         </span>
-        <div class="flex items-center gap-1">
-          <span :if={@score} class="text-xs font-heading">{trunc(@score)}/10</span>
-          <button
-            :if={@score}
-            phx-click="clear_rating"
-            phx-value-game-id={@game.id}
-            class="rounded-sm border border-border bg-bw px-1 text-[10px] font-heading leading-none hover:bg-red-300 transition-colors"
-            aria-label={gettext("Clear rating")}
-            title={gettext("Clear rating")}
-          >
-            &times;
-          </button>
-        </div>
-      </div>
-      <div class="grid grid-cols-10 gap-0.5">
-        <button
-          :for={n <- 1..10}
-          phx-click="rate"
-          phx-value-game-id={@game.id}
-          phx-value-score={n}
-          class={[
-            "h-6 rounded-sm border border-border text-[10px] font-heading transition-colors",
-            rate_active?(n, @score) && "bg-main",
-            !rate_active?(n, @score) && "bg-bw hover:bg-main/50"
-          ]}
-          aria-label={gettext("Rate %{score} out of 10", score: n)}
-        >
-          {n}
-        </button>
-      </div>
-    </div>
-    """
-  end
+      </.link>
 
-  defp rate_active?(_n, nil), do: false
-  defp rate_active?(n, score) when is_number(score), do: n <= trunc(score)
-
-  attr :id, :string, required: true
-  attr :label, :string, required: true
-  attr :options, :list, required: true
-  attr :selected, :list, required: true
-  attr :event, :string, required: true
-  attr :placeholder, :string, default: "Select..."
-
-  defp multi_select(assigns) do
-    options_json = Jason.encode!(Enum.map(assigns.options, &%{name: &1.name}))
-    selected_json = Jason.encode!(assigns.selected)
-    assigns = assign(assigns, options_json: options_json, selected_json: selected_json)
-
-    ~H"""
-    <div class="flex-1">
-      <label class="mb-1 block text-sm font-heading">{@label}</label>
-      <div
-        id={@id}
-        phx-hook="MultiSelect"
-        data-options={@options_json}
-        data-selected={@selected_json}
-        data-event={@event}
-        class="relative"
-      >
-        <div
-          data-header
-          tabindex="0"
-          role="combobox"
-          aria-expanded="false"
-          aria-haspopup="listbox"
-          class="flex flex-wrap items-center gap-1 min-h-[2.5rem] w-full rounded-base border-2 border-border bg-bw px-3 py-1.5 cursor-pointer"
-        >
-          <span data-tags class="flex flex-wrap gap-1"></span>
-          <span data-placeholder class="text-sm text-fg/50 font-base">{@placeholder}</span>
-          <span class="ml-auto pl-2">
-            <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
-              <path
-                fill-rule="evenodd"
-                d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
-                clip-rule="evenodd"
-              />
-            </svg>
-          </span>
-        </div>
-        <div
-          data-dropdown
-          role="listbox"
-          class="hidden absolute top-full left-0 right-0 z-50 mt-1 rounded-base border-2 border-border bg-bw shadow-brutalist max-h-[40dvh] overflow-y-auto"
-        >
-          <div class="p-2 border-b-2 border-border">
-            <input
-              data-search
-              type="text"
-              placeholder="Search..."
-              class="w-full rounded-base border-2 border-border bg-bw px-3 py-1.5 text-sm font-base placeholder:text-fg/50 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1"
-            />
+      <div class="p-3.5 flex flex-col gap-2.5 flex-1">
+        <.link patch={~p"/games/#{@game.id}"} class="block">
+          <div class="flex items-baseline justify-between gap-2">
+            <h3 class="text-[21px] leading-[1.04]">{@game.name}</h3>
+            <span
+              :if={@game.year_published}
+              class="font-mono text-ink-soft text-[13px] whitespace-nowrap pt-1"
+            >
+              {@game.year_published}
+            </span>
           </div>
-          <div data-options class="p-1"></div>
+          <div class="flex flex-wrap items-center gap-3 mt-1.5 font-mono text-ink-soft text-[12.5px]">
+            <span :if={@game.average_rating}>★ {format_rating(@game)}</span>
+            <span :if={@game.min_players && @game.max_players}>
+              {players_label(@game)}
+            </span>
+            <span :if={@game.playing_time}>{@game.playing_time}m</span>
+          </div>
+        </.link>
+
+        <div class="mt-auto pt-1">
+          <div class="flex items-center justify-between gap-2 mb-1.5 min-h-[28px]">
+            <span class="label !text-[10.5px]">
+              {if @user_score, do: gettext("Your rating"), else: gettext("Rate this")}
+            </span>
+            <button
+              :if={@user_score}
+              type="button"
+              phx-click="clear_rating"
+              phx-value-game-id={@game.id}
+              class="btn btn-ghost btn-sm !py-1 !px-2.5 !gap-1.5 !text-[12px] !font-bold hover:!bg-danger hover:!text-accent-ink"
+              aria-label={gettext("Clear rating")}
+              title={gettext("Clear rating")}
+            >
+              <span aria-hidden="true" class="text-base leading-none">×</span>
+              {gettext("Clear")}
+            </button>
+          </div>
+          <form phx-change="rate" class="flex items-center gap-3">
+            <input type="hidden" name="game-id" value={@game.id} />
+            <input
+              type="range"
+              name="score"
+              min="1"
+              max="10"
+              step="1"
+              value={slider_value(@user_score)}
+              phx-debounce="250"
+              data-unrated={if @user_score, do: "false", else: "true"}
+              class="rate-slider flex-1"
+              aria-label={gettext("Rate %{game} out of 10", game: @game.name)}
+              aria-valuenow={trunc(@user_score || 0)}
+            />
+            <span class={[
+              "font-mono font-bold text-sm tabular-nums min-w-[44px] text-right",
+              !@user_score && "text-ink-soft"
+            ]}>
+              {if @user_score, do: "#{trunc(@user_score)}/10", else: "—/10"}
+            </span>
+          </form>
         </div>
       </div>
-    </div>
+    </article>
     """
   end
+
+  # Slider always needs an integer value attribute (1..10). For unrated
+  # games we surface 5 as a neutral resting position, paired with
+  # data-unrated="true" so the thumb renders muted in CSS until the user
+  # interacts.
+  defp slider_value(nil), do: 5
+  defp slider_value(score) when is_number(score), do: trunc(score)
+
+  ## ── pagination ────────────────────────────────────────────────────────
 
   attr :page, :integer, required: true
   attr :total_pages, :integer, required: true
@@ -430,7 +481,7 @@ defmodule ReccoWeb.GameLive.Index do
 
   defp pagination(assigns) do
     ~H"""
-    <nav class="mt-8 flex justify-center gap-2" aria-label="Pagination">
+    <nav class="mt-8 flex justify-center gap-2 flex-wrap" aria-label="Pagination">
       <.page_link :if={@page > 1} page={@page - 1} params={@params} label={gettext("Previous")} />
 
       <.page_link
@@ -464,9 +515,9 @@ defmodule ReccoWeb.GameLive.Index do
     <a
       href={@href}
       class={[
-        "px-3 py-2 text-sm font-heading rounded-base border-2 border-border transition-all",
-        @current && "bg-main shadow-brutalist",
-        !@current && "bg-bw hover:bg-main"
+        "btn btn-sm",
+        @current && "btn-primary",
+        !@current && "btn-ghost"
       ]}
       aria-current={@current && "page"}
     >
@@ -481,17 +532,21 @@ defmodule ReccoWeb.GameLive.Index do
     Enum.to_list(start..finish)
   end
 
+  ## ── params helpers ────────────────────────────────────────────────────
+
   defp build_params(assigns, overrides \\ []) do
     categories = Keyword.get(overrides, :categories, assigns.categories)
     mechanics = Keyword.get(overrides, :mechanics, assigns.mechanics)
     sort = Keyword.get(overrides, :sort, assigns.sort)
     sort_dir = Keyword.get(overrides, :sort_dir, assigns.sort_dir)
+    players = Keyword.get(overrides, :players, assigns.players)
 
     params = %{
       "search" => Keyword.get(overrides, :search, assigns.search),
       "sort" => sort,
       "sort_dir" => sort_dir,
-      "page" => Keyword.get(overrides, :page, assigns.page)
+      "page" => Keyword.get(overrides, :page, assigns.page),
+      "players" => players
     }
 
     params =
@@ -504,10 +559,10 @@ defmodule ReccoWeb.GameLive.Index do
         do: Map.put(params, "mechanics", Enum.join(mechanics, ",")),
         else: params
 
-    # Strip defaults to keep URLs clean
     params
     |> Enum.reject(fn
       {"sort_dir", dir} -> dir == default_dir(sort)
+      {"players", p} -> p in [nil, "any"]
       {_k, v} -> v in ["", nil, 1, "rating"]
     end)
     |> Map.new()
@@ -526,6 +581,16 @@ defmodule ReccoWeb.GameLive.Index do
   defp parse_list(""), do: []
   defp parse_list(val) when is_binary(val), do: String.split(val, ",", trim: true)
 
+  defp parse_players(val) when val in @player_chips, do: val
+  defp parse_players(_), do: "any"
+
+  defp apply_players_opts(opts, "any"), do: opts
+  defp apply_players_opts(opts, "1"), do: Map.merge(opts, %{min_players: 1, max_players: 1})
+  defp apply_players_opts(opts, "2"), do: Map.merge(opts, %{min_players: 2, max_players: 2})
+  defp apply_players_opts(opts, "3-4"), do: Map.merge(opts, %{min_players: 3, max_players: 4})
+  defp apply_players_opts(opts, "5plus"), do: Map.put(opts, :min_players, 5)
+  defp apply_players_opts(opts, _), do: opts
+
   defp maybe_put(map, _key, ""), do: map
   defp maybe_put(map, _key, nil), do: map
   defp maybe_put(map, key, value), do: Map.put(map, key, value)
@@ -535,4 +600,30 @@ defmodule ReccoWeb.GameLive.Index do
 
   defp default_dir("name"), do: "asc"
   defp default_dir(_), do: "desc"
+
+  defp any_filter?(categories, mechanics, players),
+    do: categories != [] or mechanics != [] or players != "any"
+
+  defp format_rating(%{bayes_average_rating: r}) when is_float(r),
+    do: :erlang.float_to_binary(r, decimals: 1)
+
+  defp format_rating(%{average_rating: r}) when is_float(r),
+    do: :erlang.float_to_binary(r, decimals: 1)
+
+  defp format_rating(_), do: "—"
+
+  defp players_label(%{min_players: a, max_players: b}) when a == b,
+    do: "#{a} #{gettext("players")}"
+
+  defp players_label(%{min_players: a, max_players: b}), do: "#{a}–#{b} #{gettext("players")}"
+
+  defp player_chip_labels do
+    [
+      {"any", gettext("Any")},
+      {"1", "1"},
+      {"2", "2"},
+      {"3-4", "3–4"},
+      {"5plus", "5+"}
+    ]
+  end
 end

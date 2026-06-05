@@ -88,7 +88,7 @@ defmodule ReccoWeb.Admin.PrototypeLive.Index do
   def render(assigns) do
     ~H"""
     <div>
-      <h1 class="text-2xl font-bold text-zinc-900 mb-6">Prototypes</h1>
+      <h1 class="text-2xl font-bold text-ink mb-6">Prototypes</h1>
 
       <div class="flex gap-2 mb-6">
         <.filter_link current={@filter} value="all" label="All" />
@@ -96,51 +96,51 @@ defmodule ReccoWeb.Admin.PrototypeLive.Index do
         <.filter_link current={@filter} value="blocked" label="Blocked" />
       </div>
 
-      <p class="text-sm text-zinc-500 mb-4">{@total} prototypes</p>
+      <p class="text-sm text-ink-soft mb-4">{@total} prototypes</p>
 
-      <div :if={@prototypes == []} class="text-sm text-zinc-500">
+      <div :if={@prototypes == []} class="text-sm text-ink-soft">
         No prototypes match this filter.
       </div>
 
       <div :if={@prototypes != []} class="overflow-x-auto">
         <table class="w-full text-sm">
           <thead>
-            <tr class="border-b border-zinc-200 text-left">
-              <th class="pb-3 pr-4 font-medium text-zinc-500">Title</th>
-              <th class="pb-3 pr-4 font-medium text-zinc-500">Submitted by</th>
-              <th class="pb-3 pr-4 font-medium text-zinc-500">Categories</th>
-              <th class="pb-3 pr-4 font-medium text-zinc-500">Created</th>
-              <th class="pb-3 pr-4 font-medium text-zinc-500">Status</th>
-              <th class="pb-3 font-medium text-zinc-500">Actions</th>
+            <tr class="border-b border-line text-left">
+              <th class="pb-3 pr-4 font-medium text-ink-soft">Title</th>
+              <th class="pb-3 pr-4 font-medium text-ink-soft">Submitted by</th>
+              <th class="pb-3 pr-4 font-medium text-ink-soft">Categories</th>
+              <th class="pb-3 pr-4 font-medium text-ink-soft">Created</th>
+              <th class="pb-3 pr-4 font-medium text-ink-soft">Status</th>
+              <th class="pb-3 font-medium text-ink-soft">Actions</th>
             </tr>
           </thead>
           <tbody>
-            <tr :for={prototype <- @prototypes} class="border-b border-zinc-100">
-              <td class="py-3 pr-4 font-medium text-zinc-900">
-                <a href={~p"/prototypes/#{prototype.id}"} class="text-brand-600 hover:underline">
+            <tr :for={prototype <- @prototypes} class="border-b border-line">
+              <td class="py-3 pr-4 font-medium text-ink">
+                <a href={~p"/prototypes/#{prototype.id}"} class="text-accent hover:underline">
                   {prototype.title}
                 </a>
               </td>
-              <td class="py-3 pr-4 text-zinc-700">
+              <td class="py-3 pr-4 text-ink">
                 <div class="font-medium">{prototype.user.username}</div>
                 <a
                   href={mailto_link(prototype)}
-                  class="text-xs text-brand-600 hover:underline"
+                  class="text-xs text-accent hover:underline"
                 >
                   {prototype.user.email}
                 </a>
               </td>
-              <td class="py-3 pr-4 text-zinc-600 max-w-xs truncate">
+              <td class="py-3 pr-4 text-ink max-w-xs truncate">
                 {Enum.join(prototype.categories, ", ")}
               </td>
-              <td class="py-3 pr-4 text-zinc-500">
+              <td class="py-3 pr-4 text-ink-soft">
                 {Calendar.strftime(prototype.inserted_at, "%Y-%m-%d")}
               </td>
               <td class="py-3 pr-4">
-                <span :if={is_nil(prototype.blocked_at)} class="text-emerald-700 font-medium">
+                <span :if={is_nil(prototype.blocked_at)} class="text-good font-medium">
                   Active
                 </span>
-                <span :if={prototype.blocked_at} class="text-red-700 font-medium">
+                <span :if={prototype.blocked_at} class="text-danger font-medium">
                   Blocked
                 </span>
               </td>
@@ -150,7 +150,7 @@ defmodule ReccoWeb.Admin.PrototypeLive.Index do
                   phx-click="block"
                   phx-value-id={prototype.id}
                   data-confirm={"Block #{prototype.title}? It will be hidden from other users."}
-                  class="rounded-lg bg-amber-600 px-3 py-1 text-xs font-semibold text-white hover:bg-amber-500"
+                  class="rounded-lg bg-warn px-3 py-1 text-xs font-semibold text-accent-ink hover:bg-warn"
                 >
                   Block
                 </button>
@@ -158,13 +158,13 @@ defmodule ReccoWeb.Admin.PrototypeLive.Index do
                   :if={prototype.blocked_at}
                   phx-click="unblock"
                   phx-value-id={prototype.id}
-                  class="rounded-lg bg-emerald-600 px-3 py-1 text-xs font-semibold text-white hover:bg-emerald-500"
+                  class="rounded-lg bg-good px-3 py-1 text-xs font-semibold text-accent-ink hover:bg-good"
                 >
                   Unblock
                 </button>
                 <a
                   href={mailto_link(prototype)}
-                  class="rounded-lg bg-brand-600 px-3 py-1 text-xs font-semibold text-white hover:bg-brand-500"
+                  class="rounded-lg bg-accent px-3 py-1 text-xs font-semibold text-accent-ink hover:bg-accent"
                 >
                   Contact
                 </a>
@@ -192,8 +192,8 @@ defmodule ReccoWeb.Admin.PrototypeLive.Index do
       patch={@href}
       class={[
         "px-3 py-1.5 rounded-lg text-sm font-medium border",
-        @current == @value && "bg-brand-600 text-white border-brand-600",
-        @current != @value && "bg-white text-zinc-700 border-zinc-200 hover:bg-zinc-50"
+        @current == @value && "bg-accent text-accent-ink border-accent",
+        @current != @value && "bg-card text-ink border-line hover:bg-card2"
       ]}
     >
       {@label}
@@ -248,8 +248,8 @@ defmodule ReccoWeb.Admin.PrototypeLive.Index do
       patch={@href}
       class={[
         "px-3 py-1.5 rounded-lg text-sm font-medium border",
-        @current && "bg-brand-600 text-white border-brand-600",
-        !@current && "bg-white text-zinc-700 border-zinc-200 hover:bg-zinc-50"
+        @current && "bg-accent text-accent-ink border-accent",
+        !@current && "bg-card text-ink border-line hover:bg-card2"
       ]}
     >
       {@label}
