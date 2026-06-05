@@ -109,6 +109,75 @@ defmodule ReccoWeb.LandingLive do
         </div>
       </div>
     </div>
+
+    <div class="max-w-5xl mx-auto px-4 py-16">
+      <div class="rounded-base border-2 border-border bg-bw p-8 sm:p-12 shadow-brutalist">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+          <div>
+            <span class="inline-block rounded-base border-2 border-border bg-main px-2 py-0.5 text-xs font-bold mb-3">
+              {gettext("New")}
+            </span>
+            <h2 class="text-2xl sm:text-3xl font-bold mb-3">
+              {gettext("Designing your own game?")}
+            </h2>
+            <p class="text-sm mb-6">
+              {gettext(
+                "Show your prototype to the community. Share the rules, the team behind it, and photos of the build — fellow players can discover what you're working on and reach out to playtest."
+              )}
+            </p>
+            <%= if @current_user do %>
+              <div class="flex flex-col sm:flex-row gap-3">
+                <a
+                  href={~p"/prototypes"}
+                  class="rounded-base border-2 border-border bg-main px-5 py-2.5 text-sm font-bold shadow-brutalist hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none transition-all"
+                >
+                  {gettext("Browse prototypes")}
+                </a>
+                <a
+                  href={~p"/prototypes/new"}
+                  class="rounded-base border-2 border-border bg-bw px-5 py-2.5 text-sm font-bold shadow-brutalist hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none transition-all"
+                >
+                  {gettext("Submit a prototype")}
+                </a>
+              </div>
+            <% else %>
+              <a
+                href={~p"/register"}
+                class="inline-block rounded-base border-2 border-border bg-main px-5 py-2.5 text-sm font-bold shadow-brutalist hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none transition-all"
+              >
+                {gettext("Sign up to submit")}
+              </a>
+            <% end %>
+          </div>
+          <ul class="space-y-3 text-sm">
+            <li class="flex items-start gap-3">
+              <span class="rounded-base border-2 border-border bg-main w-6 h-6 flex items-center justify-center text-xs font-bold flex-shrink-0">
+                ✓
+              </span>
+              <span>{gettext("Title, description, player count and play time")}</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="rounded-base border-2 border-border bg-main w-6 h-6 flex items-center justify-center text-xs font-bold flex-shrink-0">
+                ✓
+              </span>
+              <span>{gettext("Pick categories and mechanics that fit")}</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="rounded-base border-2 border-border bg-main w-6 h-6 flex items-center justify-center text-xs font-bold flex-shrink-0">
+                ✓
+              </span>
+              <span>{gettext("Credit your team — designers, artists, playtesters")}</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="rounded-base border-2 border-border bg-main w-6 h-6 flex items-center justify-center text-xs font-bold flex-shrink-0">
+                ✓
+              </span>
+              <span>{gettext("Upload images of the prototype build")}</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
     """
   end
 end

@@ -37,6 +37,8 @@ config :recco, Oban, testing: :inline
 
 config :recco, cache_enabled: false
 
+config :recco, upload_path: Path.expand("../tmp/test_uploads", __DIR__)
+
 config :logger, level: :none
 
 config :phoenix, :plug_init_mode, :runtime

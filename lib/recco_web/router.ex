@@ -100,7 +100,14 @@ defmodule ReccoWeb.Router do
       live "/preferences", PreferenceLive.Edit
       live "/recommendations", RecommendationLive.Index
       live "/onboarding", OnboardingLive
+
+      live "/prototypes", PrototypeLive.Index, :index
+      live "/prototypes/new", PrototypeLive.Form, :new
+      live "/prototypes/:id", PrototypeLive.Show, :show
+      live "/prototypes/:id/edit", PrototypeLive.Form, :edit
     end
+
+    get "/prototype_images/:id", PrototypeImageController, :show
   end
 
   # Admin (browser + LiveView)

@@ -45,7 +45,7 @@ defmodule ReccoWeb.Plugs.SecurityHeaders do
       "script-src 'self'",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
-      "img-src 'self' data: https:",
+      "img-src 'self' data: blob: https:",
       "connect-src #{connect_src}",
       "frame-ancestors 'none'",
       "form-action 'self'",

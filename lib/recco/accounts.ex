@@ -9,6 +9,8 @@ defmodule Recco.Accounts do
   alias Ecto.Multi
   alias Recco.Accounts.{RateLimit, User, UserNotifier, UserPreference, UserToken, UserWishlist}
   alias Recco.Errors
+  alias Recco.Prototypes.Prototype
+  alias Recco.Prototypes.Storage
   alias Recco.Repo
 
   @spec register_user(map()) :: {:ok, User.t()} | Errors.t(map())
@@ -211,15 +213,22 @@ defmodule Recco.Accounts do
       |> Changeset.unique_constraint(:email)
       |> Changeset.unique_constraint(:username)
 
+    prototype_ids = Repo.all(from(p in Prototype, where: p.user_id == ^user.id, select: p.id))
+
     Multi.new()
     |> Multi.update(:user, changeset)
     |> Multi.delete_all(:tokens, from(t in UserToken, where: t.user_id == ^user.id))
     |> Multi.delete_all(:prefs, from(p in UserPreference, where: p.user_id == ^user.id))
     |> Multi.delete_all(:wishlists, from(w in UserWishlist, where: w.user_id == ^user.id))
+    |> Multi.delete_all(:prototypes, from(p in Prototype, where: p.user_id == ^user.id))
     |> Repo.transaction()
     |> case do
-      {:ok, %{user: user}} -> {:ok, user}
-      {:error, :user, changeset, _} -> Errors.handle_changeset_error({:error, changeset})
+      {:ok, %{user: user}} ->
+        Enum.each(prototype_ids, &Storage.delete_prototype_dir/1)
+        {:ok, user}
+
+      {:error, :user, changeset, _} ->
+        Errors.handle_changeset_error({:error, changeset})
     end
   end
 
@@ -246,7 +255,16 @@ defmodule Recco.Accounts do
   def hard_delete_user(%User{role: "superadmin"}), do: {:error, :forbidden}
 
   def hard_delete_user(%User{} = user) do
-    Repo.delete(user) |> Errors.handle_changeset_error()
+    prototype_ids = Repo.all(from(p in Prototype, where: p.user_id == ^user.id, select: p.id))
+
+    case Repo.delete(user) |> Errors.handle_changeset_error() do
+      {:ok, _} = result ->
+        Enum.each(prototype_ids, &Storage.delete_prototype_dir/1)
+        result
+
+      other ->
+        other
+    end
   end
 
   @spec mark_onboarded(User.t()) :: {:ok, User.t()} | Errors.t()

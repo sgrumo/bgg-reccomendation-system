@@ -176,7 +176,7 @@ Disable via `config :recco, cache_enabled: false` — default in `:test` to avoi
 
 `ReccoWeb.Plugs.SecurityHeaders` is the last plug in the `:browser` pipeline. It emits:
 
-- **Content-Security-Policy** (or `-Report-Only` based on `config :recco, :csp_mode`): `default-src 'self'`, `script-src 'self'` (no unsafe-inline — use nonces if inline scripts ever become necessary), `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com` (inline required for LiveView transitions), `font-src 'self' https://fonts.gstatic.com`, `img-src 'self' data: https:` (BGG remote images), `connect-src 'self' ws: wss:` (+ `http: https:` in dev for LiveReload), `frame-ancestors 'none'`, `form-action 'self'`, `base-uri 'self'`, `object-src 'none'`, `report-uri /api/csp-report`
+- **Content-Security-Policy** (or `-Report-Only` based on `config :recco, :csp_mode`): `default-src 'self'`, `script-src 'self'` (no unsafe-inline — use nonces if inline scripts ever become necessary), `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com` (inline required for LiveView transitions), `font-src 'self' https://fonts.gstatic.com`, `img-src 'self' data: blob: https:` (BGG remote images; `blob:` for LiveView `live_img_preview` upload previews), `connect-src 'self' ws: wss:` (+ `http: https:` in dev for LiveReload), `frame-ancestors 'none'`, `form-action 'self'`, `base-uri 'self'`, `object-src 'none'`, `report-uri /api/csp-report`
 - `referrer-policy: strict-origin-when-cross-origin`
 - `permissions-policy: camera=(), microphone=(), geolocation=(), interest-cohort=()`
 - `strict-transport-security: max-age=31536000; includeSubDomains` — ONLY in `:prod` over HTTPS

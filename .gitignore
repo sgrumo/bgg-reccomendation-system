@@ -37,6 +37,9 @@ averziano-*.tar
 # Static assets built from source
 /priv/static/assets/
 
+# User-uploaded prototype images (default UPLOAD_PATH in dev)
+/priv/uploads/
+
 # Python
 __pycache__/
 *.pyc

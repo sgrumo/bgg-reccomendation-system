@@ -6,7 +6,12 @@ defmodule Recco.Factory do
   alias Recco.Accounts.UserRating
   alias Recco.Accounts.UserWishlist
   alias Recco.BoardGames.BoardGame
+  alias Recco.BoardGames.Category
   alias Recco.BoardGames.CrawlState
+  alias Recco.BoardGames.Mechanic
+  alias Recco.Prototypes.Collaborator
+  alias Recco.Prototypes.Prototype
+  alias Recco.Prototypes.PrototypeImage
 
   @spec user_factory() :: User.t()
   def user_factory do
@@ -82,6 +87,49 @@ defmodule Recco.Factory do
       last_fetched_id: 0,
       status: "idle",
       metadata: %{}
+    }
+  end
+
+  @spec category_factory() :: Category.t()
+  def category_factory do
+    %Category{
+      bgg_id: sequence(:category_bgg_id, & &1),
+      name: sequence(:category_name, &"Category #{&1}")
+    }
+  end
+
+  @spec mechanic_factory() :: Mechanic.t()
+  def mechanic_factory do
+    %Mechanic{
+      bgg_id: sequence(:mechanic_bgg_id, & &1),
+      name: sequence(:mechanic_name, &"Mechanic #{&1}")
+    }
+  end
+
+  @spec prototype_factory() :: Prototype.t()
+  def prototype_factory do
+    %Prototype{
+      user: build(:user),
+      title: sequence(:prototype_title, &"Prototype #{&1}"),
+      description: "A clever new board game in playtest.",
+      min_players: 2,
+      max_players: 4,
+      min_playtime: 30,
+      max_playtime: 60,
+      categories: ["Strategy"],
+      mechanics: ["Dice Rolling"],
+      collaborators: [%Collaborator{name: "Alice", role: "Designer"}],
+      contact_email: sequence(:prototype_email, &"prototype#{&1}@example.com")
+    }
+  end
+
+  @spec prototype_image_factory() :: PrototypeImage.t()
+  def prototype_image_factory do
+    %PrototypeImage{
+      prototype: build(:prototype),
+      path: sequence(:prototype_image_path, &"prototypes/p/#{&1}.png"),
+      original_filename: "image.png",
+      position: 0
     }
   end
 end

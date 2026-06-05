@@ -32,6 +32,10 @@ if backup_path = System.get_env("BACKUP_PATH") do
   config :recco, backup_path: backup_path
 end
 
+if upload_path = System.get_env("UPLOAD_PATH") do
+  config :recco, upload_path: upload_path
+end
+
 if alert_recipients = System.get_env("ALERT_RECIPIENTS") do
   config :recco, alert_recipients: alert_recipients
 end

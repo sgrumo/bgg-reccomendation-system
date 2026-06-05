@@ -45,6 +45,7 @@ defmodule ReccoWeb.Navigation do
                 <.nav_link href={~p"/ratings"} label={gettext("My Ratings")} />
                 <.nav_link href={~p"/wishlist"} label={gettext("Wishlist")} />
                 <.nav_link href={~p"/recommendations"} label={gettext("For You")} />
+                <.nav_link href={~p"/prototypes"} label={gettext("Prototypes")} />
               <% end %>
             </div>
           </div>
@@ -128,6 +129,12 @@ defmodule ReccoWeb.Navigation do
               class="block rounded-base border-2 border-border px-3 py-2 text-base font-bold hover:bg-main"
             >
               {gettext("For You")}
+            </a>
+            <a
+              href={~p"/prototypes"}
+              class="block rounded-base border-2 border-border px-3 py-2 text-base font-bold hover:bg-main"
+            >
+              {gettext("Prototypes")}
             </a>
             <div class="border-t-2 border-border pt-4 mt-4">
               <a
