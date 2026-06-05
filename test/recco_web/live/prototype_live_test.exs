@@ -160,6 +160,41 @@ defmodule ReccoWeb.PrototypeLiveTest do
     end
   end
 
+  describe "Show with blocked prototype" do
+    setup do
+      now = DateTime.utc_now() |> DateTime.truncate(:second)
+      {:ok, now: now}
+    end
+
+    test "non-owner is redirected to index", %{conn: conn, now: now} do
+      blocked = insert(:prototype, blocked_at: now)
+      conn = log_in_user(conn, insert(:user))
+
+      assert {:error, {:redirect, %{to: "/prototypes"}}} =
+               live(conn, ~p"/prototypes/#{blocked.id}")
+    end
+
+    test "owner can still view their blocked prototype", %{conn: conn, now: now} do
+      owner = insert(:user)
+      blocked = insert(:prototype, user: owner, blocked_at: now, title: "Mine")
+      conn = log_in_user(conn, owner)
+
+      {:ok, _view, html} = live(conn, ~p"/prototypes/#{blocked.id}")
+      assert html =~ "Mine"
+      assert html =~ "blocked by an admin"
+    end
+
+    test "superadmin can view a blocked prototype", %{conn: conn, now: now} do
+      admin = insert(:user, role: "superadmin")
+      blocked = insert(:prototype, blocked_at: now, title: "Reported")
+      conn = log_in_user(conn, admin)
+
+      {:ok, _view, html} = live(conn, ~p"/prototypes/#{blocked.id}")
+      assert html =~ "Reported"
+      assert html =~ "blocked by an admin"
+    end
+  end
+
   describe "Form (edit)" do
     test "non-owner is redirected away", %{conn: conn} do
       owner = insert(:user)

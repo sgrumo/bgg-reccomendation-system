@@ -125,6 +125,7 @@ defmodule ReccoWeb.Router do
       live "/", Admin.DashboardLive
       live "/users", Admin.UserLive.Index
       live "/users/:id", Admin.UserLive.Show
+      live "/prototypes", Admin.PrototypeLive.Index
       live "/jobs", Admin.JobLive
       live "/crawler", Admin.CrawlerLive
       live "/feedback", Admin.FeedbackLive

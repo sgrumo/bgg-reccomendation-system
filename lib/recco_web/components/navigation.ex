@@ -189,6 +189,11 @@ defmodule ReccoWeb.Navigation do
         <nav class="flex-1 px-3 space-y-1" aria-label={gettext("Admin navigation")}>
           <.sidebar_link href={~p"/admin"} icon="hero-chart-bar" label={gettext("Dashboard")} />
           <.sidebar_link href={~p"/admin/users"} icon="hero-users" label={gettext("Users")} />
+          <.sidebar_link
+            href={~p"/admin/prototypes"}
+            icon="hero-puzzle-piece"
+            label={gettext("Prototypes")}
+          />
           <.sidebar_link href={~p"/admin/jobs"} icon="hero-queue-list" label={gettext("Jobs")} />
           <.sidebar_link href={~p"/admin/crawler"} icon="hero-arrow-path" label={gettext("Crawler")} />
           <.sidebar_link

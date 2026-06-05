@@ -18,7 +18,9 @@ defmodule Recco.Prototypes do
   @type list_opts :: %{
           optional(:page) => pos_integer(),
           optional(:per_page) => pos_integer(),
-          optional(:user_id) => String.t()
+          optional(:user_id) => String.t(),
+          optional(:include_blocked) => boolean(),
+          optional(:only_blocked) => boolean()
         }
 
   @default_per_page 24
@@ -35,10 +37,9 @@ defmodule Recco.Prototypes do
       )
 
     filtered =
-      case Map.get(opts, :user_id) do
-        nil -> base
-        user_id -> from(p in base, where: p.user_id == ^user_id)
-      end
+      base
+      |> filter_by_user(opts)
+      |> filter_by_blocked(opts)
 
     total = filtered |> exclude(:preload) |> Repo.aggregate(:count)
 
@@ -111,6 +112,30 @@ defmodule Recco.Prototypes do
   def owns?(%Prototype{user_id: user_id}, %User{id: user_id}), do: true
   def owns?(_, _), do: false
 
+  @spec blocked?(Prototype.t()) :: boolean()
+  def blocked?(%Prototype{blocked_at: %DateTime{}}), do: true
+  def blocked?(%Prototype{}), do: false
+
+  @spec block_prototype(Prototype.t()) :: {:ok, Prototype.t()} | Errors.t(map())
+  def block_prototype(%Prototype{} = prototype) do
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+    prototype
+    |> Ecto.Changeset.change(blocked_at: now)
+    |> Repo.update()
+    |> preload_after_write()
+    |> Errors.handle_changeset_error()
+  end
+
+  @spec unblock_prototype(Prototype.t()) :: {:ok, Prototype.t()} | Errors.t(map())
+  def unblock_prototype(%Prototype{} = prototype) do
+    prototype
+    |> Ecto.Changeset.change(blocked_at: nil)
+    |> Repo.update()
+    |> preload_after_write()
+    |> Errors.handle_changeset_error()
+  end
+
   # Image management
 
   @spec add_image(Prototype.t(), String.t(), String.t()) ::
@@ -155,6 +180,26 @@ defmodule Recco.Prototypes do
 
   defp preload_after_write({:ok, prototype}), do: {:ok, Repo.preload(prototype, [:user, :images])}
   defp preload_after_write(other), do: other
+
+  defp filter_by_user(query, opts) do
+    case Map.get(opts, :user_id) do
+      nil -> query
+      user_id -> from(p in query, where: p.user_id == ^user_id)
+    end
+  end
+
+  defp filter_by_blocked(query, opts) do
+    cond do
+      Map.get(opts, :only_blocked) ->
+        from(p in query, where: not is_nil(p.blocked_at))
+
+      Map.get(opts, :include_blocked) ->
+        query
+
+      true ->
+        from(p in query, where: is_nil(p.blocked_at))
+    end
+  end
 
   defp validate_taxonomy(changeset) do
     changeset

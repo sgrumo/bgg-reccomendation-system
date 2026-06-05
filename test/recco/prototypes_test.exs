@@ -244,4 +244,51 @@ defmodule Recco.PrototypesTest do
       assert {:error, :forbidden} = Prototypes.delete_image(image, other)
     end
   end
+
+  describe "block_prototype/1 and unblock_prototype/1" do
+    test "block sets blocked_at" do
+      prototype = insert(:prototype)
+      refute Prototypes.blocked?(prototype)
+
+      assert {:ok, blocked} = Prototypes.block_prototype(prototype)
+      assert %DateTime{} = blocked.blocked_at
+      assert Prototypes.blocked?(blocked)
+    end
+
+    test "unblock clears blocked_at" do
+      now = DateTime.utc_now() |> DateTime.truncate(:second)
+      prototype = insert(:prototype, blocked_at: now)
+      assert Prototypes.blocked?(prototype)
+
+      assert {:ok, unblocked} = Prototypes.unblock_prototype(prototype)
+      assert is_nil(unblocked.blocked_at)
+      refute Prototypes.blocked?(unblocked)
+    end
+  end
+
+  describe "list_prototypes/1 with blocked filtering" do
+    setup do
+      now = DateTime.utc_now() |> DateTime.truncate(:second)
+      active = insert(:prototype, title: "Active")
+      blocked = insert(:prototype, title: "Blocked", blocked_at: now)
+      {:ok, active: active, blocked: blocked}
+    end
+
+    test "by default excludes blocked prototypes", %{active: active} do
+      assert %{prototypes: [p], total: 1} = Prototypes.list_prototypes()
+      assert p.id == active.id
+    end
+
+    test "include_blocked: true returns everything" do
+      assert %{prototypes: prototypes, total: 2} =
+               Prototypes.list_prototypes(%{include_blocked: true})
+
+      assert length(prototypes) == 2
+    end
+
+    test "only_blocked: true returns only blocked", %{blocked: blocked} do
+      assert %{prototypes: [p], total: 1} = Prototypes.list_prototypes(%{only_blocked: true})
+      assert p.id == blocked.id
+    end
+  end
 end

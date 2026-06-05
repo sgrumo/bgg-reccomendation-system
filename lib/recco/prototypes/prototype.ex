@@ -43,6 +43,7 @@ defmodule Recco.Prototypes.Prototype do
     field :categories, {:array, :string}, default: []
     field :mechanics, {:array, :string}, default: []
     field :contact_email, :string
+    field :blocked_at, :utc_datetime
 
     embeds_many :collaborators, Collaborator, on_replace: :delete
 

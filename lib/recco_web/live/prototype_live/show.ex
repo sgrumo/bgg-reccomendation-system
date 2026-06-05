@@ -1,20 +1,34 @@
 defmodule ReccoWeb.PrototypeLive.Show do
   use ReccoWeb, :live_view
 
+  alias Recco.Accounts
   alias Recco.Prototypes
 
   @impl true
   @spec mount(map(), map(), Phoenix.LiveView.Socket.t()) ::
           {:ok, Phoenix.LiveView.Socket.t()}
   def mount(%{"id" => id}, _session, socket) do
+    user = socket.assigns.current_user
+
     case Prototypes.get_prototype(id) do
       {:ok, prototype} ->
-        {:ok,
-         assign(socket,
-           page_title: prototype.title,
-           prototype: prototype,
-           owner?: Prototypes.owns?(prototype, socket.assigns.current_user)
-         )}
+        owner? = Prototypes.owns?(prototype, user)
+        admin? = Accounts.superadmin?(user)
+
+        if Prototypes.blocked?(prototype) and not (owner? or admin?) do
+          {:ok,
+           socket
+           |> put_flash(:error, gettext("Prototype not found"))
+           |> redirect(to: ~p"/prototypes")}
+        else
+          {:ok,
+           assign(socket,
+             page_title: prototype.title,
+             prototype: prototype,
+             owner?: owner?,
+             admin?: admin?
+           )}
+        end
 
       {:error, :not_found} ->
         {:ok,
@@ -51,6 +65,15 @@ defmodule ReccoWeb.PrototypeLive.Show do
       >
         ← {gettext("Back to prototypes")}
       </.link>
+
+      <div
+        :if={@prototype.blocked_at}
+        class="rounded-base border-2 border-border bg-red-300 p-4 shadow-brutalist"
+      >
+        <p class="font-heading text-sm">
+          {gettext("This prototype has been blocked by an admin and is hidden from other users.")}
+        </p>
+      </div>
 
       <div class="rounded-base border-2 border-border bg-bw shadow-brutalist overflow-hidden">
         <div :if={@prototype.images != []} class="grid grid-cols-2 sm:grid-cols-3 gap-2 p-4 bg-bg">
