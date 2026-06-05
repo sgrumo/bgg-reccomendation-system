@@ -6,8 +6,6 @@ defmodule ReccoWeb.Live.RequestIdHook do
   gap so LiveView log lines can be correlated end to end.
   """
 
-  require Logger
-
   @spec on_mount(atom(), map(), map(), Phoenix.LiveView.Socket.t()) ::
           {:cont, Phoenix.LiveView.Socket.t()}
   def on_mount(:default, _params, _session, socket) do

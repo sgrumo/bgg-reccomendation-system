@@ -18,7 +18,7 @@ Board game recommendation system powered by data crawled from [BoardGameGeek](ht
 ## Stack
 
 ### Backend (Elixir/Phoenix)
-- **Elixir** ~> 1.19, **Phoenix** ~> 1.8, **Phoenix LiveView** ~> 1.0
+- **Elixir** ~> 1.20, **Phoenix** ~> 1.8, **Phoenix LiveView** ~> 1.0
 - **Ecto** with PostgreSQL (binary UUIDs, UTC datetime timestamps)
 - **Bandit** as HTTP server
 - **Oban** for background job scheduling
@@ -39,7 +39,7 @@ Board game recommendation system powered by data crawled from [BoardGameGeek](ht
 
 ### Prerequisites
 
-- Elixir ~> 1.19
+- Elixir ~> 1.20
 - Python >= 3.12
 - PostgreSQL (or Docker)
 
