@@ -104,4 +104,33 @@ defmodule Recco.AccountsTest do
       assert DateTime.compare(updated.onboarded_at, original_at) == :eq
     end
   end
+
+  describe "set_user_role/2" do
+    test "promotes a base user to superadmin" do
+      user = insert(:user, role: "base")
+      assert {:ok, updated} = Accounts.set_user_role(user, "superadmin")
+      assert updated.role == "superadmin"
+    end
+
+    test "demotes a superadmin to base" do
+      user = insert(:user, role: "superadmin")
+      assert {:ok, updated} = Accounts.set_user_role(user, "base")
+      assert updated.role == "base"
+    end
+
+    test "rejects an unknown role" do
+      user = insert(:user, role: "base")
+
+      assert {:error, :unprocessable_entity, errors} =
+               Accounts.set_user_role(user, "wizard")
+
+      assert errors[:role]
+    end
+
+    test "refuses to change the role of a soft-deleted user" do
+      now = DateTime.utc_now() |> DateTime.truncate(:second)
+      user = insert(:user, role: "base", deleted_at: now)
+      assert {:error, :forbidden} = Accounts.set_user_role(user, "superadmin")
+    end
+  end
 end

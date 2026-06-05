@@ -67,6 +67,42 @@ defmodule ReccoWeb.Admin.UserLive.Show do
     end
   end
 
+  def handle_event("promote_to_superadmin", _params, socket) do
+    case Accounts.set_user_role(socket.assigns.user, "superadmin") do
+      {:ok, user} ->
+        {:noreply,
+         socket
+         |> put_flash(:info, "#{user.username} is now a superadmin.")
+         |> assign(user: user)}
+
+      {:error, :forbidden} ->
+        {:noreply, put_flash(socket, :error, "Cannot change the role of a deleted user.")}
+
+      {:error, :unprocessable_entity, _} ->
+        {:noreply, put_flash(socket, :error, "Could not update role.")}
+    end
+  end
+
+  def handle_event("demote_to_base", _params, socket) do
+    if socket.assigns.user.id == socket.assigns.current_user.id do
+      {:noreply, put_flash(socket, :error, "You can't revoke your own superadmin role.")}
+    else
+      case Accounts.set_user_role(socket.assigns.user, "base") do
+        {:ok, user} ->
+          {:noreply,
+           socket
+           |> put_flash(:info, "#{user.username} is no longer a superadmin.")
+           |> assign(user: user)}
+
+        {:error, :forbidden} ->
+          {:noreply, put_flash(socket, :error, "Cannot change the role of a deleted user.")}
+
+        {:error, :unprocessable_entity, _} ->
+          {:noreply, put_flash(socket, :error, "Could not update role.")}
+      end
+    end
+  end
+
   def handle_event("hard_delete_user", _params, socket) do
     case Accounts.hard_delete_user(socket.assigns.user) do
       {:ok, _user} ->
@@ -100,9 +136,30 @@ defmodule ReccoWeb.Admin.UserLive.Show do
           </span>
         </h1>
 
-        <div :if={@user.role != "superadmin"} class="flex gap-2">
+        <div class="flex gap-2 flex-wrap">
           <button
-            :if={is_nil(@user.deleted_at)}
+            :if={@user.role == "base" and is_nil(@user.deleted_at)}
+            phx-click="promote_to_superadmin"
+            data-confirm={"Promote #{@user.username} to superadmin? They will get full admin access."}
+            class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-500"
+          >
+            Make admin
+          </button>
+
+          <button
+            :if={
+              @user.role == "superadmin" and is_nil(@user.deleted_at) and
+                @user.id != @current_user.id
+            }
+            phx-click="demote_to_base"
+            data-confirm={"Revoke superadmin from #{@user.username}? They will become a base user."}
+            class="rounded-lg bg-zinc-600 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-500"
+          >
+            Revoke admin
+          </button>
+
+          <button
+            :if={@user.role != "superadmin" and is_nil(@user.deleted_at)}
             phx-click="soft_delete_user"
             data-confirm={"Soft-delete #{@user.username}? PII will be scrubbed. Restorable for 30 days."}
             class="rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-500"
@@ -111,7 +168,7 @@ defmodule ReccoWeb.Admin.UserLive.Show do
           </button>
 
           <button
-            :if={@user.deleted_at}
+            :if={@user.role != "superadmin" and @user.deleted_at}
             phx-click="restore_user"
             class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500"
           >
@@ -119,6 +176,7 @@ defmodule ReccoWeb.Admin.UserLive.Show do
           </button>
 
           <button
+            :if={@user.role != "superadmin"}
             phx-click="hard_delete_user"
             data-confirm={"HARD-delete #{@user.username}? Removes all data (ratings, feedback) irreversibly."}
             class="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-500"

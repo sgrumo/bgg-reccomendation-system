@@ -105,5 +105,39 @@ defmodule ReccoWeb.Admin.UserLiveTest do
       assert {:error, {:redirect, %{to: "/admin/users"}}} =
                live(conn, ~p"/admin/users/#{Ecto.UUID.generate()}")
     end
+
+    test "promotes a base user to superadmin", %{conn: conn} do
+      user = insert(:user, role: "base")
+
+      {:ok, view, _html} = live(conn, ~p"/admin/users/#{user.id}")
+
+      html =
+        view
+        |> element("button", "Make admin")
+        |> render_click()
+
+      assert html =~ "superadmin"
+      assert html =~ "Revoke admin"
+      refute html =~ ">Make admin<"
+    end
+
+    test "demotes a superadmin to base", %{conn: conn} do
+      other_admin = insert(:user, role: "superadmin")
+
+      {:ok, view, _html} = live(conn, ~p"/admin/users/#{other_admin.id}")
+
+      html =
+        view
+        |> element("button", "Revoke admin")
+        |> render_click()
+
+      assert html =~ "Make admin"
+      refute html =~ ">Revoke admin<"
+    end
+
+    test "cannot revoke own superadmin role", %{conn: conn, admin: admin} do
+      {:ok, _view, html} = live(conn, ~p"/admin/users/#{admin.id}")
+      refute html =~ "Revoke admin"
+    end
   end
 end

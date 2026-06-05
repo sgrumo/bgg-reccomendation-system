@@ -180,6 +180,16 @@ defmodule Recco.Accounts do
   @spec superadmin?(User.t()) :: boolean()
   def superadmin?(user), do: User.superadmin?(user)
 
+  @spec set_user_role(User.t(), String.t()) :: {:ok, User.t()} | Errors.t() | Errors.t(map())
+  def set_user_role(%User{deleted_at: %DateTime{}}, _role), do: {:error, :forbidden}
+
+  def set_user_role(%User{} = user, role) do
+    user
+    |> User.role_changeset(%{role: role})
+    |> Repo.update()
+    |> Errors.handle_changeset_error()
+  end
+
   @doc """
   Default delete is the soft path — it anonymizes PII, wipes tokens +
   preferences + wishlists, and keeps ratings/feedback for their
