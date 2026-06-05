@@ -35,7 +35,9 @@
       "Bash(python -c \"import ast; [ast.parse\\(open\\(f\\).read\\(\\)\\) for f in ['src/engine.py','src/features.py','src/similarity.py','main.py','api.py']]; print\\('all parse OK'\\)\")",
       "Bash(ruff check *)",
       "Bash(python -c \"import scipy, sklearn, pandas, numpy; print\\('scipy', scipy.__version__\\); print\\('sklearn', sklearn.__version__\\)\")",
-      "Bash(PYTHONPATH=. uv run --with pandas --with scikit-learn --with scipy --with numpy python /tmp/smoke_recco.py)"
+      "Bash(PYTHONPATH=. uv run --with pandas --with scikit-learn --with scipy --with numpy python /tmp/smoke_recco.py)",
+      "Bash(grep -nA 5 \"^html,\" /Users/samuelemedici/Projects/bgg-reccomendation-system/priv/static/assets/app.css)",
+      "Bash(grep -nA 4 \"^body {\" /Users/samuelemedici/Projects/bgg-reccomendation-system/priv/static/assets/app.css)"
     ]
   }
 }

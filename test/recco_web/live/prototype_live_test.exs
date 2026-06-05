@@ -96,6 +96,58 @@ defmodule ReccoWeb.PrototypeLiveTest do
       assert {:error, {:redirect, %{to: "/prototypes"}}} =
                view |> element("button", "Delete") |> render_click()
     end
+
+    test "clicking an image opens the lightbox", %{conn: conn} do
+      user = insert(:user)
+      prototype = insert(:prototype)
+      insert(:prototype_image, prototype: prototype, position: 0)
+      insert(:prototype_image, prototype: prototype, position: 1)
+      conn = log_in_user(conn, user)
+
+      {:ok, view, _html} = live(conn, ~p"/prototypes/#{prototype.id}")
+
+      refute render(view) =~ ~s(id="prototype-lightbox")
+
+      html =
+        view
+        |> element(~s(button[phx-value-index="0"]))
+        |> render_click()
+
+      assert html =~ ~s(id="prototype-lightbox")
+      assert html =~ "1 / 2"
+    end
+
+    test "lightbox next/prev navigates between images", %{conn: conn} do
+      user = insert(:user)
+      prototype = insert(:prototype)
+      insert(:prototype_image, prototype: prototype, position: 0)
+      insert(:prototype_image, prototype: prototype, position: 1)
+      conn = log_in_user(conn, user)
+
+      {:ok, view, _html} = live(conn, ~p"/prototypes/#{prototype.id}")
+
+      view |> element(~s(button[phx-value-index="0"])) |> render_click()
+
+      html = view |> element("button[phx-click=next_image]") |> render_click()
+      assert html =~ "2 / 2"
+
+      html = view |> element("button[phx-click=prev_image]") |> render_click()
+      assert html =~ "1 / 2"
+    end
+
+    test "close button hides the lightbox", %{conn: conn} do
+      user = insert(:user)
+      prototype = insert(:prototype)
+      insert(:prototype_image, prototype: prototype, position: 0)
+      conn = log_in_user(conn, user)
+
+      {:ok, view, _html} = live(conn, ~p"/prototypes/#{prototype.id}")
+
+      view |> element(~s(button[phx-value-index="0"])) |> render_click()
+      html = view |> element("button[aria-label='Close']") |> render_click()
+
+      refute html =~ ~s(id="prototype-lightbox")
+    end
   end
 
   describe "Form (new)" do
