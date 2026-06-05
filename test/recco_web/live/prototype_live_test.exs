@@ -3,6 +3,9 @@ defmodule ReccoWeb.PrototypeLiveTest do
 
   import Phoenix.LiveViewTest
 
+  alias Recco.Prototypes
+  alias Recco.Prototypes.Link
+
   describe "auth gating" do
     test "redirects unauthenticated users from index", %{conn: conn} do
       assert {:error, {:redirect, %{to: "/login"}}} = live(conn, ~p"/prototypes")
@@ -55,6 +58,35 @@ defmodule ReccoWeb.PrototypeLiveTest do
 
       assert html =~ "My Prototype"
       refute html =~ "Other Prototype"
+    end
+
+    test "Liked filter scopes to prototypes the user liked", %{conn: conn} do
+      user = insert(:user)
+      liked = insert(:prototype, title: "Liked One")
+      _other = insert(:prototype, title: "Not Liked One")
+      insert(:prototype_like, user: user, prototype: liked)
+      conn = log_in_user(conn, user)
+
+      {:ok, _view, html} = live(conn, ~p"/prototypes?liked=1")
+
+      assert html =~ "Liked One"
+      refute html =~ "Not Liked One"
+    end
+
+    test "toggle_like on a card flips the heart state", %{conn: conn} do
+      user = insert(:user)
+      prototype = insert(:prototype, title: "Likeable")
+      conn = log_in_user(conn, user)
+
+      {:ok, view, _html} = live(conn, ~p"/prototypes")
+
+      html = view |> element("button[phx-value-id='#{prototype.id}']") |> render_click()
+      assert html =~ "♥"
+      assert Prototypes.liked?(user.id, prototype.id)
+
+      html = view |> element("button[phx-value-id='#{prototype.id}']") |> render_click()
+      refute Prototypes.liked?(user.id, prototype.id)
+      assert html =~ "♡"
     end
   end
 
@@ -135,6 +167,42 @@ defmodule ReccoWeb.PrototypeLiveTest do
       assert html =~ "1 / 2"
     end
 
+    test "toggle_like flips the like state and updates the count", %{conn: conn} do
+      user = insert(:user)
+      prototype = insert(:prototype)
+      conn = log_in_user(conn, user)
+
+      {:ok, view, html} = live(conn, ~p"/prototypes/#{prototype.id}")
+      assert html =~ "♡"
+
+      html = view |> element("button[phx-click=toggle_like]") |> render_click()
+      assert html =~ "♥"
+      assert Prototypes.liked?(user.id, prototype.id)
+
+      html = view |> element("button[phx-click=toggle_like]") |> render_click()
+      assert html =~ "♡"
+      refute Prototypes.liked?(user.id, prototype.id)
+    end
+
+    test "renders links when present", %{conn: conn} do
+      user = insert(:user)
+
+      prototype =
+        insert(:prototype,
+          links: [
+            %Link{label: "Kickstarter", url: "https://kickstarter.com/proj"},
+            %Link{label: "Discord", url: "https://discord.gg/abc"}
+          ]
+        )
+
+      conn = log_in_user(conn, user)
+      {:ok, _view, html} = live(conn, ~p"/prototypes/#{prototype.id}")
+
+      assert html =~ "Kickstarter"
+      assert html =~ "https://kickstarter.com/proj"
+      assert html =~ "Discord"
+    end
+
     test "close button hides the lightbox", %{conn: conn} do
       user = insert(:user)
       prototype = insert(:prototype)
@@ -209,6 +277,29 @@ defmodule ReccoWeb.PrototypeLiveTest do
 
       html = view |> element("button", "Add member") |> render_click()
       assert html =~ ~s(name="collab[1][name]")
+    end
+
+    test "add_link adds a row", %{conn: conn} do
+      user = insert(:user)
+      conn = log_in_user(conn, user)
+
+      {:ok, view, html} = live(conn, ~p"/prototypes/new")
+      refute html =~ ~s(name="link[0][label]")
+
+      html = view |> element("button", "Add link") |> render_click()
+      assert html =~ ~s(name="link[0][label]")
+      assert html =~ ~s(name="link[0][url]")
+    end
+
+    test "remove_link drops a row", %{conn: conn} do
+      user = insert(:user)
+      conn = log_in_user(conn, user)
+
+      {:ok, view, _html} = live(conn, ~p"/prototypes/new")
+
+      view |> element("button", "Add link") |> render_click()
+      html = view |> element("button[phx-click=remove_link]") |> render_click()
+      refute html =~ ~s(name="link[0][label]")
     end
   end
 

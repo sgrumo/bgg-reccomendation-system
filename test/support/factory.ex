@@ -12,6 +12,7 @@ defmodule Recco.Factory do
   alias Recco.Prototypes.Collaborator
   alias Recco.Prototypes.Prototype
   alias Recco.Prototypes.PrototypeImage
+  alias Recco.Prototypes.PrototypeLike
 
   @spec user_factory() :: User.t()
   def user_factory do
@@ -130,6 +131,14 @@ defmodule Recco.Factory do
       path: sequence(:prototype_image_path, &"prototypes/p/#{&1}.png"),
       original_filename: "image.png",
       position: 0
+    }
+  end
+
+  @spec prototype_like_factory() :: PrototypeLike.t()
+  def prototype_like_factory do
+    %PrototypeLike{
+      user: build(:user),
+      prototype: build(:prototype)
     }
   end
 end

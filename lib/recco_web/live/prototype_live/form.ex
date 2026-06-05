@@ -48,6 +48,7 @@ defmodule ReccoWeb.PrototypeLive.Form do
       categories: [],
       mechanics: [],
       collaborators: [%{"name" => "", "role" => ""}],
+      links: [],
       existing_images: []
     )
     |> assign_form(%Prototype{user_id: user.id, contact_email: user.email}, %{})
@@ -66,6 +67,7 @@ defmodule ReccoWeb.PrototypeLive.Form do
         categories: prototype.categories,
         mechanics: prototype.mechanics,
         collaborators: collaborators_to_maps(prototype.collaborators),
+        links: links_to_maps(prototype.links),
         existing_images: prototype.images
       )
       |> assign_form(prototype, %{})
@@ -85,14 +87,15 @@ defmodule ReccoWeb.PrototypeLive.Form do
           {:noreply, Phoenix.LiveView.Socket.t()}
   def handle_event("validate", params, socket) do
     collaborators = parse_collaborators(params["collab"])
+    links = parse_links(params["link"])
     prototype_params = Map.get(params, "prototype", %{})
 
     socket =
       socket
-      |> assign(collaborators: collaborators)
+      |> assign(collaborators: collaborators, links: links)
       |> assign_form(
         base_struct(socket),
-        merge_side_state(prototype_params, socket, collaborators),
+        merge_side_state(prototype_params, socket, collaborators, links),
         action: :validate
       )
 
@@ -101,10 +104,11 @@ defmodule ReccoWeb.PrototypeLive.Form do
 
   def handle_event("save", params, socket) do
     collaborators = parse_collaborators(params["collab"])
+    links = parse_links(params["link"])
     prototype_params = Map.get(params, "prototype", %{})
-    attrs = merge_side_state(prototype_params, socket, collaborators)
+    attrs = merge_side_state(prototype_params, socket, collaborators, links)
 
-    socket = assign(socket, collaborators: collaborators)
+    socket = assign(socket, collaborators: collaborators, links: links)
 
     case persist(socket, attrs) do
       {:ok, prototype} ->
@@ -144,6 +148,17 @@ defmodule ReccoWeb.PrototypeLive.Form do
     index = String.to_integer(idx)
     collaborators = List.delete_at(socket.assigns.collaborators, index)
     {:noreply, assign(socket, collaborators: collaborators)}
+  end
+
+  def handle_event("add_link", _params, socket) do
+    links = socket.assigns.links ++ [%{"label" => "", "url" => ""}]
+    {:noreply, assign(socket, links: links)}
+  end
+
+  def handle_event("remove_link", %{"index" => idx}, socket) do
+    index = String.to_integer(idx)
+    links = List.delete_at(socket.assigns.links, index)
+    {:noreply, assign(socket, links: links)}
   end
 
   def handle_event("cancel_upload", %{"ref" => ref}, socket) do
@@ -212,7 +227,12 @@ defmodule ReccoWeb.PrototypeLive.Form do
 
   defp assign_form(socket, struct, prototype_params, opts \\ []) do
     attrs =
-      merge_side_state(prototype_params, socket, socket.assigns[:collaborators] || [])
+      merge_side_state(
+        prototype_params,
+        socket,
+        socket.assigns[:collaborators] || [],
+        socket.assigns[:links] || []
+      )
 
     changeset = Prototype.changeset(struct, attrs)
 
@@ -225,11 +245,12 @@ defmodule ReccoWeb.PrototypeLive.Form do
     assign(socket, form: to_form(changeset, as: :prototype))
   end
 
-  defp merge_side_state(prototype_params, socket, collaborators) do
+  defp merge_side_state(prototype_params, socket, collaborators, links) do
     prototype_params
     |> Map.put("categories", socket.assigns[:categories] || [])
     |> Map.put("mechanics", socket.assigns[:mechanics] || [])
     |> Map.put("collaborators", collaborators)
+    |> Map.put("links", links)
   end
 
   defp parse_collaborators(nil), do: [%{"name" => "", "role" => ""}]
@@ -246,8 +267,22 @@ defmodule ReccoWeb.PrototypeLive.Form do
     end
   end
 
+  defp parse_links(nil), do: []
+
+  defp parse_links(map) when is_map(map) do
+    map
+    |> Enum.sort_by(fn {k, _} -> k end)
+    |> Enum.map(fn {_idx, attrs} ->
+      %{"label" => attrs["label"] || "", "url" => attrs["url"] || ""}
+    end)
+  end
+
   defp collaborators_to_maps(collabs) when is_list(collabs) do
     Enum.map(collabs, fn c -> %{"name" => c.name || "", "role" => c.role || ""} end)
+  end
+
+  defp links_to_maps(links) when is_list(links) do
+    Enum.map(links, fn l -> %{"label" => l.label || "", "url" => l.url || ""} end)
   end
 
   defp save_flash(:new), do: gettext("Prototype submitted!")
@@ -390,6 +425,49 @@ defmodule ReccoWeb.PrototypeLive.Form do
               phx-value-index={idx}
               class="col-span-1 h-10 rounded-base border-2 border-border bg-red-300 text-sm font-heading hover:translate-x-shadow-x hover:translate-y-shadow-y transition-all"
               aria-label={gettext("Remove member")}
+            >
+              ×
+            </button>
+          </div>
+        </section>
+
+        <section class="space-y-3">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="font-heading">{gettext("Links")}</h2>
+              <p class="text-xs font-base text-fg/70">
+                {gettext("Landing pages, crowdfunding, social — anything you want to share.")}
+              </p>
+            </div>
+            <button
+              type="button"
+              phx-click="add_link"
+              class="rounded-base border-2 border-border bg-bw px-3 py-1 text-sm font-heading hover:bg-main transition-colors"
+            >
+              + {gettext("Add link")}
+            </button>
+          </div>
+          <div :for={{link, idx} <- Enum.with_index(@links)} class="grid grid-cols-12 gap-2">
+            <input
+              type="text"
+              name={"link[#{idx}][label]"}
+              value={link["label"]}
+              placeholder={gettext("Label (e.g. Kickstarter)")}
+              class="col-span-4 h-10 rounded-base border-2 border-border bg-bw px-3 text-sm font-base focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+            <input
+              type="url"
+              name={"link[#{idx}][url]"}
+              value={link["url"]}
+              placeholder="https://..."
+              class="col-span-7 h-10 rounded-base border-2 border-border bg-bw px-3 text-sm font-base focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+            <button
+              type="button"
+              phx-click="remove_link"
+              phx-value-index={idx}
+              class="col-span-1 h-10 rounded-base border-2 border-border bg-red-300 text-sm font-heading hover:translate-x-shadow-x hover:translate-y-shadow-y transition-all"
+              aria-label={gettext("Remove link")}
             >
               ×
             </button>

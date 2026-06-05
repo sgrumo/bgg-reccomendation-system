@@ -116,6 +116,45 @@ defmodule Recco.PrototypesTest do
 
       assert {:error, :unprocessable_entity, _} = Prototypes.create_prototype(user, attrs)
     end
+
+    test "accepts empty links list" do
+      user = insert(:user)
+
+      assert {:ok, prototype} = Prototypes.create_prototype(user, valid_attrs(%{"links" => []}))
+      assert prototype.links == []
+    end
+
+    test "creates with valid links" do
+      user = insert(:user)
+
+      attrs =
+        valid_attrs(%{
+          "links" => [
+            %{"label" => "Kickstarter", "url" => "https://kickstarter.com/x"},
+            %{"label" => "Itch", "url" => "http://example.com/x"}
+          ]
+        })
+
+      assert {:ok, prototype} = Prototypes.create_prototype(user, attrs)
+      assert [%{label: "Kickstarter"}, %{label: "Itch"}] = prototype.links
+    end
+
+    test "rejects link without http(s) scheme" do
+      user = insert(:user)
+
+      attrs =
+        valid_attrs(%{"links" => [%{"label" => "Bad", "url" => "javascript:alert(1)"}]})
+
+      assert {:error, :unprocessable_entity, _} = Prototypes.create_prototype(user, attrs)
+    end
+
+    test "rejects link missing label" do
+      user = insert(:user)
+
+      attrs = valid_attrs(%{"links" => [%{"label" => "", "url" => "https://ok.com"}]})
+
+      assert {:error, :unprocessable_entity, _} = Prototypes.create_prototype(user, attrs)
+    end
   end
 
   describe "list_prototypes/1" do
@@ -263,6 +302,81 @@ defmodule Recco.PrototypesTest do
       assert {:ok, unblocked} = Prototypes.unblock_prototype(prototype)
       assert is_nil(unblocked.blocked_at)
       refute Prototypes.blocked?(unblocked)
+    end
+  end
+
+  describe "like_prototype/2 and unlike_prototype/2" do
+    test "likes a prototype" do
+      user = insert(:user)
+      prototype = insert(:prototype)
+
+      refute Prototypes.liked?(user.id, prototype.id)
+      assert {:ok, _} = Prototypes.like_prototype(user.id, prototype.id)
+      assert Prototypes.liked?(user.id, prototype.id)
+    end
+
+    test "is idempotent (no duplicate likes)" do
+      user = insert(:user)
+      prototype = insert(:prototype)
+
+      assert {:ok, _} = Prototypes.like_prototype(user.id, prototype.id)
+      assert {:ok, _} = Prototypes.like_prototype(user.id, prototype.id)
+      assert Prototypes.count_likes(prototype.id) == 1
+    end
+
+    test "unlike removes the like" do
+      user = insert(:user)
+      prototype = insert(:prototype)
+      {:ok, _} = Prototypes.like_prototype(user.id, prototype.id)
+
+      assert :ok = Prototypes.unlike_prototype(user.id, prototype.id)
+      refute Prototypes.liked?(user.id, prototype.id)
+    end
+
+    test "unlike on a non-existing like is a no-op" do
+      user = insert(:user)
+      prototype = insert(:prototype)
+      assert :ok = Prototypes.unlike_prototype(user.id, prototype.id)
+    end
+  end
+
+  describe "count_likes/1 and user_liked_ids/2" do
+    test "counts likes for a prototype" do
+      prototype = insert(:prototype)
+      insert(:prototype_like, prototype: prototype)
+      insert(:prototype_like, prototype: prototype)
+
+      assert Prototypes.count_likes(prototype.id) == 2
+    end
+
+    test "user_liked_ids returns the subset of ids liked by a user" do
+      user = insert(:user)
+      liked = insert(:prototype)
+      not_liked = insert(:prototype)
+      insert(:prototype_like, user: user, prototype: liked)
+
+      set = Prototypes.user_liked_ids(user.id, [liked.id, not_liked.id])
+      assert MapSet.member?(set, liked.id)
+      refute MapSet.member?(set, not_liked.id)
+    end
+  end
+
+  describe "list_prototypes/1 with :liked_by filter" do
+    test "returns only prototypes the user has liked" do
+      user = insert(:user)
+      liked = insert(:prototype, title: "Liked one")
+      _other = insert(:prototype, title: "Other")
+      insert(:prototype_like, user: user, prototype: liked)
+
+      assert %{prototypes: [p], total: 1} = Prototypes.list_prototypes(%{liked_by: user.id})
+      assert p.id == liked.id
+    end
+
+    test "returns empty when user liked nothing" do
+      user = insert(:user)
+      insert(:prototype)
+
+      assert %{prototypes: [], total: 0} = Prototypes.list_prototypes(%{liked_by: user.id})
     end
   end
 

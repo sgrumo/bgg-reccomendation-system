@@ -5,6 +5,7 @@ defmodule Recco.Prototypes.Prototype do
 
   alias Recco.Accounts.User
   alias Recco.Prototypes.Collaborator
+  alias Recco.Prototypes.Link
   alias Recco.Prototypes.PrototypeImage
 
   @type t :: %__MODULE__{}
@@ -46,6 +47,7 @@ defmodule Recco.Prototypes.Prototype do
     field :blocked_at, :utc_datetime
 
     embeds_many :collaborators, Collaborator, on_replace: :delete
+    embeds_many :links, Link, on_replace: :delete
 
     belongs_to :user, User
     has_many :images, PrototypeImage, preload_order: [asc: :position]
@@ -58,6 +60,7 @@ defmodule Recco.Prototypes.Prototype do
     prototype
     |> cast(attrs, @castable_fields)
     |> cast_embed(:collaborators, with: &Collaborator.changeset/2, required: true)
+    |> cast_embed(:links, with: &Link.changeset/2)
     |> validate_required(@required_fields)
     |> validate_length(:title, min: 1, max: 200)
     |> validate_length(:description, min: 1, max: 5000)

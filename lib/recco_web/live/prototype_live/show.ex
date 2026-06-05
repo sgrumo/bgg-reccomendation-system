@@ -27,7 +27,9 @@ defmodule ReccoWeb.PrototypeLive.Show do
              prototype: prototype,
              owner?: owner?,
              admin?: admin?,
-             lightbox_index: nil
+             lightbox_index: nil,
+             liked?: Prototypes.liked?(user.id, prototype.id),
+             like_count: Prototypes.count_likes(prototype.id)
            )}
         end
 
@@ -71,6 +73,24 @@ defmodule ReccoWeb.PrototypeLive.Show do
   end
 
   def handle_event("lightbox_key", _params, socket), do: {:noreply, socket}
+
+  def handle_event("toggle_like", _params, socket) do
+    user_id = socket.assigns.current_user.id
+    prototype_id = socket.assigns.prototype.id
+
+    if socket.assigns.liked? do
+      :ok = Prototypes.unlike_prototype(user_id, prototype_id)
+      {:noreply, assign(socket, liked?: false, like_count: socket.assigns.like_count - 1)}
+    else
+      case Prototypes.like_prototype(user_id, prototype_id) do
+        {:ok, _} ->
+          {:noreply, assign(socket, liked?: true, like_count: socket.assigns.like_count + 1)}
+
+        {:error, _, _} ->
+          {:noreply, put_flash(socket, :error, gettext("Could not save like"))}
+      end
+    end
+  end
 
   def handle_event("delete", _params, socket) do
     case Prototypes.delete_prototype(socket.assigns.prototype, socket.assigns.current_user) do
@@ -138,12 +158,27 @@ defmodule ReccoWeb.PrototypeLive.Show do
         </div>
 
         <div class="p-6 space-y-6">
-          <div>
-            <h1 class="text-3xl font-heading mb-2">{@prototype.title}</h1>
-            <p class="text-sm font-base text-fg/70">
-              {gettext("Submitted by")}
-              <span class="font-heading">{@prototype.user.username}</span>
-            </p>
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <h1 class="text-3xl font-heading mb-2">{@prototype.title}</h1>
+              <p class="text-sm font-base text-fg/70">
+                {gettext("Submitted by")}
+                <span class="font-heading">{@prototype.user.username}</span>
+              </p>
+            </div>
+            <button
+              phx-click="toggle_like"
+              aria-pressed={to_string(@liked?)}
+              aria-label={if @liked?, do: gettext("Unlike"), else: gettext("Like")}
+              class={[
+                "flex items-center gap-1.5 rounded-base border-2 border-border px-3 py-2 text-sm font-heading shadow-brutalist transition-all hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none",
+                @liked? && "bg-red-300",
+                !@liked? && "bg-bw"
+              ]}
+            >
+              <span aria-hidden="true">{if @liked?, do: "♥", else: "♡"}</span>
+              <span>{@like_count}</span>
+            </button>
           </div>
 
           <div class="flex flex-wrap gap-2 text-sm font-base">
@@ -207,6 +242,25 @@ defmodule ReccoWeb.PrototypeLive.Show do
             </ul>
           </section>
 
+          <section :if={@prototype.links != []}>
+            <h2 class="text-sm font-heading uppercase tracking-wide mb-2">
+              {gettext("Links")}
+            </h2>
+            <ul class="flex flex-wrap gap-2">
+              <li :for={link <- @prototype.links}>
+                <a
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex items-center gap-1 rounded-base border-2 border-border bg-bw px-3 py-1.5 text-sm font-heading shadow-brutalist hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none transition-all"
+                >
+                  {link.label}
+                  <span aria-hidden="true">↗</span>
+                </a>
+              </li>
+            </ul>
+          </section>
+
           <section>
             <h2 class="text-sm font-heading uppercase tracking-wide mb-2">
               {gettext("Contact")}
@@ -236,7 +290,6 @@ defmodule ReccoWeb.PrototypeLive.Show do
           </div>
         </div>
       </div>
-
     </div>
     <.lightbox :if={not is_nil(@lightbox_index)} prototype={@prototype} index={@lightbox_index} />
     """

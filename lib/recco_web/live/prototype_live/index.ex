@@ -18,13 +18,17 @@ defmodule ReccoWeb.PrototypeLive.Index do
   def handle_params(params, _uri, socket) do
     page = parse_int(params["page"], 1)
     mine? = params["mine"] == "1"
+    liked? = params["liked"] == "1"
+    user = socket.assigns.current_user
 
     opts =
       %{page: page, per_page: @per_page}
-      |> maybe_scope_to_user(mine?, socket.assigns.current_user)
+      |> maybe_scope_to_user(mine?, user)
+      |> maybe_scope_to_liked(liked?, user)
 
     %{prototypes: prototypes, total: total} = Prototypes.list_prototypes(opts)
     total_pages = max(ceil(total / @per_page), 1)
+    liked_ids = Prototypes.user_liked_ids(user.id, Enum.map(prototypes, & &1.id))
 
     {:noreply,
      assign(socket,
@@ -33,8 +37,36 @@ defmodule ReccoWeb.PrototypeLive.Index do
        total: total,
        page: page,
        total_pages: total_pages,
-       mine?: mine?
+       mine?: mine?,
+       liked?: liked?,
+       liked_ids: liked_ids
      )}
+  end
+
+  @impl true
+  @spec handle_event(String.t(), map(), Phoenix.LiveView.Socket.t()) ::
+          {:noreply, Phoenix.LiveView.Socket.t()}
+  def handle_event("toggle_like", %{"id" => prototype_id}, socket) do
+    user_id = socket.assigns.current_user.id
+
+    new_liked_ids =
+      if MapSet.member?(socket.assigns.liked_ids, prototype_id) do
+        :ok = Prototypes.unlike_prototype(user_id, prototype_id)
+        MapSet.delete(socket.assigns.liked_ids, prototype_id)
+      else
+        case Prototypes.like_prototype(user_id, prototype_id) do
+          {:ok, _} -> MapSet.put(socket.assigns.liked_ids, prototype_id)
+          {:error, _, _} -> socket.assigns.liked_ids
+        end
+      end
+
+    socket = assign(socket, liked_ids: new_liked_ids)
+
+    if socket.assigns.liked? do
+      {:noreply, push_patch(socket, to: ~p"/prototypes?liked=1")}
+    else
+      {:noreply, socket}
+    end
   end
 
   @impl true
@@ -53,26 +85,9 @@ defmodule ReccoWeb.PrototypeLive.Index do
       </div>
 
       <div class="mb-6 flex gap-2">
-        <.link
-          patch={~p"/prototypes"}
-          class={[
-            "px-3 py-1.5 rounded-base border-2 border-border text-sm font-heading transition-colors",
-            !@mine? && "bg-main shadow-brutalist",
-            @mine? && "bg-bw hover:bg-bg"
-          ]}
-        >
-          {gettext("All")}
-        </.link>
-        <.link
-          patch={~p"/prototypes?mine=1"}
-          class={[
-            "px-3 py-1.5 rounded-base border-2 border-border text-sm font-heading transition-colors",
-            @mine? && "bg-main shadow-brutalist",
-            !@mine? && "bg-bw hover:bg-bg"
-          ]}
-        >
-          {gettext("Mine")}
-        </.link>
+        <.filter_tab active?={!@mine? and !@liked?} href={~p"/prototypes"} label={gettext("All")} />
+        <.filter_tab active?={@mine?} href={~p"/prototypes?mine=1"} label={gettext("Mine")} />
+        <.filter_tab active?={@liked?} href={~p"/prototypes?liked=1"} label={gettext("Liked")} />
       </div>
 
       <p class="text-sm font-base mb-4">
@@ -87,7 +102,11 @@ defmodule ReccoWeb.PrototypeLive.Index do
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        <.prototype_card :for={prototype <- @prototypes} prototype={prototype} />
+        <.prototype_card
+          :for={prototype <- @prototypes}
+          prototype={prototype}
+          liked?={MapSet.member?(@liked_ids, prototype.id)}
+        />
       </div>
 
       <.pagination :if={@total_pages > 1} page={@page} total_pages={@total_pages} mine?={@mine?} />
@@ -96,45 +115,77 @@ defmodule ReccoWeb.PrototypeLive.Index do
   end
 
   attr :prototype, :map, required: true
+  attr :liked?, :boolean, required: true
 
   defp prototype_card(assigns) do
     ~H"""
-    <.link
-      navigate={~p"/prototypes/#{@prototype.id}"}
-      class="block rounded-base border-2 border-border bg-bw shadow-brutalist overflow-hidden hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none transition-all"
-    >
-      <div class="aspect-video bg-bg border-b-2 border-border flex items-center justify-center overflow-hidden">
-        <img
-          :if={cover_image(@prototype)}
-          src={~p"/prototype_images/#{cover_image(@prototype).id}"}
-          alt={@prototype.title}
-          class="w-full h-full object-cover"
-          loading="lazy"
-        />
-        <span :if={!cover_image(@prototype)} class="font-heading text-fg/40 text-sm">
-          {gettext("No image")}
-        </span>
-      </div>
-      <div class="p-4 space-y-2">
-        <h2 class="font-heading truncate">{@prototype.title}</h2>
-        <div class="flex flex-wrap gap-2 text-xs font-base">
-          <span class="inline-flex items-center rounded-base border-2 border-border bg-bg px-2 py-0.5">
-            {gettext("%{min}-%{max} players",
-              min: @prototype.min_players,
-              max: @prototype.max_players
-            )}
-          </span>
-          <span class="inline-flex items-center rounded-base border-2 border-border bg-bg px-2 py-0.5">
-            {gettext("%{min}-%{max} min",
-              min: @prototype.min_playtime,
-              max: @prototype.max_playtime
-            )}
+    <div class="relative rounded-base border-2 border-border bg-bw shadow-brutalist overflow-hidden hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none transition-all">
+      <.link navigate={~p"/prototypes/#{@prototype.id}"} class="block">
+        <div class="aspect-video bg-bg border-b-2 border-border flex items-center justify-center overflow-hidden">
+          <img
+            :if={cover_image(@prototype)}
+            src={~p"/prototype_images/#{cover_image(@prototype).id}"}
+            alt={@prototype.title}
+            class="w-full h-full object-cover"
+            loading="lazy"
+          />
+          <span :if={!cover_image(@prototype)} class="font-heading text-fg/40 text-sm">
+            {gettext("No image")}
           </span>
         </div>
-        <p :if={@prototype.categories != []} class="text-xs font-base text-fg/70 truncate">
-          {Enum.join(Enum.take(@prototype.categories, 3), " · ")}
-        </p>
-      </div>
+        <div class="p-4 space-y-2">
+          <h2 class="font-heading truncate">{@prototype.title}</h2>
+          <div class="flex flex-wrap gap-2 text-xs font-base">
+            <span class="inline-flex items-center rounded-base border-2 border-border bg-bg px-2 py-0.5">
+              {gettext("%{min}-%{max} players",
+                min: @prototype.min_players,
+                max: @prototype.max_players
+              )}
+            </span>
+            <span class="inline-flex items-center rounded-base border-2 border-border bg-bg px-2 py-0.5">
+              {gettext("%{min}-%{max} min",
+                min: @prototype.min_playtime,
+                max: @prototype.max_playtime
+              )}
+            </span>
+          </div>
+          <p :if={@prototype.categories != []} class="text-xs font-base text-fg/70 truncate">
+            {Enum.join(Enum.take(@prototype.categories, 3), " · ")}
+          </p>
+        </div>
+      </.link>
+      <button
+        phx-click="toggle_like"
+        phx-value-id={@prototype.id}
+        aria-pressed={to_string(@liked?)}
+        aria-label={if @liked?, do: gettext("Unlike"), else: gettext("Like")}
+        class={[
+          "absolute top-2 right-2 rounded-base border-2 border-border w-9 h-9 flex items-center justify-center text-lg font-heading shadow-brutalist transition-all hover:translate-x-shadow-x hover:translate-y-shadow-y hover:shadow-none",
+          @liked? && "bg-red-300",
+          !@liked? && "bg-bw"
+        ]}
+      >
+        {if @liked?, do: "♥", else: "♡"}
+      </button>
+    </div>
+    """
+  end
+
+  attr :active?, :boolean, required: true
+  attr :href, :string, required: true
+  attr :label, :string, required: true
+
+  defp filter_tab(assigns) do
+    ~H"""
+    <.link
+      patch={@href}
+      class={[
+        "px-3 py-1.5 rounded-base border-2 border-border text-sm font-heading transition-colors",
+        @active? && "bg-main shadow-brutalist",
+        !@active? && "bg-bw hover:bg-bg"
+      ]}
+    >
+      {@label}
     </.link>
     """
   end
@@ -207,6 +258,9 @@ defmodule ReccoWeb.PrototypeLive.Index do
 
   defp maybe_scope_to_user(opts, true, %{id: user_id}), do: Map.put(opts, :user_id, user_id)
   defp maybe_scope_to_user(opts, _, _), do: opts
+
+  defp maybe_scope_to_liked(opts, true, %{id: user_id}), do: Map.put(opts, :liked_by, user_id)
+  defp maybe_scope_to_liked(opts, _, _), do: opts
 
   defp parse_int(nil, default), do: default
 

@@ -10,6 +10,7 @@ defmodule Recco.Accounts do
   alias Recco.Accounts.{RateLimit, User, UserNotifier, UserPreference, UserToken, UserWishlist}
   alias Recco.Errors
   alias Recco.Prototypes.Prototype
+  alias Recco.Prototypes.PrototypeLike
   alias Recco.Prototypes.Storage
   alias Recco.Repo
 
@@ -230,6 +231,7 @@ defmodule Recco.Accounts do
     |> Multi.delete_all(:tokens, from(t in UserToken, where: t.user_id == ^user.id))
     |> Multi.delete_all(:prefs, from(p in UserPreference, where: p.user_id == ^user.id))
     |> Multi.delete_all(:wishlists, from(w in UserWishlist, where: w.user_id == ^user.id))
+    |> Multi.delete_all(:prototype_likes, from(l in PrototypeLike, where: l.user_id == ^user.id))
     |> Multi.delete_all(:prototypes, from(p in Prototype, where: p.user_id == ^user.id))
     |> Repo.transaction()
     |> case do

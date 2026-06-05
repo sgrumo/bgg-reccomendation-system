@@ -12,6 +12,7 @@ defmodule Recco.Prototypes do
   alias Recco.Errors
   alias Recco.Prototypes.Prototype
   alias Recco.Prototypes.PrototypeImage
+  alias Recco.Prototypes.PrototypeLike
   alias Recco.Prototypes.Storage
   alias Recco.Repo
 
@@ -19,6 +20,7 @@ defmodule Recco.Prototypes do
           optional(:page) => pos_integer(),
           optional(:per_page) => pos_integer(),
           optional(:user_id) => String.t(),
+          optional(:liked_by) => String.t(),
           optional(:include_blocked) => boolean(),
           optional(:only_blocked) => boolean()
         }
@@ -39,6 +41,7 @@ defmodule Recco.Prototypes do
     filtered =
       base
       |> filter_by_user(opts)
+      |> filter_by_liked(opts)
       |> filter_by_blocked(opts)
 
     total = filtered |> exclude(:preload) |> Repo.aggregate(:count)
@@ -116,6 +119,52 @@ defmodule Recco.Prototypes do
   def blocked?(%Prototype{blocked_at: %DateTime{}}), do: true
   def blocked?(%Prototype{}), do: false
 
+  @spec like_prototype(String.t(), String.t()) ::
+          {:ok, PrototypeLike.t()} | Errors.t(map())
+  def like_prototype(user_id, prototype_id) do
+    %PrototypeLike{user_id: user_id, prototype_id: prototype_id}
+    |> PrototypeLike.changeset(%{})
+    |> Repo.insert(
+      on_conflict: :nothing,
+      conflict_target: [:user_id, :prototype_id]
+    )
+    |> Errors.handle_changeset_error()
+  end
+
+  @spec unlike_prototype(String.t(), String.t()) :: :ok
+  def unlike_prototype(user_id, prototype_id) do
+    from(l in PrototypeLike,
+      where: l.user_id == ^user_id and l.prototype_id == ^prototype_id
+    )
+    |> Repo.delete_all()
+
+    :ok
+  end
+
+  @spec liked?(String.t(), String.t()) :: boolean()
+  def liked?(user_id, prototype_id) do
+    from(l in PrototypeLike,
+      where: l.user_id == ^user_id and l.prototype_id == ^prototype_id
+    )
+    |> Repo.exists?()
+  end
+
+  @spec count_likes(String.t()) :: non_neg_integer()
+  def count_likes(prototype_id) do
+    from(l in PrototypeLike, where: l.prototype_id == ^prototype_id)
+    |> Repo.aggregate(:count)
+  end
+
+  @spec user_liked_ids(String.t(), [String.t()]) :: MapSet.t()
+  def user_liked_ids(user_id, prototype_ids) when is_list(prototype_ids) do
+    from(l in PrototypeLike,
+      where: l.user_id == ^user_id and l.prototype_id in ^prototype_ids,
+      select: l.prototype_id
+    )
+    |> Repo.all()
+    |> MapSet.new()
+  end
+
   @spec block_prototype(Prototype.t()) :: {:ok, Prototype.t()} | Errors.t(map())
   def block_prototype(%Prototype{} = prototype) do
     now = DateTime.utc_now() |> DateTime.truncate(:second)
@@ -185,6 +234,19 @@ defmodule Recco.Prototypes do
     case Map.get(opts, :user_id) do
       nil -> query
       user_id -> from(p in query, where: p.user_id == ^user_id)
+    end
+  end
+
+  defp filter_by_liked(query, opts) do
+    case Map.get(opts, :liked_by) do
+      nil ->
+        query
+
+      user_id ->
+        from(p in query,
+          join: l in PrototypeLike,
+          on: l.prototype_id == p.id and l.user_id == ^user_id
+        )
     end
   end
 
