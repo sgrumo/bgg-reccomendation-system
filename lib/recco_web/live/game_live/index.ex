@@ -153,15 +153,19 @@ defmodule ReccoWeb.GameLive.Index do
           <div class="label mb-1.5">{gettext("Catalogue")}</div>
           <h1 class="text-[clamp(34px,4vw,58px)]">{gettext("Browse Games")}</h1>
         </div>
-        <form phx-change="search" phx-submit="search" class="w-full sm:w-[380px]">
+        <form phx-change="search" phx-submit="search" class="w-full sm:w-[380px] relative">
           <input
             type="text"
             name="search"
             value={@search}
             placeholder={gettext("Search by title or designer…")}
-            class="field"
+            class="field pr-12"
             phx-debounce="300"
             aria-label={gettext("Search games")}
+          />
+          <span
+            class="spinner absolute right-4 top-[calc(50%-9px)]"
+            aria-hidden="true"
           />
         </form>
       </header>

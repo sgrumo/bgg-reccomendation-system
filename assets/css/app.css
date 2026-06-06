@@ -456,6 +456,29 @@
     color: var(--accent-ink);
   }
 
+  /* ── loading spinner ────────────────────────────────────────────────── */
+  .spinner {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    border: 2.5px solid var(--line);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spinner-rotate 0.7s linear infinite;
+    opacity: 0;
+    transition: opacity 0.12s ease;
+    pointer-events: none;
+  }
+  .phx-change-loading > .spinner,
+  .phx-submit-loading > .spinner,
+  .phx-change-loading .spinner,
+  .phx-submit-loading .spinner {
+    opacity: 1;
+  }
+  @keyframes spinner-rotate {
+    to { transform: rotate(360deg); }
+  }
+
   /* ── numbered trending chart rows ───────────────────────────────────── */
   .chart-row {
     display: flex;
