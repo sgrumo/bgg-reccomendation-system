@@ -10,6 +10,7 @@ defmodule Recco.Prototypes do
   alias Recco.Accounts.User
   alias Recco.BoardGames
   alias Recco.Errors
+  alias Recco.Notifications.Events
   alias Recco.Prototypes.Prototype
   alias Recco.Prototypes.PrototypeImage
   alias Recco.Prototypes.PrototypeLike
@@ -83,7 +84,13 @@ defmodule Recco.Prototypes do
     |> Repo.insert()
     |> preload_after_write()
     |> Errors.handle_changeset_error()
+    |> tap(&maybe_notify_posted/1)
   end
+
+  defp maybe_notify_posted({:ok, %Prototype{} = prototype}),
+    do: Events.prototype_posted(prototype)
+
+  defp maybe_notify_posted(_), do: :ok
 
   @spec update_prototype(Prototype.t(), User.t(), map()) ::
           {:ok, Prototype.t()} | Errors.t() | Errors.t(map())

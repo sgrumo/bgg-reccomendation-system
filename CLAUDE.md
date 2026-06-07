@@ -308,6 +308,7 @@ Located in `recommender/`. Uses scikit-learn for content-based recommendation vi
 | `BGG_BEARER_TOKEN` | all | Optional BGG API auth |
 | `BACKUP_PATH` | prod | Enables weekly DB backup worker |
 | `ALERT_RECIPIENTS` | prod | Comma-separated emails receiving observability alerts; falls back to `Logger.error` when unset |
+| `DISCORD_WEBHOOK_URL` | all | Discord webhook for notifications (new user registration, prototype posted). No-op when unset |
 | `CSP_MODE` | prod | `enforce` flips CSP out of Report-Only (default) |
 | `MAILER_ADAPTER`, `MAILER_API_KEY` | prod | Swoosh adapter selection (resend \| brevo) |
 

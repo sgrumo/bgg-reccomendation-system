@@ -40,6 +40,10 @@ if alert_recipients = System.get_env("ALERT_RECIPIENTS") do
   config :recco, alert_recipients: alert_recipients
 end
 
+if discord_webhook_url = System.get_env("DISCORD_WEBHOOK_URL") do
+  config :recco, discord_webhook_url: discord_webhook_url
+end
+
 if config_env() == :prod do
   :logger.update_handler_config(:default, :formatter, LoggerJSON.Formatters.Basic.new([]))
 

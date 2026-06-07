@@ -17,6 +17,25 @@ defmodule Recco.AccountsTest do
       assert {:error, :unprocessable_entity, errors} = Accounts.register_user(%{})
       assert Map.has_key?(errors, :email)
     end
+
+    test "dispatches a Discord notification on success" do
+      attrs = %{
+        email: "notify@example.com",
+        username: "notifyuser",
+        password: "valid_password123"
+      }
+
+      assert {:ok, _user} = Accounts.register_user(attrs)
+
+      assert_receive {:discord_notify, _url, payload}, 500
+      assert [%{description: description}] = payload.embeds
+      assert description =~ "notifyuser"
+    end
+
+    test "does not dispatch a Discord notification on failure" do
+      assert {:error, :unprocessable_entity, _} = Accounts.register_user(%{})
+      refute_receive {:discord_notify, _, _}, 100
+    end
   end
 
   describe "authenticate_user_by_email/2" do

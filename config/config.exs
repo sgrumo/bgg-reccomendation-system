@@ -6,6 +6,7 @@ config :recco,
   token_verifier: Recco.Auth.Token,
   recommender_url: "http://localhost:8000",
   recommender_client: Recco.Recommender.HttpClient,
+  discord_client: Recco.Notifications.Discord.HttpClient,
   csp_mode: :enforce,
   env: config_env()
 

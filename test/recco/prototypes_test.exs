@@ -43,6 +43,18 @@ defmodule Recco.PrototypesTest do
       assert collab.name == "Alice"
     end
 
+    test "dispatches a Discord notification on success" do
+      user = insert(:user, username: "designer42")
+
+      assert {:ok, _prototype} = Prototypes.create_prototype(user, valid_attrs())
+
+      assert_receive {:discord_notify, _url, payload}, 500
+      assert [embed] = payload.embeds
+      assert embed.title == "New prototype posted"
+      assert embed.description =~ "Castle Caper"
+      assert embed.description =~ "designer42"
+    end
+
     test "rejects when min_players > max_players" do
       user = insert(:user)
 

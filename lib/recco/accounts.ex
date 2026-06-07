@@ -9,6 +9,7 @@ defmodule Recco.Accounts do
   alias Ecto.Multi
   alias Recco.Accounts.{RateLimit, User, UserNotifier, UserPreference, UserToken, UserWishlist}
   alias Recco.Errors
+  alias Recco.Notifications.Events
   alias Recco.Prototypes.Prototype
   alias Recco.Prototypes.PrototypeLike
   alias Recco.Prototypes.Storage
@@ -22,6 +23,7 @@ defmodule Recco.Accounts do
         |> User.registration_changeset(attrs)
         |> Repo.insert()
         |> Errors.handle_changeset_error()
+        |> tap(&maybe_notify_registered/1)
 
       {result, %{result: register_result_tag(result)}}
     end)
@@ -29,6 +31,9 @@ defmodule Recco.Accounts do
 
   defp register_result_tag({:ok, _}), do: :ok
   defp register_result_tag({:error, _, _}), do: :invalid
+
+  defp maybe_notify_registered({:ok, %User{} = user}), do: Events.user_registered(user)
+  defp maybe_notify_registered(_), do: :ok
 
   @spec authenticate_user_by_email(String.t(), String.t()) ::
           {:ok, User.t()} | {:error, :unauthorized} | {:error, :locked_out, non_neg_integer()}

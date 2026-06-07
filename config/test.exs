@@ -28,6 +28,8 @@ config :recco, Recco.Accounts.RateLimit,
 
 config :recco, bgg_http_client: Recco.BoardGames.BggApi.MockClient
 config :recco, recommender_client: Recco.Recommender.Mock
+config :recco, discord_client: Recco.Notifications.Discord.Mock
+config :recco, discord_webhook_url: "https://discord.test/webhook"
 
 config :recco, Recco.Mailer, adapter: Swoosh.Adapters.Test
 
