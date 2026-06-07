@@ -157,6 +157,45 @@ defmodule Recco.Accounts do
     end
   end
 
+  @spec confirmed?(User.t()) :: boolean()
+  def confirmed?(%User{confirmed_at: %DateTime{}}), do: true
+  def confirmed?(%User{}), do: false
+
+  @spec deliver_confirmation_instructions(User.t(), (String.t() -> String.t())) ::
+          {:ok, Swoosh.Email.t()} | {:error, :already_confirmed | term()}
+  def deliver_confirmation_instructions(%User{confirmed_at: %DateTime{}}, _url_fn),
+    do: {:error, :already_confirmed}
+
+  def deliver_confirmation_instructions(%User{} = user, confirm_url_fn)
+      when is_function(confirm_url_fn, 1) do
+    {encoded_token, user_token} = UserToken.build_confirm_token(user)
+    Repo.insert!(user_token)
+    UserNotifier.deliver_confirmation_instructions(user, confirm_url_fn.(encoded_token))
+  end
+
+  @spec confirm_user_by_token(String.t()) :: {:ok, User.t()} | {:error, :invalid_token}
+  def confirm_user_by_token(token) do
+    case Repo.one(UserToken.verify_confirm_token_query(token)) do
+      nil ->
+        {:error, :invalid_token}
+
+      user ->
+        now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+        Multi.new()
+        |> Multi.update(:user, Changeset.change(user, confirmed_at: now))
+        |> Multi.delete_all(
+          :tokens,
+          from(t in UserToken, where: t.user_id == ^user.id and t.context == "confirm")
+        )
+        |> Repo.transaction()
+        |> case do
+          {:ok, %{user: user}} -> {:ok, user}
+          {:error, _, _, _} -> {:error, :invalid_token}
+        end
+    end
+  end
+
   @spec update_bgg_username(User.t(), map()) :: {:ok, User.t()} | Errors.t(map())
   def update_bgg_username(%User{} = user, attrs) do
     user

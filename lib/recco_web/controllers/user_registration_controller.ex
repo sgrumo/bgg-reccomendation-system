@@ -17,6 +17,10 @@ defmodule ReccoWeb.UserRegistrationController do
   def create(conn, %{"user" => user_params}) do
     case Accounts.register_user(user_params) do
       {:ok, user} ->
+        Accounts.deliver_confirmation_instructions(user, fn token ->
+          url(~p"/confirm/#{token}")
+        end)
+
         token = Accounts.generate_user_session_token(user)
 
         conn

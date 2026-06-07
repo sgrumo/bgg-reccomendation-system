@@ -62,6 +62,12 @@ if config_env() == :prod do
         api_key: System.get_env("MAILER_API_KEY") || raise("missing MAILER_API_KEY")
   end
 
+  # Override the sender per env. Default (in config.exs) is Resend's sandbox
+  # address — works only for the Resend-account inbox until a real domain is verified.
+  if email = System.get_env("MAILER_SENDER_EMAIL") do
+    config :recco, :mailer_sender, {System.get_env("MAILER_SENDER_NAME", "Recco"), email}
+  end
+
   config :recco, telemetry_ui_enabled: true
 
   database_url =

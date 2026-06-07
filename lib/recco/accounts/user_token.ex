@@ -8,6 +8,7 @@ defmodule Recco.Accounts.UserToken do
   @rand_size 32
   @session_validity_in_days 60
   @reset_password_validity_in_hours 1
+  @confirm_validity_in_days 7
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
@@ -64,6 +65,35 @@ defmodule Recco.Accounts.UserToken do
           where: token_record.token == ^token,
           where: token_record.context == "reset_password",
           where: token_record.inserted_at > ago(@reset_password_validity_in_hours, "hour"),
+          where: is_nil(user.deleted_at),
+          select: user
+
+      :error ->
+        from u in Recco.Accounts.User, where: false
+    end
+  end
+
+  @spec build_confirm_token(Recco.Accounts.User.t()) :: {binary(), t()}
+  def build_confirm_token(user) do
+    token = :crypto.strong_rand_bytes(@rand_size)
+
+    {Base.url_encode64(token, padding: false),
+     %__MODULE__{
+       token: token,
+       context: "confirm",
+       user_id: user.id
+     }}
+  end
+
+  @spec verify_confirm_token_query(binary()) :: Ecto.Query.t()
+  def verify_confirm_token_query(encoded_token) do
+    case Base.url_decode64(encoded_token, padding: false) do
+      {:ok, token} ->
+        from token_record in __MODULE__,
+          join: user in assoc(token_record, :user),
+          where: token_record.token == ^token,
+          where: token_record.context == "confirm",
+          where: token_record.inserted_at > ago(@confirm_validity_in_days, "day"),
           where: is_nil(user.deleted_at),
           select: user
 

@@ -2,6 +2,8 @@ defmodule Recco.AccountsTest do
   use Recco.DataCase, async: true
 
   alias Recco.Accounts
+  alias Recco.Accounts.User
+  alias Recco.Accounts.UserToken
 
   describe "register_user/1" do
     test "creates a user with valid attrs" do
@@ -131,6 +133,101 @@ defmodule Recco.AccountsTest do
       now = DateTime.utc_now() |> DateTime.truncate(:second)
       user = insert(:user, role: "base", deleted_at: now)
       assert {:error, :forbidden} = Accounts.set_user_role(user, "superadmin")
+    end
+  end
+
+  describe "confirmed?/1" do
+    test "is false when confirmed_at is nil" do
+      refute Accounts.confirmed?(%User{confirmed_at: nil})
+    end
+
+    test "is true when confirmed_at is set" do
+      assert Accounts.confirmed?(%User{confirmed_at: DateTime.utc_now()})
+    end
+  end
+
+  describe "deliver_confirmation_instructions/2" do
+    import Swoosh.TestAssertions
+
+    test "inserts a confirm token and sends the confirmation email" do
+      user = insert(:user, confirmed_at: nil)
+
+      assert {:ok, _meta} =
+               Accounts.deliver_confirmation_instructions(user, fn token ->
+                 "https://x/#{token}"
+               end)
+
+      assert_email_sent(fn email -> assert email.subject == "Confirm your email" end)
+
+      assert Repo.get_by(UserToken, user_id: user.id, context: "confirm")
+    end
+
+    test "refuses to deliver when the user is already confirmed" do
+      now = DateTime.utc_now() |> DateTime.truncate(:second)
+      user = insert(:user, confirmed_at: now)
+
+      assert {:error, :already_confirmed} =
+               Accounts.deliver_confirmation_instructions(user, fn token ->
+                 "https://x/#{token}"
+               end)
+
+      assert_no_email_sent()
+      refute Repo.get_by(UserToken, user_id: user.id, context: "confirm")
+    end
+  end
+
+  describe "confirm_user_by_token/1" do
+    test "sets confirmed_at and deletes the confirm tokens for that user" do
+      user = insert(:user, confirmed_at: nil)
+
+      {encoded, user_token} = UserToken.build_confirm_token(user)
+      Repo.insert!(user_token)
+
+      assert {:ok, confirmed} = Accounts.confirm_user_by_token(encoded)
+      assert confirmed.id == user.id
+      assert %DateTime{} = confirmed.confirmed_at
+
+      assert Repo.aggregate(
+               from(t in UserToken,
+                 where: t.user_id == ^user.id and t.context == "confirm"
+               ),
+               :count
+             ) == 0
+    end
+
+    test "leaves non-confirm tokens (e.g. session tokens) intact" do
+      user = insert(:user, confirmed_at: nil)
+      _session = Accounts.generate_user_session_token(user)
+
+      {encoded, user_token} = UserToken.build_confirm_token(user)
+      Repo.insert!(user_token)
+
+      assert {:ok, _} = Accounts.confirm_user_by_token(encoded)
+
+      assert Repo.aggregate(
+               from(t in UserToken,
+                 where: t.user_id == ^user.id and t.context == "session"
+               ),
+               :count
+             ) == 1
+    end
+
+    test "returns :invalid_token for a malformed token" do
+      assert {:error, :invalid_token} = Accounts.confirm_user_by_token("not-a-token")
+    end
+
+    test "returns :invalid_token for an expired token" do
+      user = insert(:user, confirmed_at: nil)
+
+      {encoded, user_token} = UserToken.build_confirm_token(user)
+      Repo.insert!(user_token)
+
+      # Backdate the token past the 7-day window.
+      Repo.update_all(UserToken,
+        set: [inserted_at: DateTime.utc_now() |> DateTime.add(-8, :day)]
+      )
+
+      assert {:error, :invalid_token} = Accounts.confirm_user_by_token(encoded)
     end
   end
 end

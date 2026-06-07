@@ -66,6 +66,22 @@ defmodule ReccoWeb.Router do
     end
   end
 
+  # Email confirmation (LiveView — works whether logged in or not)
+  scope "/", ReccoWeb do
+    pipe_through :browser
+
+    live_session :confirmation,
+      on_mount: [
+        ReccoWeb.Live.RequestIdHook,
+        ReccoWeb.Live.SetLocale,
+        {ReccoWeb.Live.UserAuth, :mount_current_user}
+      ],
+      layout: {ReccoWeb.Layouts, :public} do
+      live "/confirm", ConfirmationInstructionsLive
+      live "/confirm/:token", ConfirmationLive
+    end
+  end
+
   # Public LiveView pages (browsing, landing)
   scope "/", ReccoWeb do
     pipe_through :browser

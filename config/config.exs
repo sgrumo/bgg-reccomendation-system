@@ -23,6 +23,11 @@ config :recco, ReccoWeb.Gettext,
 
 config :recco, Recco.Mailer, adapter: Swoosh.Adapters.Local
 
+# Default sender — Resend's sandbox address works without a verified domain
+# but only delivers to the Resend-account email. Override per env via
+# MAILER_SENDER_NAME / MAILER_SENDER_EMAIL in prod.
+config :recco, :mailer_sender, {"Recco", "onboarding@resend.dev"}
+
 config :swoosh, :api_client, Swoosh.ApiClient.Finch
 
 config :recco, ReccoWeb.Endpoint,

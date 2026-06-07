@@ -310,6 +310,7 @@ Located in `recommender/`. Uses scikit-learn for content-based recommendation vi
 | `ALERT_RECIPIENTS` | prod | Comma-separated emails receiving observability alerts; falls back to `Logger.error` when unset |
 | `CSP_MODE` | prod | `enforce` flips CSP out of Report-Only (default) |
 | `MAILER_ADAPTER`, `MAILER_API_KEY` | prod | Swoosh adapter selection (resend \| brevo) |
+| `MAILER_SENDER_NAME`, `MAILER_SENDER_EMAIL` | prod | Override the `From` address. Defaults to `Recco <onboarding@resend.dev>` (Resend sandbox — only delivers to the Resend-account email until a real domain is verified) |
 
 ### Test config notes
 
