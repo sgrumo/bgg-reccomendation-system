@@ -1,6 +1,8 @@
 defmodule ReccoWeb.ConfirmationInstructionsLive do
   use ReccoWeb, :live_view
 
+  require Logger
+
   alias Recco.Accounts
 
   @impl true
@@ -19,9 +21,9 @@ defmodule ReccoWeb.ConfirmationInstructionsLive do
           {:noreply, Phoenix.LiveView.Socket.t()}
   def handle_event("submit", %{"user" => %{"email" => email}}, socket) do
     if user = Accounts.get_user_by_email(email) do
-      Accounts.deliver_confirmation_instructions(user, fn token ->
-        url(~p"/confirm/#{token}")
-      end)
+      user
+      |> Accounts.deliver_confirmation_instructions(fn token -> url(~p"/confirm/#{token}") end)
+      |> log_delivery_failure(flow: :confirmation, user_id: user.id)
     end
 
     socket =
@@ -39,6 +41,16 @@ defmodule ReccoWeb.ConfirmationInstructionsLive do
 
   defp post_submit_path(socket) do
     if socket.assigns[:current_user], do: ~p"/", else: ~p"/login"
+  end
+
+  defp log_delivery_failure({:ok, _}, _meta), do: :ok
+  defp log_delivery_failure({:error, :already_confirmed}, _meta), do: :ok
+
+  defp log_delivery_failure({:error, reason}, meta) do
+    Logger.warning(
+      "Email delivery failed",
+      Keyword.put(meta, :reason, inspect(reason))
+    )
   end
 
   @impl true

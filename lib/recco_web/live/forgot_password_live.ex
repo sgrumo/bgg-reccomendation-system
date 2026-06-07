@@ -1,6 +1,8 @@
 defmodule ReccoWeb.ForgotPasswordLive do
   use ReccoWeb, :live_view
 
+  require Logger
+
   alias Recco.Accounts
 
   @impl true
@@ -19,9 +21,11 @@ defmodule ReccoWeb.ForgotPasswordLive do
           {:noreply, Phoenix.LiveView.Socket.t()}
   def handle_event("submit", %{"user" => %{"email" => email}}, socket) do
     if user = Accounts.get_user_by_email(email) do
-      Accounts.deliver_reset_password_instructions(user, fn token ->
+      user
+      |> Accounts.deliver_reset_password_instructions(fn token ->
         url(~p"/reset-password/#{token}")
       end)
+      |> log_delivery_failure(flow: :reset_password, user_id: user.id)
     end
 
     socket =
@@ -35,6 +39,16 @@ defmodule ReccoWeb.ForgotPasswordLive do
       |> redirect(to: ~p"/login")
 
     {:noreply, socket}
+  end
+
+  defp log_delivery_failure({:ok, _}, _meta), do: :ok
+  defp log_delivery_failure({:error, :already_confirmed}, _meta), do: :ok
+
+  defp log_delivery_failure({:error, reason}, meta) do
+    Logger.warning(
+      "Email delivery failed",
+      Keyword.put(meta, :reason, inspect(reason))
+    )
   end
 
   @impl true
