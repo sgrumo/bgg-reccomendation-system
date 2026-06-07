@@ -27,6 +27,7 @@ averziano-*.tar
 
 # Environment variables
 .env
+.env.*
 
 # Dialyzer PLT files
 /priv/plts/
