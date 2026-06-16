@@ -45,22 +45,6 @@ services:
     expose:
       - "8000"
 
-  caddy:
-    image: caddy:2-alpine
-    restart: unless-stopped
-    environment:
-      SITE_ADDRESS: ${PHX_HOST}
-    ports:
-      - "80:80"
-      - "443:443"
-      - "443:443/udp"
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile
-      - caddy_data:/data
-      - caddy_config:/config
-    depends_on:
-      - app
-
   dozzle:
     image: amir20/dozzle:latest
     restart: unless-stopped
@@ -72,5 +56,3 @@ services:
 volumes:
   pgdata:
   backups:
-  caddy_data:
-  caddy_config:
