@@ -896,7 +896,7 @@ msgstr ""
 
 #: lib/recco_web/controllers/user_registration_html/new.html.heex:3
 #, elixir-autogen, elixir-format
-msgid "Join BGRecco"
+msgid "Join Boardello"
 msgstr ""
 
 #: lib/recco_web/live/prototype_live/form.ex:447
@@ -1131,7 +1131,7 @@ msgstr ""
 
 #: lib/recco_web/live/landing_live.ex:61
 #, elixir-autogen, elixir-format
-msgid "Rate the games you love and let BGRecco match you with your next obsession — by category, mechanics and complexity, not popularity."
+msgid "Rate the games you love and let Boardello match you with your next obsession — by category, mechanics and complexity, not popularity."
 msgstr ""
 
 #: lib/recco_web/live/landing_live.ex:129

@@ -2,7 +2,7 @@
 // The initial application of .dark happens via the inline FOUC-prevention
 // script in root.html.heex (pre-paint), so this hook only handles the
 // click-driven toggle and keeps the chosen mode across sessions.
-const STORAGE_KEY = "bgrecco-theme"
+const STORAGE_KEY = "boardello-theme"
 
 const ThemeToggle = {
   mounted() {

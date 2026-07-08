@@ -86,7 +86,7 @@ defmodule ReccoWeb.Navigation do
         </span>
       </span>
       <span class="font-head font-display text-2xl tracking-head leading-none text-ink">
-        BGRecco
+        Boardello
       </span>
     </span>
     """

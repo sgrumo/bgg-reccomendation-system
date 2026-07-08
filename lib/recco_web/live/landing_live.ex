@@ -59,7 +59,7 @@ defmodule ReccoWeb.LandingLive do
         </h1>
         <p class="text-[19px] leading-[1.55] text-ink-soft max-w-[480px] mb-7">
           {gettext(
-            "Rate the games you love and let BGRecco match you with your next obsession — by category, mechanics and complexity, not popularity."
+            "Rate the games you love and let Boardello match you with your next obsession — by category, mechanics and complexity, not popularity."
           )}
         </p>
         <div class="flex flex-wrap items-center gap-3.5">

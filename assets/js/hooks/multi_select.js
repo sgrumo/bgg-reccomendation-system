@@ -2,6 +2,7 @@ const MultiSelect = {
   mounted() {
     this.open = false
     this.search = ""
+    this.dirty = false
     this.selected = new Set(JSON.parse(this.el.dataset.selected || "[]"))
     this.event = this.el.dataset.event
     this.options = JSON.parse(this.el.dataset.options || "[]")
@@ -26,7 +27,11 @@ const MultiSelect = {
     const wasOpen = this.open
     const prevSearch = this.search
 
-    this.selected = new Set(JSON.parse(this.el.dataset.selected || "[]"))
+    // While the dropdown is open with un-pushed local changes, keep the
+    // local selection — an unrelated re-render must not clobber pending picks.
+    if (!this.dirty) {
+      this.selected = new Set(JSON.parse(this.el.dataset.selected || "[]"))
+    }
     this.options = JSON.parse(this.el.dataset.options || "[]")
 
     this._bindElements()
@@ -100,6 +105,15 @@ const MultiSelect = {
     this.open = false
     this.dropdown.classList.add("hidden")
     this.header.setAttribute("aria-expanded", "false")
+    this._flush()
+  },
+
+  // Coalesce: a single filter event is pushed when the dropdown closes,
+  // so picking N options triggers one query instead of N.
+  _flush() {
+    if (!this.dirty) return
+    this.dirty = false
+    this.pushEvent(this.event, {selected: [...this.selected]})
   },
 
   _selectOption(name) {
@@ -108,9 +122,9 @@ const MultiSelect = {
     } else {
       this.selected.add(name)
     }
+    this.dirty = true
     this._renderTags()
     this._updateCheckboxes()
-    this.pushEvent(this.event, {selected: [...this.selected]})
   },
 
   _renderTags() {

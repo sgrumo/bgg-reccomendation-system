@@ -896,8 +896,8 @@ msgstr "Importazione in corso…"
 
 #: lib/recco_web/controllers/user_registration_html/new.html.heex:3
 #, elixir-autogen, elixir-format
-msgid "Join BGRecco"
-msgstr "Unisciti a BGRecco"
+msgid "Join Boardello"
+msgstr "Unisciti a Boardello"
 
 #: lib/recco_web/live/prototype_live/form.ex:447
 #, elixir-autogen, elixir-format
@@ -1131,8 +1131,8 @@ msgstr "Valuta altri giochi"
 
 #: lib/recco_web/live/landing_live.ex:61
 #, elixir-autogen, elixir-format
-msgid "Rate the games you love and let BGRecco match you with your next obsession — by category, mechanics and complexity, not popularity."
-msgstr "Valuta i giochi che ami e lascia che BGRecco ti suggerisca la tua prossima ossessione — per categoria, meccaniche e complessità, non per popolarità."
+msgid "Rate the games you love and let Boardello match you with your next obsession — by category, mechanics and complexity, not popularity."
+msgstr "Valuta i giochi che ami e lascia che Boardello ti suggerisca la tua prossima ossessione — per categoria, meccaniche e complessità, non per popolarità."
 
 #: lib/recco_web/live/landing_live.ex:129
 #, elixir-autogen, elixir-format

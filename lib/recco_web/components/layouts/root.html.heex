@@ -15,7 +15,7 @@
       // preference or OS setting. Mirrors the toggle in assets/js/hooks/theme_toggle.js.
       (function () {
         try {
-          var stored = localStorage.getItem("bgrecco-theme");
+          var stored = localStorage.getItem("boardello-theme");
           var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
           if (stored === "dark" || (stored === null && prefersDark)) {
             document.documentElement.classList.add("dark");
@@ -23,7 +23,7 @@
         } catch (_e) {}
       })();
     </script>
-    <.live_title default="BGRecco">
+    <.live_title default="Boardello">
       {assigns[:page_title]}
     </.live_title>
     <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
@@ -31,7 +31,10 @@
     </script>
   </head>
   <body class="bg-bg text-fg antialiased font-base">
-    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-4 focus:bg-main focus:text-main-fg focus:border-2 focus:border-border focus:rounded-base">
+    <a
+      href="#main-content"
+      class="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-4 focus:bg-main focus:text-main-fg focus:border-2 focus:border-border focus:rounded-base"
+    >
       {gettext("Skip to content")}
     </a>
     {@inner_content}
