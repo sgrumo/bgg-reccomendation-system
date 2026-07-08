@@ -459,7 +459,7 @@ msgstr ""
 msgid "Similar Games"
 msgstr ""
 
-#: lib/recco_web/components/layouts/root.html.heex:35
+#: lib/recco_web/components/layouts/root.html.heex:38
 #, elixir-autogen, elixir-format
 msgid "Skip to content"
 msgstr ""
@@ -1450,4 +1450,9 @@ msgstr ""
 #: lib/recco_web/live/game_live/show.ex:394
 #, elixir-autogen, elixir-format
 msgid "to rate this game and unlock personalised picks."
+msgstr ""
+
+#: lib/recco_web/components/layouts/app.html.heex:10
+#, elixir-autogen, elixir-format
+msgid "Powered by"
 msgstr ""
