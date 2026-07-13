@@ -7,16 +7,20 @@ from fastapi import FastAPI, HTTPException, Query
 from pydantic import BaseModel
 
 from src.db import connect
+from src.embedding import get_model
 from src.engine import RecommendationEngine
+from src.semantic_search import semantic_search
 
 
-engine = RecommendationEngine(connect())
+db_engine = connect()
+engine = RecommendationEngine(db_engine)
 
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncGenerator[None, None]:
-    """Load the recommendation engine on startup."""
+    """Load the recommendation engine and warm the embedding model on startup."""
     engine.load()
+    get_model()
     yield
 
 
@@ -31,6 +35,14 @@ class UserRatings(BaseModel):
 
 class GameRecommendation(BaseModel):
     """A single game recommendation."""
+
+    bgg_id: int
+    name: str
+    score: float
+
+
+class SearchResult(BaseModel):
+    """A single semantic-search hit."""
 
     bgg_id: int
     name: str
@@ -63,6 +75,16 @@ def game_recommendations(
     except KeyError:
         raise HTTPException(status_code=404, detail=f"Game {bgg_id} not found")
     return [GameRecommendation(**r) for r in results]
+
+
+@app.get("/search")
+def search(
+    q: str = Query(min_length=1),
+    limit: int = Query(default=20, ge=1, le=50),
+) -> list[SearchResult]:
+    """Semantic search over all embedded games."""
+    results = semantic_search(db_engine, q, limit=limit)
+    return [SearchResult(**r) for r in results]
 
 
 @app.post("/users/recommendations")

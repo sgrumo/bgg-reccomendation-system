@@ -63,7 +63,10 @@
       "Bash(/Users/samuelemedici/miniconda3/envs/recco/bin/python -c ' *)",
       "Bash(/Users/samuelemedici/miniconda3/bin/python -m pip uninstall -y fastembed pgvector)",
       "Bash(/Users/samuelemedici/miniconda3/envs/recco/bin/python -m scripts.backfill)",
-      "Bash(/Users/samuelemedici/miniconda3/envs/recco/bin/ruff check *)"
+      "Bash(/Users/samuelemedici/miniconda3/envs/recco/bin/ruff check *)",
+      "Bash(/Users/samuelemedici/miniconda3/envs/recco/bin/uvicorn api:app --host 127.0.0.1 --port 8000)",
+      "Bash(echo \"started pid $!\")",
+      "Bash(pkill -f \"uvicorn api:app\")"
     ]
   }
 }
