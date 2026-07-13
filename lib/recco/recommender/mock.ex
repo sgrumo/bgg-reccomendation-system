@@ -33,4 +33,9 @@ defmodule Recco.Recommender.Mock do
        %{bgg_id: 200, name: "Search Result 2", score: 0.83}
      ]}
   end
+
+  @spec refresh_embeddings() :: {:ok, non_neg_integer()} | {:error, atom()}
+  def refresh_embeddings do
+    {:ok, 0}
+  end
 end

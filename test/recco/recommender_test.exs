@@ -39,6 +39,12 @@ defmodule Recco.RecommenderTest do
     end
   end
 
+  describe "refresh_embeddings/0" do
+    test "returns the pending count from the client" do
+      assert {:ok, 0} = Recommender.refresh_embeddings()
+    end
+  end
+
   describe "enrich_with_games/1" do
     test "attaches game records to recommendations" do
       game = insert(:board_game, bgg_id: 42)

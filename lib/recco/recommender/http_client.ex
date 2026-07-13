@@ -63,6 +63,19 @@ defmodule Recco.Recommender.HttpClient do
     end
   end
 
+  @spec refresh_embeddings() :: {:ok, non_neg_integer()} | {:error, atom()}
+  def refresh_embeddings do
+    url = "#{base_url()}/embeddings/refresh"
+
+    case Req.post(url) do
+      {:ok, %{status: 200, body: %{"pending" => pending}}} ->
+        {:ok, pending}
+
+      _ ->
+        {:error, :service_unavailable}
+    end
+  end
+
   defp normalize_recommendations(body) when is_list(body) do
     Enum.map(body, fn item ->
       %{

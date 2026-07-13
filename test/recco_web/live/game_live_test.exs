@@ -57,5 +57,24 @@ defmodule ReccoWeb.GameLiveTest do
       assert {:error, {:redirect, %{to: "/games"}}} =
                live(conn, ~p"/games/#{Ecto.UUID.generate()}")
     end
+
+    test "back link defaults to the browse catalogue", %{conn: conn} do
+      game = insert(:board_game)
+
+      {:ok, _view, html} = live(conn, ~p"/games/#{game.id}")
+
+      assert html =~ "Back to browse"
+      assert html =~ ~s{href="/games"}
+    end
+
+    test "back link returns to search when arriving from a search", %{conn: conn} do
+      game = insert(:board_game)
+
+      {:ok, _view, html} =
+        live(conn, ~p"/games/#{game.id}?#{[return_to: "search", q: "heavy euro"]}")
+
+      assert html =~ "Back to search"
+      assert html =~ "/search?q=heavy+euro"
+    end
   end
 end

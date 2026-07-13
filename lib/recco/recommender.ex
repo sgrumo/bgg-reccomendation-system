@@ -35,6 +35,11 @@ defmodule Recco.Recommender do
     end
   end
 
+  @spec refresh_embeddings() :: {:ok, non_neg_integer()} | {:error, atom()}
+  def refresh_embeddings do
+    client().refresh_embeddings()
+  end
+
   @spec enrich_with_games([recommendation()]) :: [map()]
   def enrich_with_games(recommendations) do
     bgg_ids = Enum.map(recommendations, & &1.bgg_id)

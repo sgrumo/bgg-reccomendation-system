@@ -3,6 +3,8 @@ defmodule ReccoWeb.SearchLiveTest do
 
   import Phoenix.LiveViewTest
 
+  alias Recco.Wishlists
+
   describe "mount" do
     test "renders the search page with no results before searching", %{conn: conn} do
       {:ok, _view, html} = live(conn, ~p"/search")
@@ -45,6 +47,40 @@ defmodule ReccoWeb.SearchLiveTest do
 
       assert_patch(view, ~p"/search?q=engine+builder")
       assert render_async(view) =~ "Deep Euro Engine"
+    end
+  end
+
+  describe "wishlist toggle" do
+    test "logged-out visitors see a sign-in prompt instead of a toggle", %{conn: conn} do
+      insert(:board_game, bgg_id: 100, name: "Deep Euro Engine")
+
+      {:ok, view, _html} = live(conn, ~p"/search?q=strategy")
+      html = render_async(view)
+
+      assert html =~ "Sign in to wishlist"
+      refute html =~ "add_to_wishlist"
+    end
+
+    test "a logged-in user can add and remove a result from their wishlist", %{conn: conn} do
+      user = insert(:user)
+      game = insert(:board_game, bgg_id: 100, name: "Deep Euro Engine")
+
+      {:ok, view, _html} =
+        conn |> log_in_user(user) |> live(~p"/search?q=strategy")
+
+      render_async(view)
+
+      view
+      |> element(~s{button[phx-click="add_to_wishlist"][phx-value-game-id="#{game.id}"]})
+      |> render_click()
+
+      assert Wishlists.wishlisted?(user.id, game.id)
+
+      view
+      |> element(~s{button[phx-click="remove_from_wishlist"][phx-value-game-id="#{game.id}"]})
+      |> render_click()
+
+      refute Wishlists.wishlisted?(user.id, game.id)
     end
   end
 end

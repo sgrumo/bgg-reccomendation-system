@@ -66,7 +66,10 @@
       "Bash(/Users/samuelemedici/miniconda3/envs/recco/bin/ruff check *)",
       "Bash(/Users/samuelemedici/miniconda3/envs/recco/bin/uvicorn api:app --host 127.0.0.1 --port 8000)",
       "Bash(echo \"started pid $!\")",
-      "Bash(pkill -f \"uvicorn api:app\")"
+      "Bash(pkill -f \"uvicorn api:app\")",
+      "Bash(/Users/samuelemedici/miniconda3/envs/recco/bin/python -c \"import ast; ast.parse\\(open\\('api.py'\\).read\\(\\)\\); ast.parse\\(open\\('src/backfill.py'\\).read\\(\\)\\); ast.parse\\(open\\('scripts/backfill.py'\\).read\\(\\)\\); print\\('python syntax OK'\\)\")",
+      "Bash(/Users/samuelemedici/miniconda3/envs/recco/bin/uvicorn api:app --host 127.0.0.1 --port 8001)",
+      "Bash(echo \"pid $!\")"
     ]
   }
 }

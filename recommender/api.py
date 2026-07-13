@@ -3,9 +3,10 @@
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import BackgroundTasks, FastAPI, HTTPException, Query
 from pydantic import BaseModel
 
+from src.backfill import backfill_embeddings, count_pending
 from src.db import connect
 from src.embedding import get_model
 from src.engine import RecommendationEngine
@@ -49,6 +50,12 @@ class SearchResult(BaseModel):
     score: float
 
 
+class RefreshResponse(BaseModel):
+    """Response for a triggered embedding refresh."""
+
+    pending: int
+
+
 class HealthResponse(BaseModel):
     """Health check response."""
 
@@ -85,6 +92,18 @@ def search(
     """Semantic search over all embedded games."""
     results = semantic_search(db_engine, q, limit=limit)
     return [SearchResult(**r) for r in results]
+
+
+@app.post("/embeddings/refresh")
+def refresh_embeddings(background_tasks: BackgroundTasks) -> RefreshResponse:
+    """Embed any rows with a NULL embedding in the background.
+
+    The trigger nulls an embedding when a game's text changes, and new games
+    start NULL, so this re-embeds exactly what is stale or missing.
+    """
+    pending = count_pending(db_engine)
+    background_tasks.add_task(backfill_embeddings, db_engine)
+    return RefreshResponse(pending=pending)
 
 
 @app.post("/users/recommendations")

@@ -12,19 +12,22 @@ defmodule ReccoWeb.GameLive.Show do
   @impl true
   @spec mount(map(), map(), Phoenix.LiveView.Socket.t()) ::
           {:ok, Phoenix.LiveView.Socket.t()}
-  def mount(%{"id" => id}, _session, socket) do
+  def mount(%{"id" => id} = params, _session, socket) do
     case BoardGames.get_board_game(id) do
       {:ok, game} ->
         user_rating = load_user_rating(socket.assigns[:current_user], game.id)
         wishlisted = load_wishlisted(socket.assigns[:current_user], game.id)
         feedback_map = load_feedback_map(socket.assigns[:current_user])
         rating_count = load_rating_count(socket.assigns[:current_user])
+        {back_path, back_label} = back_link(params)
 
         socket =
           socket
           |> assign(
             page_title: game.name,
             game: game,
+            back_path: back_path,
+            back_label: back_label,
             user_rating: user_rating,
             rating_form_score: user_rating && user_rating.score,
             wishlisted: wishlisted,
@@ -47,6 +50,12 @@ defmodule ReccoWeb.GameLive.Show do
          |> redirect(to: ~p"/games")}
     end
   end
+
+  defp back_link(%{"return_to" => "search"} = params) do
+    {~p"/search?#{[q: params["q"] || ""]}", gettext("Back to search")}
+  end
+
+  defp back_link(_params), do: {~p"/games", gettext("Back to browse")}
 
   @impl true
   @spec handle_event(String.t(), map(), Phoenix.LiveView.Socket.t()) ::
@@ -162,9 +171,9 @@ defmodule ReccoWeb.GameLive.Show do
   def render(assigns) do
     ~H"""
     <div class="pb-16">
-      <a href={~p"/games"} class="btn btn-ghost btn-sm !pl-0 mb-5">
-        ← {gettext("Back to browse")}
-      </a>
+      <.link navigate={@back_path} class="btn btn-ghost btn-sm !pl-0 mb-5">
+        ← {@back_label}
+      </.link>
 
       <div class="grid grid-cols-1 lg:grid-cols-[360px_1fr] gap-10 items-start">
         <div class="lg:sticky lg:top-[90px]">
