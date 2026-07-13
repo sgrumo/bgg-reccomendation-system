@@ -61,7 +61,9 @@
       "Bash(/Users/samuelemedici/miniconda3/envs/recco/bin/python --version)",
       "Bash(/Users/samuelemedici/miniconda3/envs/recco/bin/python -m pip install 'fastembed>=0.4' 'pgvector>=0.3')",
       "Bash(/Users/samuelemedici/miniconda3/envs/recco/bin/python -c ' *)",
-      "Bash(/Users/samuelemedici/miniconda3/bin/python -m pip uninstall -y fastembed pgvector)"
+      "Bash(/Users/samuelemedici/miniconda3/bin/python -m pip uninstall -y fastembed pgvector)",
+      "Bash(/Users/samuelemedici/miniconda3/envs/recco/bin/python -m scripts.backfill)",
+      "Bash(/Users/samuelemedici/miniconda3/envs/recco/bin/ruff check *)"
     ]
   }
 }
