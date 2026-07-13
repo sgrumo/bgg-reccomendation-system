@@ -405,6 +405,7 @@ defmodule ReccoWeb.Navigation do
   defp visible_nav_items(current_user) do
     items = [
       {gettext("Browse"), "/games", :always},
+      {gettext("Search"), "/search", :always},
       {gettext("My Ratings"), "/ratings", :authenticated},
       {gettext("Wishlist"), "/wishlist", :authenticated},
       {gettext("For You"), "/recommendations", :authenticated},

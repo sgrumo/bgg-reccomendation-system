@@ -27,6 +27,18 @@ defmodule Recco.RecommenderTest do
     end
   end
 
+  describe "search/2" do
+    test "returns results from mock" do
+      assert {:ok, results} = Recommender.search("deck building")
+      assert length(results) == 2
+      assert hd(results).bgg_id == 100
+    end
+
+    test "returns empty list for a blank query without calling the client" do
+      assert {:ok, []} = Recommender.search("   ")
+    end
+  end
+
   describe "enrich_with_games/1" do
     test "attaches game records to recommendations" do
       game = insert(:board_game, bgg_id: 42)

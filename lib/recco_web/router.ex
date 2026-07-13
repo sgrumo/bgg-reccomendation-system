@@ -81,6 +81,7 @@ defmodule ReccoWeb.Router do
       live "/", LandingLive
       live "/games", GameLive.Index
       live "/games/:id", GameLive.Show
+      live "/search", SearchLive
     end
   end
 

@@ -24,4 +24,13 @@ defmodule Recco.Recommender.Mock do
        %{bgg_id: 20, name: "Recommended Game 2", score: 0.85}
      ]}
   end
+
+  @spec search(String.t(), keyword()) :: {:ok, [recommendation()]} | {:error, atom()}
+  def search(_query, _opts \\ []) do
+    {:ok,
+     [
+       %{bgg_id: 100, name: "Search Result 1", score: 0.91},
+       %{bgg_id: 200, name: "Search Result 2", score: 0.83}
+     ]}
+  end
 end

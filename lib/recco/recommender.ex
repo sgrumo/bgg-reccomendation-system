@@ -26,6 +26,15 @@ defmodule Recco.Recommender do
     end
   end
 
+  @spec search(String.t(), keyword()) :: {:ok, [recommendation()]} | {:error, atom()}
+  def search(query, opts \\ []) do
+    if String.trim(query) == "" do
+      {:ok, []}
+    else
+      client().search(query, opts)
+    end
+  end
+
   @spec enrich_with_games([recommendation()]) :: [map()]
   def enrich_with_games(recommendations) do
     bgg_ids = Enum.map(recommendations, & &1.bgg_id)

@@ -46,6 +46,23 @@ defmodule Recco.Recommender.HttpClient do
     end
   end
 
+  @spec search(String.t(), keyword()) :: {:ok, [recommendation()]} | {:error, atom()}
+  def search(query, opts \\ []) do
+    limit = Keyword.get(opts, :limit, 20)
+    url = "#{base_url()}/search?q=#{URI.encode_www_form(query)}&limit=#{limit}"
+
+    case Req.get(url) do
+      {:ok, %{status: 200, body: body}} ->
+        {:ok, normalize_recommendations(body)}
+
+      {:ok, %{status: 422}} ->
+        {:error, :unprocessable_entity}
+
+      _ ->
+        {:error, :service_unavailable}
+    end
+  end
+
   defp normalize_recommendations(body) when is_list(body) do
     Enum.map(body, fn item ->
       %{
